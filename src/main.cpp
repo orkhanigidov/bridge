@@ -2,6 +2,10 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+#include <ogdf/basic/Graph.h>
+#include <ogdf/fileformats/GraphIO.h>
+
+ogdf::Graph g_graph;
 
 class ParameterConverter {
 public:
@@ -40,6 +44,24 @@ class Registry {
 
 public:
     Registry() = default;
+
+    void registerMethods() {
+        methods["writeGML"] = [](const std::vector<std::string> &params) {
+            if (params.empty()) {
+                throw std::invalid_argument("Missing required parameters");
+            }
+            const bool success = ogdf::GraphIO::write(g_graph, params[0], ogdf::GraphIO::writeGML);
+            return success ? "Graph written to " + params[0] : "Failed to write graph to " + params[0];
+        };
+
+        methods["readGML"] = [](const std::vector<std::string> &params) {
+            if (params.empty()) {
+                throw std::invalid_argument("Missing required parameters");
+            }
+            const bool success = ogdf::GraphIO::read(g_graph, params[0], ogdf::GraphIO::readGML);
+            return success ? "Graph read from " + params[0] : "Failed to read graph from " + params[0];
+        };
+    }
 
     std::string execute(const std::string &methodName, const std::vector<std::string> &params) {
         if (const auto it = methods.find(methodName); it != methods.end()) {
