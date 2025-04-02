@@ -18,6 +18,20 @@ public:
     }
 };
 
+class ResultConverter {
+public:
+    template<typename T>
+    static std::string convert(const T &result) {
+        if constexpr (std::is_same_v<T, int> || std::is_same_v<T, double> || std::is_same_v<T, bool>) {
+            return std::to_string(result);
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            return result;
+        } else {
+            throw std::invalid_argument("Unsupported return type");
+        }
+    }
+};
+
 int main() {
     return 0;
 }
