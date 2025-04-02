@@ -1,4 +1,7 @@
-#include <iostream>
+#include <functional>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 
 class ParameterConverter {
 public:
@@ -29,6 +32,22 @@ public:
         } else {
             throw std::invalid_argument("Unsupported return type");
         }
+    }
+};
+
+class Registry {
+    std::unordered_map<std::string, std::function<std::string(const std::vector<std::string> &)> > methods;
+
+public:
+    Registry() = default;
+
+    std::string listMethods() const {
+        std::stringstream ss;
+        ss << "List of available methods:\n";
+        for (const auto &method: methods) {
+            ss << "- " << method.first << "\n";
+        }
+        return ss.str();
     }
 };
 
