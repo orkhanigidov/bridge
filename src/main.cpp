@@ -62,6 +62,28 @@ public:
     }
 };
 
+Registry g_registry;
+
+std::string handleRequest(const std::string &path, const std::string &params) {
+    std::string methodName = path;
+    if (const size_t lastSlash = path.find_last_of('/'); lastSlash != std::string::npos) {
+        methodName = methodName.substr(lastSlash + 1);
+    }
+
+    std::vector<std::string> paramList;
+    std::istringstream iss(params);
+    std::string param;
+    while (std::getline(iss, param, ',')) {
+        paramList.push_back(param);
+    }
+
+    if (methodName == "methods") {
+        return g_registry.listMethods();
+    }
+
+    return g_registry.execute(methodName, paramList);
+}
+
 int main() {
     return 0;
 }
