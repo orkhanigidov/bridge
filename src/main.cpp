@@ -47,6 +47,37 @@ public:
         registerFunctionsAndMethods();
     }
 
+    template<typename Ret, typename Class, typename... Args>
+    void registerMethod(const std::string &methodName, Ret (Class::*function)(Args...), Class &instance) {
+        methods[methodName] = [&instance, function, methodName](const std::vector<std::string> &params) {
+            if (params.size() < sizeof...(Args)) {
+                throw std::invalid_argument(methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
+            }
+            std::index_sequence_for<Args...> indices{};
+            return callMethod<Ret, Class, Args...>(instance, function, params, indices);
+        };
+    }
+
+    template<typename Ret, typename Class>
+    void registerMethod(const std::string &methodName, Ret (Class::*function)(), Class &instance) {
+        methods[methodName] = [&instance, function](const std::vector<std::string> &params) {
+            Ret result = (instance.*function)();
+            return ResultConverter::convert(result);
+        };
+    }
+
+    template<typename Ret, typename Class, typename... Args, std::size_t... I>
+    static std::string callMethod(Class &instance, Ret (Class::*function)(Args...),
+                                  const std::vector<std::string> &params, std::index_sequence<I...>) {
+        if constexpr (std::is_same_v<Ret, void>) {
+            (instance.*function)(ParameterConverter::convert<Args>(params[I])...);
+            return "Operation completed successfully";
+        } else {
+            Ret result = (instance.*function)(ParameterConverter::convert<Args>(params[I])...);
+            return ResultConverter::convert(result);
+        }
+    }
+
     template<typename Ret, typename... Args>
     void registerFunction(const std::string &methodName, Ret (*function)(Args...)) {
         methods[methodName] = [function, methodName](const std::vector<std::string> &params) {
@@ -81,6 +112,8 @@ public:
     void registerFunctionsAndMethods() {
         registerFunction("setSeed", &ogdf::setSeed);
         registerFunction("randomNumber", &ogdf::randomNumber);
+        registerMethod("newNode", &ogdf::Graph::newNode, g_graph);
+        registerMethod("newEdge", static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge), g_graph);
 
         methods["writeGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
@@ -146,6 +179,9 @@ int main() {
     std::cout << handleRequest("/graph/methods", "") << std::endl;
     std::cout << handleRequest("/setSeed", "1") << std::endl;
     std::cout << handleRequest("/randomNumber", "1, 10") << std::endl;
+    std::cout << handleRequest("/graph/newNode", "1") << std::endl;
+    std::cout << handleRequest("/graph/newNode", "2") << std::endl;
+    std::cout << handleRequest("/graph/newEdge", "1, 2, 1") << std::endl;
     std::cout << handleRequest("/graph/writeGML", "output.gml") << std::endl;
     std::cout << handleRequest("/graph/readGML", "output.gml") << std::endl;
 
