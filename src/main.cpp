@@ -44,10 +44,44 @@ class Registry {
 
 public:
     Registry() {
-        registerMethods();
+        registerFunctionsAndMethods();
     }
 
-    void registerMethods() {
+    template<typename Ret, typename... Args>
+    void registerFunction(const std::string &methodName, Ret (*function)(Args...)) {
+        methods[methodName] = [function, methodName](const std::vector<std::string> &params) {
+            if (params.size() < sizeof...(Args)) {
+                throw std::invalid_argument(methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
+            }
+            std::index_sequence_for<Args...> indices{};
+            return callFunction<Ret, Args...>(function, params, indices);
+        };
+    }
+
+    template<typename Ret>
+    void registerFunction(const std::string &methodName, Ret (*function)()) {
+        methods[methodName] = [function](const std::vector<std::string> &params) {
+            Ret result = (*function)();
+            return ResultConverter::convert(result);
+        };
+    }
+
+    template<typename Ret, typename... Args, std::size_t... I>
+    static std::string callFunction(Ret (*function)(Args...), const std::vector<std::string> &params,
+                                    std::index_sequence<I...>) {
+        if constexpr (std::is_same_v<Ret, void>) {
+            (*function)(ParameterConverter::convert<Args>(params[I])...);
+            return "Operation completed successfully";
+        } else {
+            Ret result = (*function)(ParameterConverter::convert<Args>(params[I])...);
+            return ResultConverter::convert(result);
+        }
+    }
+
+    void registerFunctionsAndMethods() {
+        registerFunction("setSeed", &ogdf::setSeed);
+        registerFunction("randomNumber", &ogdf::randomNumber);
+
         methods["writeGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
                 throw std::invalid_argument("Missing required parameters");
@@ -110,6 +144,8 @@ std::string handleRequest(const std::string &path, const std::string &params) {
 
 int main() {
     std::cout << handleRequest("/graph/methods", "") << std::endl;
+    std::cout << handleRequest("/setSeed", "1") << std::endl;
+    std::cout << handleRequest("/randomNumber", "1, 10") << std::endl;
     std::cout << handleRequest("/graph/writeGML", "output.gml") << std::endl;
     std::cout << handleRequest("/graph/readGML", "output.gml") << std::endl;
 
