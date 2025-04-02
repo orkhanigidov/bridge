@@ -41,6 +41,17 @@ class Registry {
 public:
     Registry() = default;
 
+    std::string execute(const std::string &methodName, const std::vector<std::string> &params) {
+        if (const auto it = methods.find(methodName); it != methods.end()) {
+            try {
+                return it->second(params);
+            } catch (std::exception &e) {
+                return "Error: " + std::string(e.what());
+            }
+        }
+        return "Error: Unknown method '" + methodName + "'";
+    }
+
     std::string listMethods() const {
         std::stringstream ss;
         ss << "List of available methods:\n";
