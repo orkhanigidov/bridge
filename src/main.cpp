@@ -33,6 +33,8 @@ public:
             return std::to_string(result);
         } else if constexpr (std::is_same_v<T, std::string>) {
             return result;
+        } else if constexpr (std::is_same_v<T, ogdf::node> || std::is_same_v<T, ogdf::edge>) {
+            return std::to_string(result->index());
         } else {
             throw std::invalid_argument("Unsupported return type");
         }
@@ -121,7 +123,9 @@ public:
         registerFunction("setSeed", &ogdf::setSeed);
         registerFunction("randomNumber", &ogdf::randomNumber);
         registerMethod("newNode", &ogdf::Graph::newNode, g_graph);
-        registerMethod("newEdge", static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge), g_graph);
+        registerMethod(
+            "newEdge", static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge),
+            g_graph);
         registerMethod("numberOfNodes", &ogdf::Graph::numberOfNodes, g_graph);
         registerMethod("numberOfEdges", &ogdf::Graph::numberOfEdges, g_graph);
 
