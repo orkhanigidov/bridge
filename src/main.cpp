@@ -66,6 +66,14 @@ public:
         };
     }
 
+    template<typename Ret, typename Class>
+    void registerMethod(const std::string &methodName, Ret (Class::*function)() const, const Class &instance) {
+        methods[methodName] = [&instance, function](const std::vector<std::string> &params) {
+            Ret result = (instance.*function)();
+            return ResultConverter::convert(result);
+        };
+    }
+
     template<typename Ret, typename Class, typename... Args, std::size_t... I>
     static std::string callMethod(Class &instance, Ret (Class::*function)(Args...),
                                   const std::vector<std::string> &params, std::index_sequence<I...>) {
@@ -114,6 +122,8 @@ public:
         registerFunction("randomNumber", &ogdf::randomNumber);
         registerMethod("newNode", &ogdf::Graph::newNode, g_graph);
         registerMethod("newEdge", static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge), g_graph);
+        registerMethod("numberOfNodes", &ogdf::Graph::numberOfNodes, g_graph);
+        registerMethod("numberOfEdges", &ogdf::Graph::numberOfEdges, g_graph);
 
         methods["writeGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
@@ -182,6 +192,8 @@ int main() {
     std::cout << handleRequest("/graph/newNode", "1") << std::endl;
     std::cout << handleRequest("/graph/newNode", "2") << std::endl;
     std::cout << handleRequest("/graph/newEdge", "1, 2, 1") << std::endl;
+    std::cout << handleRequest("/graph/numberOfNodes", "") << std::endl;
+    std::cout << handleRequest("/graph/numberOfEdges", "") << std::endl;
     std::cout << handleRequest("/graph/writeGML", "output.gml") << std::endl;
     std::cout << handleRequest("/graph/readGML", "output.gml") << std::endl;
 
