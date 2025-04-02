@@ -43,7 +43,9 @@ class Registry {
     std::unordered_map<std::string, std::function<std::string(const std::vector<std::string> &)> > methods;
 
 public:
-    Registry() = default;
+    Registry() {
+        registerMethods();
+    }
 
     void registerMethods() {
         methods["writeGML"] = [](const std::vector<std::string> &params) {
@@ -107,5 +109,9 @@ std::string handleRequest(const std::string &path, const std::string &params) {
 }
 
 int main() {
+    std::cout << handleRequest("/graph/methods", "") << std::endl;
+    std::cout << handleRequest("/graph/writeGML", "output.gml") << std::endl;
+    std::cout << handleRequest("/graph/readGML", "output.gml") << std::endl;
+
     return 0;
 }
