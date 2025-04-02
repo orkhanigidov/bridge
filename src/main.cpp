@@ -19,6 +19,22 @@ public:
             return param == "true";
         } else if constexpr (std::is_same_v<T, std::string>) {
             return param;
+        } else if constexpr (std::is_same_v<T, ogdf::node>) {
+            const int id = std::stoi(param);
+            for (ogdf::node n: g_graph.nodes) {
+                if (n->index() == id) {
+                    return n;
+                }
+            }
+            throw std::runtime_error("Node does not exist");
+        } else if constexpr (std::is_same_v<T, ogdf::edge>) {
+            const int id = std::stoi(param);
+            for (ogdf::edge e: g_graph.edges) {
+                if (e->index() == id) {
+                    return e;
+                }
+            }
+            throw std::runtime_error("Edge does not exist");
         } else {
             throw std::invalid_argument("Unsupported parameter type");
         }
