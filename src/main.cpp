@@ -60,10 +60,10 @@ public:
 };
 
 class Registry {
-    using MethodHandler = std::function<std::string(const std::vector<std::string> &)>;
-
     std::unordered_map<std::string, void *> instances_;
-    std::unordered_map<std::string, MethodHandler> methods_;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::function<std::string(
+        const std::vector<std::string> &)> > > instanceMethods_;
+    std::unordered_map<std::string, std::function<std::string(const std::vector<std::string> &)> > globalMethods_;
 
 public:
     Registry() {
@@ -95,7 +95,7 @@ public:
         }
         auto *instance = static_cast<Class *>(instancePtr);
 
-        methods_[instanceName + "/" + methodName] = [instance, function, methodName
+        instanceMethods_[instanceName][methodName] = [instance, function, methodName
                 ](const std::vector<std::string> &params) {
                     if (params.size() < sizeof...(Args)) {
                         throw std::invalid_argument(
@@ -114,7 +114,7 @@ public:
         }
         auto *instance = static_cast<Class *>(instancePtr);
 
-        methods_[instanceName + "/" + methodName] = [instance, function](const std::vector<std::string> &) {
+        instanceMethods_[instanceName][methodName] = [instance, function](const std::vector<std::string> &) {
             Ret result = (instance->*function)();
             return ResultConverter::convert(result);
         };
@@ -129,7 +129,7 @@ public:
         }
         auto *instance = static_cast<Class *>(instancePtr);
 
-        methods_[instanceName + "/" + methodName] = [instance, function](const std::vector<std::string> &) {
+        instanceMethods_[instanceName][methodName] = [instance, function](const std::vector<std::string> &) {
             Ret result = (instance->*function)();
             return ResultConverter::convert(result);
         };
@@ -149,7 +149,7 @@ public:
 
     template<typename Ret, typename... Args>
     void registerFunction(const std::string &methodName, Ret (*function)(Args...)) {
-        methods_[methodName] = [function, methodName](const std::vector<std::string> &params) {
+        globalMethods_[methodName] = [function, methodName](const std::vector<std::string> &params) {
             if (params.size() < sizeof...(Args)) {
                 throw std::invalid_argument(methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
             }
@@ -159,7 +159,7 @@ public:
 
     template<typename Ret>
     void registerFunction(const std::string &methodName, Ret (*function)()) {
-        methods_[methodName] = [function](const std::vector<std::string> &) {
+        globalMethods_[methodName] = [function](const std::vector<std::string> &) {
             Ret result = (*function)();
             return ResultConverter::convert(result);
         };
@@ -191,7 +191,7 @@ public:
         registerMethod("graph", "numberOfNodes", &ogdf::Graph::numberOfNodes);
         registerMethod("graph", "numberOfEdges", &ogdf::Graph::numberOfEdges);
 
-        methods_["graph/writeGML"] = [](const std::vector<std::string> &params) {
+        instanceMethods_["graph"]["writeGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
                 throw std::invalid_argument("Missing filename parameters");
             }
@@ -199,7 +199,7 @@ public:
             return success ? "Graph written to " + params[0] : "Failed to write graph to " + params[0];
         };
 
-        methods_["graph/readGML"] = [](const std::vector<std::string> &params) {
+        instanceMethods_["graph"]["readGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
                 throw std::invalid_argument("Missing filename parameters");
             }
@@ -208,14 +208,31 @@ public:
         };
     }
 
-    std::string execute(const std::string &methodName, const std::vector<std::string> &params) {
-        const auto it = methods_.find(methodName);
-        if (it == methods_.end()) {
+    std::string execute(const std::string &instanceName, const std::string &methodName,
+                        const std::vector<std::string> &params) {
+        if (instanceName.empty()) {
+            if (const auto it = globalMethods_.find(methodName); it != globalMethods_.end()) {
+                try {
+                    return it->second(params);
+                } catch (std::exception &e) {
+                    return "Error: " + std::string(e.what());
+                }
+            }
             return "Error: Unknown method '" + methodName + "'";
         }
 
+        const auto instanceIt = instanceMethods_.find(instanceName);
+        if (instanceIt == instanceMethods_.end()) {
+            return "Error: Unknown instance '" + instanceName + "'";
+        }
+
+        const auto methodIt = instanceIt->second.find(methodName);
+        if (methodIt == instanceIt->second.end()) {
+            return "Error: Unknown method '" + methodName + "' for instance '" + instanceName + "'";
+        }
+
         try {
-            return it->second(params);
+            return methodIt->second(params);
         } catch (std::exception &e) {
             return "Error: " + std::string(e.what());
         }
@@ -224,8 +241,17 @@ public:
     std::string listMethods() const {
         std::stringstream ss;
         ss << "Available methods:\n";
-        for (const auto &[name, _]: methods_) {
+
+        ss << "Global methods:\n";
+        for (const auto &[name, _]: globalMethods_) {
             ss << "- " << name << "\n";
+        }
+
+        for (const auto &[instanceName, methods]: instanceMethods_) {
+            ss << "Instance '" << instanceName << "' methods:\n";
+            for (const auto &[name, _]: methods) {
+                ss << "- " << name << "\n";
+            }
         }
         return ss.str();
     }
@@ -235,6 +261,7 @@ Registry g_registry;
 
 std::string handleRequest(const std::string &path, const std::string &params) {
     static Registry registry;
+    std::string instanceName;
     std::string methodName = path;
 
     const size_t firstSlash = path.find_first_of('/');
@@ -245,6 +272,7 @@ std::string handleRequest(const std::string &path, const std::string &params) {
         methodName = instanceName + "/" + method;
     } else if (lastSlash != std::string::npos) {
         methodName = path.substr(lastSlash + 1);
+        instanceName = "";
     }
 
     std::vector<std::string> paramList;
@@ -258,7 +286,7 @@ std::string handleRequest(const std::string &path, const std::string &params) {
         return registry.listMethods();
     }
 
-    return registry.execute(methodName, paramList);
+    return registry.execute(instanceName, methodName, paramList);
 }
 
 int main() {
