@@ -26,7 +26,7 @@ public:
                     return n;
                 }
             }
-            throw std::runtime_error("Node does not exist");
+            throw std::runtime_error("Node with index " + param + " not found");
         } else if constexpr (std::is_same_v<T, ogdf::edge>) {
             const int id = std::stoi(param);
             for (ogdf::edge e: g_graph.edges) {
@@ -34,7 +34,7 @@ public:
                     return e;
                 }
             }
-            throw std::runtime_error("Edge does not exist");
+            throw std::runtime_error("Edge with index " + param + " not found");
         } else {
             throw std::invalid_argument("Unsupported parameter type");
         }
@@ -206,9 +206,10 @@ std::string handleRequest(const std::string &path, const std::string &params) {
 }
 
 int main() {
-    std::cout << handleRequest("/graph/methods", "") << std::endl;
+    std::cout << handleRequest("/methods", "") << std::endl;
     std::cout << handleRequest("/setSeed", "1") << std::endl;
     std::cout << handleRequest("/randomNumber", "1, 10") << std::endl;
+
     std::cout << handleRequest("/graph/newNode", "1") << std::endl;
     std::cout << handleRequest("/graph/newNode", "2") << std::endl;
     std::cout << handleRequest("/graph/newEdge", "1, 2, 1") << std::endl;
