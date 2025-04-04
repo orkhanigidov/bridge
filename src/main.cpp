@@ -267,9 +267,8 @@ std::string handleRequest(const std::string &path, const std::string &params) {
     const size_t firstSlash = path.find_first_of('/');
     if (const size_t lastSlash = path.find_last_of('/');
         firstSlash != std::string::npos && lastSlash != std::string::npos && firstSlash != lastSlash) {
-        const std::string instanceName = path.substr(firstSlash + 1, lastSlash - firstSlash - 1);
-        const std::string method = path.substr(lastSlash + 1);
-        methodName = instanceName + "/" + method;
+        instanceName = path.substr(firstSlash + 1, lastSlash - firstSlash - 1);
+        methodName = path.substr(lastSlash + 1);
     } else if (lastSlash != std::string::npos) {
         methodName = path.substr(lastSlash + 1);
         instanceName = "";
