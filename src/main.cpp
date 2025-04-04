@@ -60,36 +60,77 @@ public:
 };
 
 class Registry {
-    std::unordered_map<std::string, std::function<std::string(const std::vector<std::string> &)> > methods;
+    using MethodHandler = std::function<std::string(const std::vector<std::string> &)>;
+
+    std::unordered_map<std::string, void *> instances_;
+    std::unordered_map<std::string, MethodHandler> methods_;
 
 public:
     Registry() {
+        registerInstances();
         registerFunctionsAndMethods();
     }
 
+    void registerInstance(const std::string &name, void *instance) {
+        if (instance == nullptr) {
+            throw std::invalid_argument("Cannot register null instance for '" + name + "'");
+        }
+        instances_[name] = instance;
+    }
+
+    void *getInstance(const std::string &name) const {
+        const auto it = instances_.find(name);
+        if (it == instances_.end()) {
+            return nullptr;
+        }
+        return it->second;
+    }
+
     template<typename Ret, typename Class, typename... Args>
-    void registerMethod(const std::string &methodName, Ret (Class::*function)(Args...), Class &instance) {
-        methods[methodName] = [&instance, function, methodName](const std::vector<std::string> &params) {
-            if (params.size() < sizeof...(Args)) {
-                throw std::invalid_argument(methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
-            }
-            std::index_sequence_for<Args...> indices{};
-            return callMethod<Ret, Class, Args...>(instance, function, params, indices);
-        };
+    void registerMethod(const std::string &instanceName, const std::string &methodName,
+                        Ret (Class::*function)(Args...)) {
+        void *instancePtr = getInstance(instanceName);
+        if (!instancePtr) {
+            throw std::runtime_error("Instance '" + instanceName + "' not found");
+        }
+        auto *instance = static_cast<Class *>(instancePtr);
+
+        methods_[instanceName + "/" + methodName] = [instance, function, methodName
+                ](const std::vector<std::string> &params) {
+                    if (params.size() < sizeof...(Args)) {
+                        throw std::invalid_argument(
+                            methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
+                    }
+                    return callMethod<Ret, Class, Args...>(*instance, function, params,
+                                                           std::index_sequence_for<Args...>{});
+                };
     }
 
     template<typename Ret, typename Class>
-    void registerMethod(const std::string &methodName, Ret (Class::*function)(), Class &instance) {
-        methods[methodName] = [&instance, function](const std::vector<std::string> &params) {
-            Ret result = (instance.*function)();
+    void registerMethod(const std::string &instanceName, const std::string &methodName, Ret (Class::*function)()) {
+        void *instancePtr = getInstance(instanceName);
+        if (!instancePtr) {
+            throw std::runtime_error("Instance '" + instanceName + "' not found");
+        }
+        auto *instance = static_cast<Class *>(instancePtr);
+
+        methods_[instanceName + "/" + methodName] = [instance, function](const std::vector<std::string> &) {
+            Ret result = (instance->*function)();
             return ResultConverter::convert(result);
         };
     }
 
     template<typename Ret, typename Class>
-    void registerMethod(const std::string &methodName, Ret (Class::*function)() const, const Class &instance) {
-        methods[methodName] = [&instance, function](const std::vector<std::string> &params) {
-            Ret result = (instance.*function)();
+    void registerMethod(const std::string &instanceName, const std::string &methodName,
+                        Ret (Class::*function)() const) {
+        void *instancePtr = getInstance(instanceName);
+        if (!instancePtr) {
+            throw std::runtime_error("Instance '" + instanceName + "' not found");
+        }
+        auto *instance = static_cast<Class *>(instancePtr);
+
+        methods_[instanceName + "/" + methodName] = [instance, function](const std::vector<std::string> &) {
+            Ret result = (instance->*function)();
             return ResultConverter::convert(result);
         };
     }
@@ -108,18 +149,17 @@ public:
 
     template<typename Ret, typename... Args>
     void registerFunction(const std::string &methodName, Ret (*function)(Args...)) {
-        methods[methodName] = [function, methodName](const std::vector<std::string> &params) {
+        methods_[methodName] = [function, methodName](const std::vector<std::string> &params) {
             if (params.size() < sizeof...(Args)) {
                 throw std::invalid_argument(methodName + " requires " + std::to_string(sizeof...(Args)) + " arguments");
             }
-            std::index_sequence_for<Args...> indices{};
-            return callFunction<Ret, Args...>(function, params, indices);
+            return callFunction<Ret, Args...>(function, params, std::index_sequence_for<Args...>{});
         };
     }
 
     template<typename Ret>
     void registerFunction(const std::string &methodName, Ret (*function)()) {
-        methods[methodName] = [function](const std::vector<std::string> &params) {
+        methods_[methodName] = [function](const std::vector<std::string> &) {
             Ret result = (*function)();
             return ResultConverter::convert(result);
         };
@@ -137,27 +177,31 @@ public:
         }
     }
 
+    void registerInstances() {
+        registerInstance("graph", &g_graph);
+    }
+
     void registerFunctionsAndMethods() {
         registerFunction("setSeed", &ogdf::setSeed);
         registerFunction("randomNumber", &ogdf::randomNumber);
-        registerMethod("newNode", &ogdf::Graph::newNode, g_graph);
-        registerMethod(
-            "newEdge", static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge),
-            g_graph);
-        registerMethod("numberOfNodes", &ogdf::Graph::numberOfNodes, g_graph);
-        registerMethod("numberOfEdges", &ogdf::Graph::numberOfEdges, g_graph);
+        registerMethod("graph", "newNode", &ogdf::Graph::newNode);
+        registerMethod("graph",
+                       "newEdge",
+                       static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&ogdf::Graph::newEdge));
+        registerMethod("graph", "numberOfNodes", &ogdf::Graph::numberOfNodes);
+        registerMethod("graph", "numberOfEdges", &ogdf::Graph::numberOfEdges);
 
-        methods["writeGML"] = [](const std::vector<std::string> &params) {
+        methods_["graph/writeGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
-                throw std::invalid_argument("Missing required parameters");
+                throw std::invalid_argument("Missing filename parameters");
             }
             const bool success = ogdf::GraphIO::write(g_graph, params[0], ogdf::GraphIO::writeGML);
             return success ? "Graph written to " + params[0] : "Failed to write graph to " + params[0];
         };
 
-        methods["readGML"] = [](const std::vector<std::string> &params) {
+        methods_["graph/readGML"] = [](const std::vector<std::string> &params) {
             if (params.empty()) {
-                throw std::invalid_argument("Missing required parameters");
+                throw std::invalid_argument("Missing filename parameters");
             }
             const bool success = ogdf::GraphIO::read(g_graph, params[0], ogdf::GraphIO::readGML);
             return success ? "Graph read from " + params[0] : "Failed to read graph from " + params[0];
@@ -165,21 +209,23 @@ public:
     }
 
     std::string execute(const std::string &methodName, const std::vector<std::string> &params) {
-        if (const auto it = methods.find(methodName); it != methods.end()) {
-            try {
-                return it->second(params);
-            } catch (std::exception &e) {
-                return "Error: " + std::string(e.what());
-            }
+        const auto it = methods_.find(methodName);
+        if (it == methods_.end()) {
+            return "Error: Unknown method '" + methodName + "'";
         }
-        return "Error: Unknown method '" + methodName + "'";
+
+        try {
+            return it->second(params);
+        } catch (std::exception &e) {
+            return "Error: " + std::string(e.what());
+        }
     }
 
     std::string listMethods() const {
         std::stringstream ss;
-        ss << "List of available methods:\n";
-        for (const auto &method: methods) {
-            ss << "- " << method.first << "\n";
+        ss << "Available methods:\n";
+        for (const auto &[name, _]: methods_) {
+            ss << "- " << name << "\n";
         }
         return ss.str();
     }
@@ -188,9 +234,17 @@ public:
 Registry g_registry;
 
 std::string handleRequest(const std::string &path, const std::string &params) {
+    static Registry registry;
     std::string methodName = path;
-    if (const size_t lastSlash = path.find_last_of('/'); lastSlash != std::string::npos) {
-        methodName = methodName.substr(lastSlash + 1);
+
+    const size_t firstSlash = path.find_first_of('/');
+    if (const size_t lastSlash = path.find_last_of('/');
+        firstSlash != std::string::npos && lastSlash != std::string::npos && firstSlash != lastSlash) {
+        const std::string instanceName = path.substr(firstSlash + 1, lastSlash - firstSlash - 1);
+        const std::string method = path.substr(lastSlash + 1);
+        methodName = instanceName + "/" + method;
+    } else if (lastSlash != std::string::npos) {
+        methodName = path.substr(lastSlash + 1);
     }
 
     std::vector<std::string> paramList;
@@ -201,10 +255,10 @@ std::string handleRequest(const std::string &path, const std::string &params) {
     }
 
     if (methodName == "methods") {
-        return g_registry.listMethods();
+        return registry.listMethods();
     }
 
-    return g_registry.execute(methodName, paramList);
+    return registry.execute(methodName, paramList);
 }
 
 int main() {
