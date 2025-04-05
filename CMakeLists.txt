@@ -29,7 +29,14 @@ foreach (required_var ROOT_DIR)
     endif ()
 endforeach ()
 
-add_executable(Engine src/main.cpp)
+add_executable(Engine src/main.cpp
+        include/ParameterConverter.h
+        include/ResultConverter.h
+        include/Registry.h
+        include/Registry.inl
+        src/Registry.cpp
+        src/Globals.cpp
+)
 
 # Default values for optional variables
 if (NOT DEFINED INCLUDE_DIR)
