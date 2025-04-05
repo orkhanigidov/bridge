@@ -4,8 +4,9 @@
 
 #include "../include/Registry.h"
 
+extern Registry g_registry;
+
 std::string handleRequest(const std::string &path, const std::string &params) {
-    static Registry registry;
     std::string instanceName;
     std::string methodName = path;
 
@@ -27,10 +28,10 @@ std::string handleRequest(const std::string &path, const std::string &params) {
     }
 
     if (methodName == "methods") {
-        return registry.listAllMethods();
+        return g_registry.listAllMethods();
     }
 
-    return registry.execute(instanceName, methodName, paramList);
+    return g_registry.execute(instanceName, methodName, paramList);
 }
 
 int main() {
