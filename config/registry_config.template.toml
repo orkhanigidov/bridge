@@ -1,0 +1,74 @@
+# Registry Configuration Template
+# Rename this file to 'registry_config.toml' for actual use.
+
+# ==========================================================================================
+# REGISTRY CONFIGURATION INSTRUCTIONS
+# ==========================================================================================
+#
+# This TOML file configures C++ objects and functions exposed through the API.
+# Each section follows specific formatting requirements.
+#
+# ------------------------------------------------------------------------------------------
+# 1. API OBJECTS
+# ------------------------------------------------------------------------------------------
+#
+# Define C++ class instances to register in the registry.
+# Format:
+#    [[api_objects]]
+#    identifier = "name"                        # ID used in API calls
+#    cpp_class = "Namespace::Class"             # C++ class to instantiate
+#
+# ------------------------------------------------------------------------------------------
+# 2. GLOBAL FUNCTIONS
+# ------------------------------------------------------------------------------------------
+#
+# Register free functions callable without an object context.
+# Format:
+#    [[bindings.global]]
+#    api_name = "functionName"                  # Name exposed in API
+#    cpp_function = "Namespace::function"       # C++ function to bind
+#
+# ------------------------------------------------------------------------------------------
+# 3. MEMBER METHODS
+# ------------------------------------------------------------------------------------------
+#
+# Register class methods that operate on registered objects.
+# Format:
+#    [[bindings.member]]
+#    object = "objectId"                        # Must match an identifier from api_objects
+#    api_name = "methodName"                    # Name exposed in API
+#    cpp_method = "Namespace::Class::method"    # C++ method to bind
+#
+# For overloaded methods, specify the parameter signature:
+#    overload_signature = "type1,type2,..."     # Comma-separated C++ parameter types
+#
+# ==========================================================================================
+
+# === REGISTERED C++ OBJECTS ===
+
+[[api_objects]]
+identifier = "graph"
+cpp_class = "ogdf::Graph"
+
+# === API FUNCTION BINDINGS ===
+
+[bindings]
+
+# --- GLOBAL FUNCTIONS ---
+
+[[bindings.global]]
+api_name = "randomNumber"
+cpp_function = "ogdf::randomNumber"
+
+# --- MEMBER METHODS ---
+
+[[bindings.member]]
+object = "graph"
+api_name = "newNode"
+cpp_method = "ogdf::Graph::newNode"
+
+[[bindings.member]]
+object = "graph"
+api_name = "newEdge"
+cpp_method = "ogdf::Graph::newEdge"
+overload_signature = "node,node,int"

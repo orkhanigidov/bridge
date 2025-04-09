@@ -1,32 +1,23 @@
-#include "../include/Registry.h"
+#include "../include/GeneratedRegistry.h"
 
 #include <sstream>
 #include <stdexcept>
 
-#include <ogdf/basic/Graph.h>
 #include <ogdf/fileformats/GraphIO.h>
 
 Registry::Registry() {
-    registerInstances();
-    registerAllMethods();
+    initializeObjects();
+    initializeMethods();
 }
 
-void Registry::registerInstances() {
-    registerInstance("graph", &g_graph);
+void Registry::initializeObjects() {
+    generated::registerObjects(this);
 }
 
-void Registry::registerAllMethods() {
-    registerGlobalMethod("setSeed", &ogdf::setSeed);
-    registerGlobalMethod("randomNumber", &ogdf::randomNumber);
+void Registry::initializeMethods() {
+    generated::registerAllMethods(this);
 
-    registerInstanceMethod<>("graph", "newNode", &ogdf::Graph::newNode);
-    registerInstanceMethod<>("graph", "newEdge",
-                             static_cast<ogdf::edge (ogdf::Graph::*)(ogdf::node, ogdf::node, int)>(&
-                                 ogdf::Graph::newEdge));
-    registerInstanceMethod<>("graph", "numberOfNodes", &ogdf::Graph::numberOfNodes);
-    registerInstanceMethod<>("graph", "numberOfEdges", &ogdf::Graph::numberOfEdges);
-
-    instanceMethods_["graph"]["writeGML"] = [](const std::vector<std::string> &params) {
+    memberMethods_["graph"]["writeGML"] = [](const std::vector<std::string> &params) {
         if (params.empty()) {
             throw std::invalid_argument("Missing filename parameters");
         }
@@ -34,7 +25,7 @@ void Registry::registerAllMethods() {
         return success ? "Graph written to " + params[0] : "Failed to write graph to " + params[0];
     };
 
-    instanceMethods_["graph"]["readGML"] = [](const std::vector<std::string> &params) {
+    memberMethods_["graph"]["readGML"] = [](const std::vector<std::string> &params) {
         if (params.empty()) {
             throw std::invalid_argument("Missing filename parameters");
         }
@@ -43,50 +34,49 @@ void Registry::registerAllMethods() {
     };
 }
 
-std::string Registry::execute(const std::string &instanceName, const std::string &methodName,
-                              const std::vector<std::string> &params) {
-    if (instanceName.empty()) {
-        if (const auto it = globalMethods_.find(methodName); it != globalMethods_.end()) {
+std::string Registry::invokeMethod(const std::string &objectId, const std::string &methodId,
+                                   const std::vector<std::string> &args) {
+    if (objectId.empty()) {
+        if (const auto it = globalMethods_.find(methodId); it != globalMethods_.end()) {
             try {
-                return it->second(params);
+                return it->second(args);
             } catch (std::exception &e) {
                 return "Error: " + std::string(e.what());
             }
         }
-        return "Error: Unknown method '" + methodName + "'";
+        return "Error: Unknown method '" + methodId + "'";
     }
 
-    const auto instanceIt = instanceMethods_.find(instanceName);
-    if (instanceIt == instanceMethods_.end()) {
-        return "Error: Unknown instance '" + instanceName + "'";
+    const auto objectIt = memberMethods_.find(objectId);
+    if (objectIt == memberMethods_.end()) {
+        return "Error: Unknown instance '" + objectId + "'";
     }
 
-    const auto methodIt = instanceIt->second.find(methodName);
-    if (methodIt == instanceIt->second.end()) {
-        return "Error: Unknown method '" + methodName + "' for instance '" + instanceName + "'";
+    const auto methodIt = objectIt->second.find(methodId);
+    if (methodIt == objectIt->second.end()) {
+        return "Error: Unknown method '" + methodId + "' for object '" + objectId + "'";
     }
 
     try {
-        return methodIt->second(params);
+        return methodIt->second(args);
     } catch (std::exception &e) {
         return "Error: " + std::string(e.what());
     }
 }
 
-
-std::string Registry::listAllMethods() const {
+std::string Registry::listAvailableMethods() const {
     std::stringstream ss;
     ss << "Available methods:\n";
 
     ss << "Global methods:\n";
-    for (const auto &[name, _]: globalMethods_) {
-        ss << "- " << name << "\n";
+    for (const auto &[methodId, _]: globalMethods_) {
+        ss << "- " << methodId << "\n";
     }
 
-    for (const auto &[instanceName, methods]: instanceMethods_) {
-        ss << "Instance '" << instanceName << "' methods:\n";
-        for (const auto &[name, _]: methods) {
-            ss << "- " << name << "\n";
+    for (const auto &[objectId, methods]: memberMethods_) {
+        ss << "Member '" << objectId << "' methods:\n";
+        for (const auto &[methodId, _]: methods) {
+            ss << "- " << methodId << "\n";
         }
     }
     return ss.str();

@@ -34,6 +34,7 @@ add_executable(Engine src/main.cpp
         include/ResultConverter.h
         include/Registry.h
         include/Registry.inl
+        include/GeneratedRegistry.h
         src/Registry.cpp
         src/Globals.cpp
 )
@@ -45,6 +46,21 @@ endif ()
 if (NOT DEFINED BUILD_DIR)
     set(BUILD_DIR "build")
 endif ()
+
+# Create directory for generated source files
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
+
+# Registry code generation
+# This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
+        COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/registry_config.toml
+        COMMENT "Generating Registry code..."
+)
+
+# Add the generated implementation to the build
+target_sources(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp)
 
 # Use file(TO_CMAKE_PATH) for platform-independent path conversion
 file(TO_CMAKE_PATH "${ROOT_DIR}/${INCLUDE_DIR}" INCLUDE_DIR)
