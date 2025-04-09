@@ -10,51 +10,53 @@ class Registry {
 public:
     Registry();
 
-    template<typename T>
-    void registerInstance(const std::string &name, T *instance);
+    ~Registry() = default;
 
-    inline void *getInstance(const std::string &name) const;
+    template<typename T>
+    void registerObject(const std::string &objectId, T *instance);
+
+    inline void *getInstance(const std::string &objectId) const;
 
     template<typename Class, typename Ret, typename... Args>
-    void registerInstanceMethod(const std::string &instanceName, const std::string &methodName,
-                                Ret (Class::*function)(Args...));
+    void registerMemberMethod(const std::string &objectId, const std::string &methodId,
+                              Ret (Class::*methodPtr)(Args...));
 
     template<typename Class, typename Ret>
-    void registerInstanceMethod(const std::string &instanceName, const std::string &methodName,
-                                Ret (Class::*function)());
+    void registerMemberMethod(const std::string &objectId, const std::string &methodId,
+                              Ret (Class::*methodPtr)());
 
     template<typename Class, typename Ret>
-    void registerInstanceMethod(const std::string &instanceName, const std::string &methodName,
-                                Ret (Class::*function)() const);
+    void registerMemberMethod(const std::string &objectId, const std::string &methodId,
+                              Ret (Class::*methodPtr)() const);
 
     template<typename Ret, typename... Args>
-    void registerGlobalMethod(const std::string &methodName, Ret (*function)(Args...));
+    void registerGlobalMethod(const std::string &methodId, Ret (*functionPtr)(Args...));
 
     template<typename Ret>
-    void registerGlobalMethod(const std::string &methodName, Ret (*function)());
+    void registerGlobalMethod(const std::string &methodId, Ret (*functionPtr)());
 
-    std::string execute(const std::string &instanceName, const std::string &methodName,
-                        const std::vector<std::string> &params);
+    std::string invokeMethod(const std::string &objectId, const std::string &methodId,
+                             const std::vector<std::string> &args);
 
-    std::string listAllMethods() const;
+    std::string listAvailableMethods() const;
 
 private:
     template<typename Class, typename Ret, typename... Args, std::size_t... I>
-    static std::string callInstanceMethod(Class &instance, Ret (Class::*function)(Args...),
-                                          const std::vector<std::string> &params, std::index_sequence<I...>);
+    static std::string invokeMemberMethod(Class &instance, Ret (Class::*methodPtr)(Args...),
+                                          const std::vector<std::string> &args, std::index_sequence<I...>);
 
     template<typename Ret, typename... Args, std::size_t... I>
-    static std::string callGlobalMethod(Ret (*function)(Args...), const std::vector<std::string> &params,
-                                        std::index_sequence<I...>);
+    static std::string invokeGlobalMethod(Ret (*functionPtr)(Args...), const std::vector<std::string> &args,
+                                          std::index_sequence<I...>);
 
-    void registerInstances();
+    void initializeObjects();
 
-    void registerAllMethods();
+    void initializeMethods();
 
     std::unordered_map<std::string, std::function<std::string(const std::vector<std::string> &)> > globalMethods_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::function<std::string(
-        const std::vector<std::string> &)> > > instanceMethods_;
-    std::unordered_map<std::string, void *> instances_;
+        const std::vector<std::string> &)> > > memberMethods_;
+    std::unordered_map<std::string, void *> objectInstances_;
 };
 
 #include "Registry.inl"
