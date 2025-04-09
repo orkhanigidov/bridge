@@ -9,5 +9,9 @@
 # JetBrains IDE files
 *.iml
 .idea/
-# Ignore environment files
+# Ignore environment file
 .env
+# Ignore registry configuration file
+registry_config.toml
+# Ignore generated files
+/src/generated/*
