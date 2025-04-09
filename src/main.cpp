@@ -6,32 +6,32 @@
 
 extern Registry g_registry;
 
-std::string handleRequest(const std::string &path, const std::string &params) {
-    std::string instanceName;
-    std::string methodName = path;
+std::string handleRequest(const std::string &path, const std::string &args) {
+    std::string objectId;
+    std::string methodId = path;
 
     const size_t firstSlash = path.find_first_of('/');
     if (const size_t lastSlash = path.find_last_of('/');
         firstSlash != std::string::npos && lastSlash != std::string::npos && firstSlash != lastSlash) {
-        instanceName = path.substr(firstSlash + 1, lastSlash - firstSlash - 1);
-        methodName = path.substr(lastSlash + 1);
+        objectId = path.substr(firstSlash + 1, lastSlash - firstSlash - 1);
+        methodId = path.substr(lastSlash + 1);
     } else if (lastSlash != std::string::npos) {
-        methodName = path.substr(lastSlash + 1);
-        instanceName = "";
+        methodId = path.substr(lastSlash + 1);
+        objectId = "";
     }
 
-    std::vector<std::string> paramList;
-    std::istringstream iss(params);
-    std::string param;
-    while (std::getline(iss, param, ',')) {
-        paramList.push_back(param);
+    std::vector<std::string> methodArgs;
+    std::istringstream iss(args);
+    std::string arg;
+    while (std::getline(iss, arg, ',')) {
+        methodArgs.push_back(arg);
     }
 
-    if (methodName == "methods") {
-        return g_registry.listAllMethods();
+    if (methodId == "methods") {
+        return g_registry.listAvailableMethods();
     }
 
-    return g_registry.execute(instanceName, methodName, paramList);
+    return g_registry.invokeMethod(objectId, methodId, methodArgs);
 }
 
 int main() {
