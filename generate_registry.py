@@ -23,12 +23,29 @@ def read_config(config_path: Path) -> Optional[Dict[str, Any]]:
 
 def generate_implementation(config: Dict[str, Any]) -> str:
     """Generate C++ implementation code from configuration."""
-    lines = ["// Auto-generated file. Do not edit manually", "#include \"../../include/GeneratedRegistry.h\"", "",
-             "namespace generated {", "\tvoid registerObjects(Registry *registry) {"]
+    lines = ["// Auto-generated file. Do not edit manually",
+             "#include \"../../include/GeneratedRegistry.h\"",
+             "",
+             "#include <memory>",
+             "",
+             "namespace generated {"]
 
-    # Register API objects
+    # Declare shared pointers for all objects
     for obj in config.get("api_objects", []):
-        lines.append(f"\t\tregistry->registerObject(\"{obj['identifier']}\", new {obj['cpp_class']});")
+        identifier = obj.get("identifier")
+        cpp_class = obj.get("cpp_class")
+        if identifier and cpp_class:
+            lines.append(f"\tstd::shared_ptr<{cpp_class}> g_{identifier};")
+    lines.append("")
+
+    # Register API objects with std::make_shared
+    lines.append("\tvoid registerObjects(Registry *registry) {")
+    for obj in config.get("api_objects", []):
+        identifier = obj.get("identifier")
+        cpp_class = obj.get("cpp_class")
+        if identifier and cpp_class:
+            lines.append(f"\t\tg_{identifier} = std::make_shared<{cpp_class}>();")
+            lines.append(f"\t\tregistry->registerObject(\"{identifier}\", g_{identifier}.get());")
     lines.append("\t}")
     lines.append("")
 
@@ -37,19 +54,25 @@ def generate_implementation(config: Dict[str, Any]) -> str:
 
     # Global methods
     for method in config.get("bindings", {}).get("global", []):
-        lines.append(f"\t\tregistry->registerGlobalMethod(\"{method['api_name']}\", &{method['cpp_function']});")
-    lines.append("")
+        api_name = method.get("api_name")
+        cpp_function = method.get("cpp_function")
+        if api_name and cpp_function:
+            lines.append(f"\t\tregistry->registerGlobalMethod(\"{api_name}\", &{cpp_function});")
+
+    if config.get("bindings", {}).get("global", []):
+        lines.append("")
 
     # Member methods
     for method in config.get("bindings", {}).get("member", []):
-        object_name = method["object"]
-        api_name = method["api_name"]
-        cpp_method = method["cpp_method"]
+        object_name = method.get("object")
+        api_name = method.get("api_name")
+        cpp_method = method.get("cpp_method")
 
-        if "overload_signature" in method:
-            pass
-        else:
-            lines.append(f"\t\tregistry->registerMemberMethod(\"{object_name}\", \"{api_name}\", &{cpp_method});")
+        if object_name and api_name and cpp_method:
+            if "overload_signature" in method:
+                pass
+            else:
+                lines.append(f"\t\tregistry->registerMemberMethod(\"{object_name}\", \"{api_name}\", &{cpp_method});")
 
     lines.append("\t}")
     lines.append("}")
