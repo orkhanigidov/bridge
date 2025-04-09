@@ -58,9 +58,8 @@ def generate_implementation(config: Dict[str, Any]) -> str:
 
 
 def main() -> None:
-    # Look for the config file in the same directory as the script
-    source_dir = Path(__file__).parent.resolve()
-    config_path = source_dir / "registry_config.toml"
+    config_dir = Path(__file__).parent.resolve() / "config"
+    config_path = config_dir / "registry_config.toml"
 
     print(config_path, file=sys.stderr)
 
