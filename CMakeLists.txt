@@ -55,7 +55,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
         COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/registry_config.toml
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.toml
         COMMENT "Generating Registry code..."
 )
 
