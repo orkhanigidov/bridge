@@ -5,7 +5,7 @@ Script to generate C++ registry implementation from TOML configuration.
 import sys
 import tomllib
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Set, Any, Optional
 
 
 def read_config(config_path: Path) -> Optional[Dict[str, Any]]:
@@ -21,14 +21,66 @@ def read_config(config_path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
+def find_header_file(class_name: str, include_path: str) -> Optional[str]:
+    """Find the header file for a given class name in the specified include path."""
+    header_name = f"{class_name}.h"
+    include_dir = Path(include_path)
+
+    if not include_dir.exists():
+        print(f"Warning: Include directory {include_dir} not found.", file=sys.stderr)
+        return None
+
+    # Recursively search for the header file through all subdirectories
+    matching_files = list(include_dir.glob(f"**/{header_name}"))
+    if matching_files:
+        rel_path = matching_files[0].relative_to(include_dir)
+        return str(rel_path).replace("\\", "/")  # Use forward slashes for cross-platform compatibility
+
+    return None
+
+
+def extract_headers(config: Dict[str, Any], include_path: str) -> Set[str]:
+    """Extract required C++ header files based on the configuration."""
+    required_headers = {"memory"}  # Always include memory for std::shared_ptr
+
+    for obj in config.get("api_objects", []):
+        cpp_class = obj.get("cpp_class")
+        if not cpp_class or "::" not in cpp_class:
+            continue
+
+        namespace, class_name = cpp_class.rsplit("::", 1)
+        header_path = find_header_file(class_name, include_path)
+
+        if header_path:
+            # Ensure header path includes for proper inclusion
+            full_path = header_path if header_path.startswith(namespace) else f"{namespace}/{header_path}"
+            required_headers.add(full_path)
+        else:
+            print(f"Warning: Could not find header for {cpp_class}", file=sys.stderr)
+
+    return required_headers
+
+
 def generate_implementation(config: Dict[str, Any]) -> str:
     """Generate C++ implementation code from configuration."""
-    lines = ["// Auto-generated file. Do not edit manually",
-             "#include \"../../include/GeneratedRegistry.h\"",
-             "",
-             "#include <memory>",
-             "",
-             "namespace generated {"]
+    lines = ["// Auto-generated file. Do not edit manually", "#include \"../../include/GeneratedRegistry.h\"", ""]
+
+    # Get include path from configuration
+    include_path = config.get("project", {}).get("include_path")
+    if not include_path:
+        print("Error: No include path found in configuration.", file=sys.stderr)
+        return "Error: Please add 'include_dir' to the [project] section."
+
+    # Extract required C++ headers from the configuration
+    headers = extract_headers(config, include_path)
+    for header in sorted(headers):
+        if header == "memory":
+            lines.append("#include <memory>")
+            lines.append("")
+        else:
+            lines.append(f"#include <{header}>")
+
+    lines.extend(["", "namespace generated {"])
 
     # Declare shared pointers for all objects
     for obj in config.get("api_objects", []):

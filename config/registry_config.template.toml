@@ -9,7 +9,16 @@
 # Each section follows specific formatting requirements.
 #
 # ------------------------------------------------------------------------------------------
-# 1. API OBJECTS
+# 1. PROJECT SETTINGS
+# ------------------------------------------------------------------------------------------
+#
+# Define project settings.
+# Format:
+#    [project]
+#    include_path = "path/to/include"            # Path to C++ headers directory
+#
+# ------------------------------------------------------------------------------------------
+# 2. API OBJECTS
 # ------------------------------------------------------------------------------------------
 #
 # Define C++ class instances to register in the registry.
@@ -19,7 +28,7 @@
 #    cpp_class = "Namespace::Class"             # C++ class to instantiate
 #
 # ------------------------------------------------------------------------------------------
-# 2. GLOBAL FUNCTIONS
+# 3. GLOBAL FUNCTIONS
 # ------------------------------------------------------------------------------------------
 #
 # Register free functions callable without an object context.
@@ -29,7 +38,7 @@
 #    cpp_function = "Namespace::function"       # C++ function to bind
 #
 # ------------------------------------------------------------------------------------------
-# 3. MEMBER METHODS
+# 4. MEMBER METHODS
 # ------------------------------------------------------------------------------------------
 #
 # Register class methods that operate on registered objects.
@@ -43,6 +52,11 @@
 #    overload_signature = "type1,type2,..."     # Comma-separated C++ parameter types
 #
 # ==========================================================================================
+
+# === PROJECT SETTINGS ===
+
+[project]
+include_path = "path/to/include"
 
 # === REGISTERED C++ OBJECTS ===
 
