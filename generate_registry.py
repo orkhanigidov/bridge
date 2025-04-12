@@ -84,11 +84,14 @@ def generate_implementation(config: Dict[str, Any]) -> str:
 
     # Build object-to-class mapping and declare shared pointers for all objects
     obj_to_class = {}
+    namespace = None
     for obj in config.get("api_objects", []):
         identifier = obj.get("identifier")
         cpp_class = obj.get("cpp_class")
         if identifier and cpp_class:
             obj_to_class[identifier] = cpp_class
+            if "::" in cpp_class and namespace is None:
+                namespace = cpp_class.split("::")[0]
             lines.append(f"\tstd::shared_ptr<{cpp_class}> g_{identifier};")
     lines.append("")
 
@@ -111,8 +114,8 @@ def generate_implementation(config: Dict[str, Any]) -> str:
         api_name = method.get("api_name")
 
         if api_name:
-            cpp_function = method.get("cpp_function", api_name)
-            lines.append(f"\t\tregistry->registerGlobalMethod(\"{api_name}\", &ogdf::{cpp_function});")
+            cpp_function = method.get("cpp_function", f"&{namespace}::{api_name}")
+            lines.append(f"\t\tregistry->registerGlobalMethod(\"{api_name}\", {cpp_function});")
 
     if config.get("bindings", {}).get("global", []):
         lines.append("")
@@ -123,11 +126,11 @@ def generate_implementation(config: Dict[str, Any]) -> str:
         api_name = method.get("api_name")
 
         if object_name and api_name and object_name in obj_to_class:
-            cpp_method = method.get("cpp_method", f"{obj_to_class[object_name]}::{api_name}")
+            cpp_method = method.get("cpp_method", f"&{obj_to_class[object_name]}::{api_name}")
             if "overload_signature" in method:
                 pass
             else:
-                lines.append(f"\t\tregistry->registerMemberMethod(\"{object_name}\", \"{api_name}\", &{cpp_method});")
+                lines.append(f"\t\tregistry->registerMemberMethod(\"{object_name}\", \"{api_name}\", {cpp_method});")
 
     lines.append("\t}")
     lines.append("}")
