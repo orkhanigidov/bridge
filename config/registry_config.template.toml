@@ -35,7 +35,6 @@
 # Format:
 #    [[bindings.global]]
 #    api_name = "functionName"                  # Name exposed in API
-#    cpp_function = "Namespace::function"       # C++ function to bind
 #
 # ------------------------------------------------------------------------------------------
 # 4. MEMBER METHODS
@@ -46,7 +45,6 @@
 #    [[bindings.member]]
 #    object = "objectId"                        # Must match an identifier from api_objects
 #    api_name = "methodName"                    # Name exposed in API
-#    cpp_method = "Namespace::Class::method"    # C++ method to bind
 #
 # For overloaded methods, specify the parameter signature:
 #    overload_signature = "type1,type2,..."     # Comma-separated C++ parameter types
@@ -72,17 +70,14 @@ cpp_class = "ogdf::Graph"
 
 [[bindings.global]]
 api_name = "randomNumber"
-cpp_function = "ogdf::randomNumber"
 
 # --- MEMBER METHODS ---
 
 [[bindings.member]]
 object = "graph"
 api_name = "newNode"
-cpp_method = "ogdf::Graph::newNode"
 
 [[bindings.member]]
 object = "graph"
 api_name = "newEdge"
-cpp_method = "ogdf::Graph::newEdge"
 overload_signature = "node,node,int"
