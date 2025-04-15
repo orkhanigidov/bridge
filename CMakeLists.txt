@@ -30,12 +30,13 @@ foreach (required_var ROOT_DIR)
 endforeach ()
 
 add_library(Engine SHARED
-        src/main.cpp
         include/ParameterConverter.h
         include/ResultConverter.h
         include/Registry.h
         include/Registry.inl
         include/GeneratedRegistry.h
+        include/UnityBridge.h
+        src/UnityBridge.cpp
         src/Registry.cpp
         src/Globals.cpp
 )
@@ -68,7 +69,6 @@ add_custom_command(
         COMMAND ${VENV_PIP} install libclang
         COMMAND ${VENV_PIP} install toml
         COMMAND ${CMAKE_COMMAND} -E touch ${VENV_MARKER}
-        COMMENT "Setting up Python environment"
         VERBATIM
 )
 
@@ -82,7 +82,6 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
         COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
         DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.toml
-        COMMENT "Generating registry implementation"
         VERBATIM
 )
 
@@ -113,27 +112,24 @@ else ()
     message(STATUS "Using Unity Project directory from .env: ${UNITY_PROJECT_DIR}")
 endif ()
 
-# Ensure the Plugins directory exists within Unity project structure
-set(UNITY_PLUGINS_PATH ${UNITY_PROJECT_DIR}/Assets/Plugins)
-file(MAKE_DIRECTORY ${UNITY_PLUGINS_PATH})
+if (NOT DEFINED DLL_OUTPUT_NAME)
+    set(DLL_OUTPUT_NAME "EngineBridge")
+endif ()
 
-# Set runtime output directory for the DLL
 set_target_properties(Engine PROPERTIES
         PREFIX ""  # Remove "lib" prefix from DLL
-        OUTPUT_NAME "Engine.Cpp"
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release
+        OUTPUT_NAME ${DLL_OUTPUT_NAME}
 )
 
 # Post-build command to copy DLL to Unity Plugins directory
 add_custom_command(TARGET Engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Copying DLL to Unity Plugins directory..."
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Engine> ${UNITY_PLUGINS_PATH}/$<TARGET_FILE_NAME:Engine>
-        COMMENT "Copying DLL to Unity Plugins directory"
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${UNITY_PROJECT_DIR}/Assets/Plugins
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Engine> ${UNITY_PLUGINS_PATH}/$<TARGET_FILE_NAME:Engine>
+        VERBATIM
 )
 
-#if (WIN32)
-#    target_compile_definitions(Engine PRIVATE -DBUILDING_DLL)
-#    target_compile_definitions(Engine PRIVATE -DUNITY_INTERFACE_EXPORT)
-#endif ()
+# Disable specific warnings for MSVC
+if (MSVC)
+    target_compile_options(Engine PRIVATE /wd4068)  # Disable unknown pragma 'mark' warning
+endif ()
