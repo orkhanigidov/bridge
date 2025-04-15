@@ -29,7 +29,8 @@ foreach (required_var ROOT_DIR)
     endif ()
 endforeach ()
 
-add_executable(Engine src/main.cpp
+add_library(Engine SHARED
+        src/main.cpp
         include/ParameterConverter.h
         include/ResultConverter.h
         include/Registry.h
@@ -65,6 +66,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E echo "Installing required Python packages..."
         COMMAND ${VENV_PIP} install --upgrade pip
         COMMAND ${VENV_PIP} install libclang
+        COMMAND ${VENV_PIP} install toml
         COMMAND ${CMAKE_COMMAND} -E touch ${VENV_MARKER}
         COMMENT "Setting up Python environment"
         VERBATIM
@@ -102,3 +104,36 @@ if (DEFINED LIBRARIES)
         target_link_libraries(Engine PRIVATE "${LIB_PATH}")
     endforeach ()
 endif ()
+
+# Set Unity Plugins directory from environment or use default
+if (NOT DEFINED UNITY_PROJECT_DIR)
+    set(UNITY_PLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/UnityPlugin)
+    message(STATUS "Using default Unity Plugin directory: ${UNITY_PLUGIN_DIR}")
+else ()
+    message(STATUS "Using Unity Project directory from .env: ${UNITY_PROJECT_DIR}")
+endif ()
+
+# Ensure the Plugins directory exists within Unity project structure
+set(UNITY_PLUGINS_PATH ${UNITY_PROJECT_DIR}/Assets/Plugins)
+file(MAKE_DIRECTORY ${UNITY_PLUGINS_PATH})
+
+# Set runtime output directory for the DLL
+set_target_properties(Engine PROPERTIES
+        PREFIX ""  # Remove "lib" prefix from DLL
+        OUTPUT_NAME "Engine.Cpp"
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release
+)
+
+# Post-build command to copy DLL to Unity Plugins directory
+add_custom_command(TARGET Engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Copying DLL to Unity Plugins directory..."
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Engine> ${UNITY_PLUGINS_PATH}/$<TARGET_FILE_NAME:Engine>
+        COMMENT "Copying DLL to Unity Plugins directory"
+)
+
+#if (WIN32)
+#    target_compile_definitions(Engine PRIVATE -DBUILDING_DLL)
+#    target_compile_definitions(Engine PRIVATE -DUNITY_INTERFACE_EXPORT)
+#endif ()
