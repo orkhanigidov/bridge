@@ -2,12 +2,9 @@
 #define PARAMETERCONVERTER_H
 
 #include <string>
-#include <stdexcept>
-#include <type_traits>
 
-#include <ogdf/basic/Graph.h>
-
-extern ogdf::Graph g_graph;
+#include "TypeRegistry.h"
+#include "CustomTypeTraits.h"
 
 class ParameterConverter {
 public:
@@ -21,30 +18,12 @@ public:
             return std::stod(value);
         } else if constexpr (std::is_same_v<T, bool>) {
             return value == "true";
-        } else if constexpr (std::is_same_v<T, ogdf::node>) {
-            const int id = std::stoi(value);
-            for (ogdf::node n: g_graph.nodes) {
-                if (n->index() == id) {
-                    return n;
-                }
-            }
-            throw std::runtime_error("Node with index " + std::to_string(id) + " not found");
-        } else if constexpr (std::is_same_v<T, ogdf::edge>) {
-            const int id = std::stoi(value);
-            for (ogdf::edge e: g_graph.edges) {
-                if (e->index() == id) {
-                    return e;
-                }
-            }
-            throw std::runtime_error("Edge with index " + std::to_string(id) + " not found");
+        } else if constexpr (traits::is_custom_type_v<T>) {
+            return g_typeRegistry.getObject<T>(value);
         } else {
-            static_assert(always_false_v<T>, "Conversion not supported for this type");
+            static_assert(traits::always_false_v<T>, "Conversion not supported for this type");
         }
     }
-
-private:
-    template<typename T>
-    static constexpr bool always_false_v = false;
 };
 
 #endif //PARAMETERCONVERTER_H
