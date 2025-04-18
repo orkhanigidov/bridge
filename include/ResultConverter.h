@@ -2,10 +2,9 @@
 #define RESULTCONVERTER_H
 
 #include <string>
-#include <sstream>
-#include <type_traits>
 
-#include <ogdf/basic/Graph.h>
+#include "TypeRegistry.h"
+#include "CustomTypeTraits.h"
 
 class ResultConverter {
 public:
@@ -15,20 +14,12 @@ public:
             return result;
         } else if constexpr (std::is_arithmetic_v<T>) {
             return std::to_string(result);
-        } else if constexpr (std::is_same_v<T, ogdf::node>) {
-            return std::to_string(result->index());
-        } else if constexpr (std::is_same_v<T, ogdf::edge>) {
-            std::stringstream ss;
-            ss << "edge(" << result->source()->index() << "->" << result->target()->index() << ")";
-            return ss.str();
+        } else if constexpr (traits::is_custom_type_v<T>) {
+            return g_typeRegistry.registerObject(result);
         } else {
-            static_assert(always_false_v<T>, "Conversion not supported for this type");
+            static_assert(traits::always_false_v<T>, "Conversion not supported for this type");
         }
     }
-
-private:
-    template<typename T>
-    static constexpr bool always_false_v = false;
 };
 
 #endif //RESULTCONVERTER_H

@@ -32,6 +32,8 @@ endforeach ()
 add_library(Engine SHARED
         include/ParameterConverter.h
         include/ResultConverter.h
+        include/TypeRegistry.h
+        include/CustomTypeTraits.h
         include/Registry.h
         include/Registry.inl
         include/GeneratedRegistry.h

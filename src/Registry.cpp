@@ -5,6 +5,8 @@
 
 #include <ogdf/fileformats/GraphIO.h>
 
+extern ogdf::Graph g_graph;
+
 Registry::Registry() {
     initializeObjects();
     initializeMethods();
