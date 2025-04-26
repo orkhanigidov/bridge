@@ -1,0 +1,32 @@
+// Auto-generated file. Do not edit manually
+
+#include "../../include/GeneratedRegistry.h"
+
+#include <memory>
+
+{%- for h in config.headers %}
+#include <{{ h }}>
+{%- endfor %}
+
+namespace generated {
+    {%- for obj in config.api_objects %}
+    std::shared_ptr<{{ obj.cpp_class }}> g_{{ obj.identifier }};
+    {%- endfor %}
+
+    void registerObjects(Registry *registry) {
+        {%- for obj in config.api_objects %}
+        g_{{ obj.identifier }} = std::make_shared<{{ obj.cpp_class }}>();
+        registry->registerObject("{{ obj.identifier }}", g_{{ obj.identifier }}.get());
+        {%- endfor %}
+    }
+
+    void registerAllMethods(Registry *registry) {
+        {%- for fn in config.bindings.global %}
+        registry->registerGlobalMethod("{{ fn.api_name }}", &{{ config.namespace }}::{{ fn.api_name }});
+        {%- endfor %}
+
+        {%- for m in config.bindings.member %}
+        registry->registerMemberMethod("{{ m.object }}", "{{ m.api_name }}", &{{ (config.api_objects | selectattr("identifier", "equalto", m.object) | first).cpp_class }}::{{ m.api_name }});
+        {%- endfor %}
+    }
+}
