@@ -12,6 +12,6 @@
 # Ignore environment file
 .env
 # Ignore registry configuration file
-registry_config.toml
+registry_config.yaml
 # Ignore generated files
 /src/generated/*

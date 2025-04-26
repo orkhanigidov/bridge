@@ -67,9 +67,9 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E make_directory ${VENV_DIR}
         COMMAND ${Python_EXECUTABLE} -m venv ${VENV_DIR}
         COMMAND ${CMAKE_COMMAND} -E echo "Installing required Python packages..."
-        COMMAND ${VENV_PIP} install --upgrade pip
         COMMAND ${VENV_PIP} install libclang
-        COMMAND ${VENV_PIP} install toml
+        COMMAND ${VENV_PIP} install PyYAML
+        COMMAND ${VENV_PIP} install jinja2
         COMMAND ${CMAKE_COMMAND} -E touch ${VENV_MARKER}
         VERBATIM
 )
@@ -83,7 +83,7 @@ add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
         COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
-        DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.toml
+        DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.yaml
         VERBATIM
 )
 
