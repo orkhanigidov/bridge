@@ -15,3 +15,5 @@
 registry_config.yaml
 # Ignore generated files
 /src/generated/*
+# Ignore build files
+/build/*
