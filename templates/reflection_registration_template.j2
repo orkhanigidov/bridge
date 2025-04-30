@@ -1,0 +1,36 @@
+// Auto-generated file. Do not edit manually
+
+#include <rttr/registration>
+
+{% for header in config.headers %}
+#include <{{ header }}>
+{% endfor %}
+
+{% for type in config.registered_types %}
+extern {{ config.namespace }}::{{ type.class_name }} g_{{ type.type_id }};
+{% endfor %}
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+    using namespace {{ config.namespace }};
+
+    {% for type in config.registered_types %}
+    registration::class_<{{ type.class_name }}>("{{ type.type_id }}")
+    {% for method in config.registrations.methods %}
+        {% if method.type_id == type.type_id %}
+        {% if method.parameters is defined and method.default is defined %}
+        .method("{{ method.name }}", select_overload<{{ method.return_type }}({{ method.parameters }})>(&{{ type.class_name }}::{{ method.name }})).default_arguments({{ method.default }})
+        {% elif method.parameters is defined %}
+        .method("{{ method.name }}", select_overload<{{ method.return_type }}({{ method.parameters }})>(&{{ type.class_name }}::{{ method.name }}))
+        {% else %}
+        .method("{{ method.name }}", &{{ type.class_name }}::{{ method.name }})
+        {% endif %}
+        {% endif %}
+    {% endfor %}
+    ;
+    {% endfor %}
+
+    {% for function in config.registrations.functions %}
+    registration::method("{{ function.name }}", &{{ function.name }});
+    {% endfor %}
+}
