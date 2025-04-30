@@ -1,0 +1,22 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# JetBrains IDE files
+*.iml
+.idea/
+# Python virtual environment
+.venv/
+# CMake build output directories
+cmake-build-*/
+build/
+# Auto-generated source files
+src/generated/
+# Local reflection configuration
+config/reflection_config.yaml
+# Local environment variables
+.env
