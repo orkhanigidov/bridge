@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.28)
 project(Engine)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -36,7 +36,7 @@ add_library(Engine SHARED
         include/CustomTypeTraits.h
         include/Registry.h
         include/Registry.inl
-        include/GeneratedRegistry.h
+        include/ReflectionRegistration.h
         include/UnityBridge.h
         src/UnityBridge.cpp
         src/Registry.cpp
@@ -53,8 +53,8 @@ endif ()
 
 # Define Python virtual environment paths
 set(VENV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.venv)
-set(VENV_PYTHON ${CMAKE_CURRENT_SOURCE_DIR}/.venv/Scripts/python${CMAKE_EXECUTABLE_SUFFIX})
-set(VENV_PIP ${CMAKE_CURRENT_SOURCE_DIR}/.venv/Scripts/pip${CMAKE_EXECUTABLE_SUFFIX})
+set(VENV_PYTHON ${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/python${CMAKE_EXECUTABLE_SUFFIX})
+set(VENV_PIP ${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/pip${CMAKE_EXECUTABLE_SUFFIX})
 
 # Find Python interpreter
 find_package(Python COMPONENTS Interpreter REQUIRED)
@@ -80,15 +80,15 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
 # Registry code generation
 # This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/ReflectionRegistration.cpp
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
-        COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
-        DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.yaml
+        COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/ReflectionRegistration.cpp
+        DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
         VERBATIM
 )
 
 # Add the generated implementation to the build
-target_sources(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp)
+target_sources(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/ReflectionRegistration.cpp)
 
 # Use file(TO_CMAKE_PATH) for platform-independent path conversion
 file(TO_CMAKE_PATH "${ROOT_DIR}/${INCLUDE_DIR}" INCLUDE_DIR)
