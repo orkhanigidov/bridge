@@ -14,17 +14,6 @@ set(PROJECT_GENERATED_DIR ${PROJECT_SOURCE_DIR}/generated)
 # Create directory for generated source files
 file(MAKE_DIRECTORY ${PROJECT_GENERATED_DIR})
 
-# Load environment variables from .env file
-include(cmake/EnvLoader.cmake)
-load_env_file(${CMAKE_CURRENT_SOURCE_DIR}/.env)
-
-# Required variable check
-foreach (required_var ENV_ROOT_DIR)
-    if (NOT DEFINED ${required_var})
-        message(FATAL_ERROR "${required_var} is not defined. Please set it in the .env file.")
-    endif ()
-endforeach ()
-
 include(cmake/Dependencies.cmake)
 
 set(HEADERS
@@ -60,24 +49,9 @@ add_custom_command(
 # Add the generated implementation to the build
 target_sources(Engine PRIVATE ${REFLECTION_GENERATED_FILE})
 
-target_include_directories(Engine PRIVATE ${ENV_ROOT_DIR}/${ENV_INCLUDE_DIR})
-
 # Add dependency targets and link with external libraries
-add_dependencies(Engine setup-python-environment setup-conan-dependencies)
+add_dependencies(Engine setup-python-environment)
 link_common_dependencies(Engine)
-
-if (DEFINED ENV_LIBRARIES)
-    string(REPLACE ";" " " libs ${ENV_LIBRARIES})
-    separate_arguments(libs)
-    foreach (lib ${libs})
-        get_filename_component(lib_path ${ENV_ROOT_DIR}/${lib} ABSOLUTE)
-        if (EXISTS ${lib_path})
-            target_link_libraries(Engine PRIVATE ${lib_path})
-        else ()
-            message(WARNING "Library '${lib_path}' not found.")
-        endif ()
-    endforeach ()
-endif ()
 
 # Set compiler warnings
 if (MSVC)

@@ -1,4 +1,17 @@
-include(CMakeParseArguments)
+include(FetchContent)
+
+FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git GIT_TAG v3.12.0)
+FetchContent_Declare(rttr GIT_REPOSITORY https://github.com/rttrorg/rttr.git GIT_TAG v0.9.6)
+FetchContent_Declare(libzmq GIT_REPOSITORY https://github.com/zeromq/libzmq.git GIT_TAG v4.3.5)
+FetchContent_Declare(cppzmq GIT_REPOSITORY https://github.com/zeromq/cppzmq.git GIT_TAG v4.10.0)
+FetchContent_Declare(ogdf GIT_REPOSITORY https://github.com/ogdf/ogdf.git GIT_TAG elderberry-202309)
+
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "Disable unit tests build" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples build" FORCE)
+set(BUILD_DOCUMENTATION OFF CACHE BOOL "Disable documentation build" FORCE)
+set(CUSTOM_DOXYGEN_STYLE OFF CACHE BOOL "Disable custom Doxygen style" FORCE)
+
+set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "Disable tests build" FORCE)
 
 # Find Python interpreter
 find_package(Python COMPONENTS Interpreter REQUIRED)
@@ -16,10 +29,7 @@ endif ()
 
 set(VENV_PYTHON ${VENV_BIN}/python${CMAKE_EXECUTABLE_SUFFIX})
 set(VENV_PIP ${VENV_BIN}/pip${CMAKE_EXECUTABLE_SUFFIX})
-set(VENV_CONAN ${VENV_BIN}/conan${CMAKE_EXECUTABLE_SUFFIX})
 set(VENV_MARKER ${VENV_DIR}/.initialized)
-set(CONAN_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps)
-set(CONAN_MARKER ${CONAN_BUILD_DIR}/.conan_initialized)
 
 # Setup Python virtual environment if it doesn't exist yet
 function(setup_python_environment)
@@ -39,51 +49,28 @@ function(setup_python_environment)
     add_custom_target(setup-python-environment DEPENDS ${VENV_MARKER})
 endfunction()
 
-function(setup_conan_dependencies)
-    add_custom_command(
-            OUTPUT ${CONAN_MARKER}
-            DEPENDS setup-python-environment ${VENV_MARKER}
-            COMMAND ${CMAKE_COMMAND} -E echo "Installing C++ dependencies with Conan..."
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CONAN_BUILD_DIR}
-            COMMAND ${VENV_CONAN} install ${CMAKE_CURRENT_SOURCE_DIR} --output-folder=${CONAN_BUILD_DIR} --build=missing
-            COMMAND ${CMAKE_COMMAND} -E touch ${CONAN_MARKER}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            VERBATIM
-    )
-
-    add_custom_target(setup-conan-dependencies DEPENDS ${CONAN_MARKER})
-endfunction()
-
-function(find_required_packages)
-    include(${CONAN_BUILD_DIR}/conan_toolchain.cmake OPTIONAL RESULT_VARIABLE CONAN_TOOLCHAIN_FOUND)
-
-    if (CONAN_TOOLCHAIN_FOUND)
-        message(STATUS "Conan toolchain found and loaded")
-
-        find_package(nlohmann_json REQUIRED)
-        find_package(rttr REQUIRED)
-        find_package(cppzmq REQUIRED)
-
-        foreach (req_target nlohmann_json::nlohmann_json RTTR::Core_Lib cppzmq)
-            if (NOT TARGET ${req_target})
-                message(FATAL_ERROR "Required target ${req_target} not found. Conan dependencies may have failed to install properly.")
-            endif ()
-        endforeach ()
-    else ()
-        message(FATAL_ERROR "Conan toolchain not found. Run 'cmake --build . --target setup-conan-dependencies' first to install required dependencies.")
-    endif ()
+function(make_dependencies_available)
+    FetchContent_MakeAvailable(json)
+    FetchContent_MakeAvailable(rttr)
+    FetchContent_MakeAvailable(libzmq)
+    FetchContent_MakeAvailable(cppzmq)
+    FetchContent_MakeAvailable(ogdf)
 endfunction()
 
 function(link_common_dependencies target)
     if (NOT TARGET ${target})
-        message(FATAL_ERROR "Target '${target}' does not exist. Make sure the target is defined before calling link_common_dependencies().")
+        message(FATAL_ERROR "Target '${target}' does not exist. Please check the target name.")
     endif ()
 
-    add_dependencies(${target} setup-conan-dependencies)
-    target_link_libraries(${target} PRIVATE nlohmann_json::nlohmann_json RTTR::Core_Lib cppzmq)
+    target_link_libraries(${target} PRIVATE
+            nlohmann_json::nlohmann_json
+            RTTR::Core
+            libzmq
+            cppzmq
+            OGDF COIN
+    )
 endfunction()
 
 # Setup all dependencies
 setup_python_environment()
-setup_conan_dependencies()
-find_required_packages()
+make_dependencies_available()

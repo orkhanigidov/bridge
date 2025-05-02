@@ -1,8 +1,0 @@
-[requires]
-nlohmann_json/3.12.0
-rttr/0.9.6
-cppzmq/4.10.0
-
-[generators]
-CMakeDeps
-CMakeToolchain
