@@ -1,5 +1,7 @@
 #include "../../include/core/MethodDescriptor.h"
 
+#include <rttr/registration>
+
 namespace engine {
 
 void to_json(nlohmann::json &j, const MethodParameter &param) {

@@ -27,14 +27,6 @@ endforeach ()
 
 include(cmake/Dependencies.cmake)
 
-set(SOURCES
-        src/main.cpp
-        src/core/Engine.cpp
-        src/core/MethodDescriptor.cpp
-        src/core/Registration.cpp
-        src/network/NetworkManager.cpp
-)
-
 set(HEADERS
         include/core/Engine.h
         include/core/MethodDescriptor.h
@@ -42,7 +34,14 @@ set(HEADERS
         include/network/NetworkManager.h
 )
 
-add_executable(Engine ${SOURCES} ${HEADERS})
+set(SOURCES
+        src/main.cpp
+        src/core/Engine.cpp
+        src/core/MethodDescriptor.cpp
+        src/network/NetworkManager.cpp
+)
+
+add_executable(Engine ${HEADERS} ${SOURCES})
 
 # Registry code generation
 # This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes

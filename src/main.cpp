@@ -51,8 +51,6 @@ int main(const int argc, char *argv[]) {
     setupSignalHandlers();
 
     engine::Engine &engineInstance = engine::Engine::instance();
-
-    engine::registerTypes();
     engineInstance.registerMethods();
 
     g_networkManager = std::make_unique<engine::NetworkManager>(

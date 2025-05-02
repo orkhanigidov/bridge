@@ -3,6 +3,7 @@
 #include "MethodDescriptor.h"
 
 #include <mutex>
+#include <rttr/registration>
 
 namespace engine {
 
