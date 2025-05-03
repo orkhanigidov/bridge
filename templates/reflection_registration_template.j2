@@ -8,7 +8,6 @@
 
 RTTR_REGISTRATION {
     using namespace rttr;
-
     {% if config.namespace %}
     using namespace {{ config.namespace }};
     {% endif %}
@@ -16,16 +15,14 @@ RTTR_REGISTRATION {
     {% for type in config.registered_types %}
     {% for method in config.registrations.methods %}
     {% if method.type_id == type.type_id %}
-    REGISTER_METHOD({{ type.class_name }}, {{ method.name }},
-                   "{{ method.category|default('engine') }}",
+    REGISTER_METHOD({{ type.class_name }}, {{ method.name }}, {{ method.parameters }}, "{{ method.category|default('engine') }}",
                    "{{ method.description|default('No description provided') }}");
     {% endif %}
     {% endfor %}
     {% endfor %}
 
     {% for function in config.registrations.functions %}
-    REGISTER_FUNCTION({{ function.name }},
-                     "{{ function.category|default('engine') }}",
+    REGISTER_FUNCTION({{ function.name }}, {{ function.parameters }}, "{{ function.category|default('engine') }}",
                      "{{ function.description|default('No description provided') }}");
     {% endfor %}
 }

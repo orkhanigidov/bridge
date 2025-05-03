@@ -18,15 +18,17 @@ include(cmake/Dependencies.cmake)
 
 set(HEADERS
         include/core/Engine.h
-        include/core/MethodDescriptor.h
+        include/core/Method.h
         include/core/Registration.h
+        include/core/TypeConverter.h
         include/network/NetworkManager.h
 )
 
 set(SOURCES
         src/main.cpp
         src/core/Engine.cpp
-        src/core/MethodDescriptor.cpp
+        src/core/Method.cpp
+        src/core/TypeConverter.cpp
         src/network/NetworkManager.cpp
 )
 
