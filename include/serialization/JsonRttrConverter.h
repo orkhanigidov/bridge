@@ -1,8 +1,7 @@
 #pragma once
 
-#include <rttr/variant.h>
-
 #include <nlohmann/json.hpp>
+#include <rttr/variant.h>
 
 namespace engine::serialization
 {
@@ -15,12 +14,14 @@ class JsonRttrConverter
 
     static nlohmann::json errorToJson(const std::string &message, int code = -1);
 
+    JsonRttrConverter(const JsonRttrConverter &) = delete;
+    JsonRttrConverter &operator=(const JsonRttrConverter &) = delete;
+    JsonRttrConverter(JsonRttrConverter &&) = delete;
+    JsonRttrConverter &operator=(JsonRttrConverter &&) = delete;
+
   private:
     JsonRttrConverter() = default;
     ~JsonRttrConverter() = default;
-
-    JsonRttrConverter(const JsonRttrConverter &) = delete;
-    JsonRttrConverter &operator=(const JsonRttrConverter &) = delete;
 };
 
 } // namespace engine::serialization

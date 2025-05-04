@@ -19,12 +19,14 @@ class MethodRegistry
     bool hasMethod(const std::string &methodName) const;
     model::MethodDescriptor findMethod(const std::string &methodName) const;
 
+    MethodRegistry(const MethodRegistry &) = delete;
+    MethodRegistry &operator=(const MethodRegistry &) = delete;
+    MethodRegistry(MethodRegistry &&) = delete;
+    MethodRegistry &operator=(MethodRegistry &&) = delete;
+
   private:
     MethodRegistry() = default;
     ~MethodRegistry() = default;
-
-    MethodRegistry(const MethodRegistry &) = delete;
-    MethodRegistry &operator=(const MethodRegistry &) = delete;
 
     void registerMethod(const rttr::method &method, const std::string &methodName);
 
@@ -36,13 +38,3 @@ class MethodRegistry
 };
 
 } // namespace engine::core::reflection
-
-#define REGISTER_METHOD(Class, Method, Parameters, Category, Description)                                              \
-    rttr::registration::class_<Class>(#Class).method(#Method, &Class::Method)(                                         \
-        rttr::parameter_names Parameters, rttr::metadata("category", Category),                                        \
-        rttr::metadata("description", Description))
-
-#define REGISTER_FUNCTION(Function, Parameters, Category, Description)                                                 \
-    rttr::registration::method(#Function, &Function)(rttr::parameter_names Parameters,                                 \
-                                                     rttr::metadata("category", Category),                             \
-                                                     rttr::metadata("description", Description))

@@ -41,7 +41,6 @@ function(setup_python_environment)
             COMMAND ${CMAKE_COMMAND} -E echo "Installing required Python packages..."
             COMMAND ${VENV_PIP} install -U pip
             COMMAND ${VENV_PIP} install -r ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/requirements.txt
-            COMMAND ${VENV_PIP} install -r ${CMAKE_CURRENT_SOURCE_DIR}/scripts/third_party/requirements.txt
             COMMAND ${CMAKE_COMMAND} -E touch ${VENV_MARKER}
             VERBATIM
     )

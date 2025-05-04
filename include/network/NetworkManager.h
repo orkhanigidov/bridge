@@ -1,9 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
-
 #include <nlohmann/json.hpp>
+#include <thread>
 #include <zmq.hpp>
 
 namespace engine::network
@@ -24,10 +23,12 @@ class NetworkManager
     void stopMessageLoop();
     bool isRunning() const;
 
-  private:
     NetworkManager(const NetworkManager &) = delete;
     NetworkManager &operator=(const NetworkManager &) = delete;
+    NetworkManager(NetworkManager &&) = delete;
+    NetworkManager &operator=(NetworkManager &&) = delete;
 
+  private:
     std::unique_ptr<zmq::context_t> zmqContext;
     std::unique_ptr<zmq::socket_t> zmqSocket;
     MessageHandler messageHandler;

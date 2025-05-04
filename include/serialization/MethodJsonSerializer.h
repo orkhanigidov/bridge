@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../model/MethodDescriptor.h"
+
 #include <nlohmann/json.hpp>
 
 namespace engine::serialization
