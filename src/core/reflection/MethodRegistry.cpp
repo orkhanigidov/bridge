@@ -87,4 +87,20 @@ std::vector<model::MethodDescriptor> MethodRegistry::getRegisteredMethods() cons
     return result;
 }
 
+bool MethodRegistry::hasMethod(const std::string &methodName) const
+{
+    std::lock_guard lock(methodMutex);
+    return methodMap.find(methodName) != methodMap.end();
+}
+
+model::MethodDescriptor MethodRegistry::findMethod(const std::string &methodName) const
+{
+    std::lock_guard lock(methodMutex);
+    if (const auto it = methodMap.find(methodName); it != methodMap.end())
+    {
+        return it->second;
+    }
+    return {};
+}
+
 } // namespace engine::core::reflection
