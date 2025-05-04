@@ -1,6 +1,6 @@
-#include "../../../include/core/reflection/MethodRegistry.h"
+#include "../../../include/pch.h"
 
-#include <iostream>
+#include "../../../include/core/reflection/MethodRegistry.h"
 
 namespace engine::core::reflection
 {

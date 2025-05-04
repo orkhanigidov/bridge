@@ -1,9 +1,8 @@
 #pragma once
 
-#include "../../model/MethodDescriptor.h"
+#include "../../pch.h"
 
-#include <mutex>
-#include <rttr/registration>
+#include "../../model/MethodDescriptor.h"
 
 namespace engine::core::reflection
 {
@@ -11,6 +10,8 @@ namespace engine::core::reflection
 class MethodRegistry
 {
   public:
+    ~MethodRegistry() = default;
+
     static MethodRegistry &getInstance();
 
     void registerAll();
@@ -26,7 +27,6 @@ class MethodRegistry
 
   private:
     MethodRegistry() = default;
-    ~MethodRegistry() = default;
 
     void registerMethod(const rttr::method &method, const std::string &methodName);
 

@@ -1,6 +1,6 @@
-#include "../../include/network/NetworkManager.h"
+#include "../../include/pch.h"
 
-#include <iostream>
+#include "../../include/network/NetworkManager.h"
 
 namespace engine::network
 {

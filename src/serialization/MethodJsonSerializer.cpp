@@ -1,3 +1,5 @@
+#include "../../include/pch.h"
+
 #include "../../include/serialization/MethodJsonSerializer.h"
 
 using json = nlohmann::json;

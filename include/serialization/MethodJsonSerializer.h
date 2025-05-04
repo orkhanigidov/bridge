@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../model/MethodDescriptor.h"
+#include "../pch.h"
 
-#include <nlohmann/json.hpp>
+#include "../model/MethodDescriptor.h"
 
 namespace engine::serialization
 {
