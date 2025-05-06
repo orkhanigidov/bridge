@@ -17,22 +17,28 @@ file(MAKE_DIRECTORY ${PROJECT_GENERATED_DIR})
 include(cmake/Dependencies.cmake)
 
 set(HEADERS
+        include/core/reflection/MethodRegistry.h
+        include/core/reflection/RegistrationMacros.h
         include/core/Engine.h
-        include/core/Method.h
-        include/core/Registration.h
-        include/core/TypeConverter.h
+        include/model/MethodDescriptor.h
         include/network/NetworkManager.h
+        include/serialization/JsonRttrConverter.h
+        include/serialization/MethodJsonSerializer.h
 )
 
 set(SOURCES
         src/main.cpp
+        src/core/reflection/MethodRegistry.cpp
         src/core/Engine.cpp
-        src/core/Method.cpp
-        src/core/TypeConverter.cpp
         src/network/NetworkManager.cpp
+        src/serialization/JsonRttrConverter.cpp
+        src/serialization/MethodJsonSerializer.cpp
 )
 
 add_executable(Engine ${HEADERS} ${SOURCES})
+
+# Add precompiled header configuration
+target_precompile_headers(Engine PRIVATE ${PROJECT_INCLUDE_DIR}/pch.h)
 
 # Registry code generation
 # This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
