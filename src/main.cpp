@@ -1,99 +1,87 @@
+#include "../include/pch.h"
+
 #include "../include/core/Engine.h"
+#include "../include/core/reflection/MethodRegistry.h"
 #include "../include/network/NetworkManager.h"
-#include <chrono>
-#include <csignal>
-#include <iostream>
-#include <thread>
+#include "../include/serialization/JsonRttrConverter.h"
+#include "../include/serialization/MethodJsonSerializer.h"
 
-std::unique_ptr<engine::NetworkManager> networkManager;
+nlohmann::json processMessage(const std::string &message)
+{
+    try
+    {
+        nlohmann::json request = nlohmann::json::parse(message);
 
-void signalHandler(const int signal) {
-    std::cout << "\nReceived signal " << signal << std::endl;
+        if (!request.contains("method") || !request["method"].is_string())
+        {
+            return engine::serialization::JsonRttrConverter::errorToJson("Missing or invalid 'method' field");
+        }
 
-    if (networkManager) {
-        std::cout << "Shutting down network engine..." << std::endl;
-        networkManager->shutdown();
+        std::string methodName = request["method"];
+        nlohmann::json params = request.value("params", nlohmann::json::object());
+
+        return engine::core::Engine::getInstance().executeMethod(methodName, params);
+    }
+    catch (const nlohmann::json::exception &e)
+    {
+        return engine::serialization::JsonRttrConverter::errorToJson("Invalid JSON: " + std::string(e.what()));
+    }
+    catch (const std::exception &e)
+    {
+        return engine::serialization::JsonRttrConverter::errorToJson("Error: " + std::string(e.what()));
     }
 }
 
-nlohmann::json processMessage(const std::string& message, engine::Engine& engine) {
-    try {
-        auto request = nlohmann::json::parse(message);
-
-        if (!request.contains("method")) {
-            return {{"error", true}, {"message", "Missing 'method' field in request"}};
-        }
-
-        const auto& methodName = request["method"].get<std::string>();
-        const auto& params     = request.value("params", nlohmann::json::object());
-
-        return engine.executeMethod(methodName, params);
-    } catch (const std::exception& e) {
-        return {{"error", true}, {"message", "Request error: " + std::string(e.what())}};
-    }
+std::atomic_bool running{true};
+void signalHandler(int signal)
+{
+    std::cout << "Received signal " << signal << ", shutting down..." << std::endl;
+    running = false;
 }
 
-struct CommandLineArgs {
-    std::string endpoint = "tcp://*:5555";
-    bool showHelp        = false;
-};
-
-CommandLineArgs parseArgs(int argc, char* argv[]) {
-    CommandLineArgs args;
-
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if ((arg == "--endpoint" || arg == "-e") && i + 1 < argc) {
-            args.endpoint = argv[++i];
-            i++;
-        } else if (arg == "--help" || arg == "-h") {
-            args.showHelp = true;
-        }
-    }
-    return args;
-}
-
-void printUsage(const char* programName) {
-    std::cout << "Usage: " << programName << " [options]\n"
-              << "Options:\n"
-              << " --endpoint, -e <url>  Network endpoint (default: "
-                 "tcp://*:5555)\n"
-              << " --help, -h            Show this help message" << std::endl;
-}
-
-int main(const int argc, char* argv[]) {
-    try {
-        std::cout << "Starting Engine application..." << std::endl;
-
-        auto args = parseArgs(argc, argv);
-
-        if (args.showHelp) {
-            printUsage(argv[0]);
-            return 0;
-        }
-
+int main(int argc, char *argv[])
+{
+    try
+    {
         std::signal(SIGINT, signalHandler);
         std::signal(SIGTERM, signalHandler);
 
-        auto& engineInstance = engine::Engine::instance();
-        engineInstance.registerMethods();
+        std::string endpoint = "tcp://*:5555";
+        if (argc > 1)
+        {
+            endpoint = argv[1];
+        }
 
-        networkManager = std::make_unique<engine::NetworkManager>(
-            [&engineInstance](const std::string& message) { return processMessage(message, engineInstance); });
+        std::cout << "Starting engine service..." << std::endl;
 
-        std::cout << "Using endpoint: " << args.endpoint << std::endl;
-        networkManager->initialize(args.endpoint);
-        networkManager->startMessageLoop();
+        engine::core::reflection::MethodRegistry::getInstance().registerAll();
 
-        std::cout << "Engine running. Press Ctrl+C to exit." << std::endl;
+        auto methods = engine::core::reflection::MethodRegistry::getInstance().getRegisteredMethods();
+        std::cout << "Registered " << methods.size() << " methods:" << std::endl;
+        for (const auto &method : methods)
+        {
+            std::cout << "  - " << method.name << " (Category: " << method.category << ")" << std::endl;
+        }
 
-        while (networkManager && networkManager->isRunning()) {
+        engine::network::NetworkManager networkManager(processMessage);
+        networkManager.initialize(endpoint);
+        networkManager.startMessageLoop();
+
+        std::cout << "Engine service running on " << endpoint << std::endl;
+        std::cout << "Press Ctrl+C to exit" << std::endl;
+
+        while (running)
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        std::cout << "Engine stopped." << std::endl;
+        std::cout << "Shutting down engine service..." << std::endl;
+        networkManager.shutdown();
+
         return 0;
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception &e)
+    {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;
     }
