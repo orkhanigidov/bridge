@@ -29,18 +29,18 @@ def load_yaml(path: Path) -> Dict[str, Any]:
 
 
 def render_registry(config: Dict[str, Any], templates_dir: Path) -> str:
-    # Render the Jinja2 template named 'GeneratedRegistry.j2' using the provided config
+    # Render the Jinja2 template named 'reflection_registration_template.j2' using the provided config
     if not templates_dir.exists():
         raise ConfigError(f"Templates directory not found: {templates_dir}")
 
     env = Environment(
         loader=FileSystemLoader(str(templates_dir)),
         undefined=StrictUndefined,
-        # trim_blocks=True,
-        # lstrip_blocks=True
+        trim_blocks=True,
+        lstrip_blocks=True
     )
 
-    template = env.get_template("GeneratedRegistry.j2")
+    template = env.get_template("reflection_registration_template.j2")
     return template.render(config=config)
 
 
@@ -51,8 +51,8 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(__file__).resolve().parent / "config" / "registry_config.yaml",
-        help="Path to registry_config.yaml"
+        default=Path(__file__).resolve().parent / "config" / "reflection_config.yaml",
+        help="Path to reflection_config.yaml"
     )
     parser.add_argument(
         "--templates",

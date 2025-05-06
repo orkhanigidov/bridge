@@ -1,137 +1,75 @@
-cmake_minimum_required(VERSION 3.30)
-project(Engine)
+cmake_minimum_required(VERSION 3.28)
+project(Engine VERSION 0.1.0 LANGUAGES CXX)
 
+# Set C++ standard for all targets
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Load environment variables from .env file
-set(ENV_FILE "${CMAKE_CURRENT_SOURCE_DIR}/.env")
-if (EXISTS "${ENV_FILE}")
-    file(STRINGS "${ENV_FILE}" env_vars)
-    foreach (env_var ${env_vars})
-        if (env_var MATCHES "^[^#]" AND NOT env_var STREQUAL "")
-            if (env_var MATCHES "^([^=]+)=(.*)$")
-                set(var_name "${CMAKE_MATCH_1}")
-                set(var_value "${CMAKE_MATCH_2}")
-                set(${var_name} "${var_value}")
-                message(STATUS "Loaded from .env: ${var_name}=${var_value}")
-            endif ()
-        endif ()
-    endforeach ()
-else ()
-    message(WARNING "No .env file found. Copy .env.example to .env and configure your environment variables.")
-endif ()
-
-# Required variable check
-foreach (required_var ROOT_DIR)
-    if (NOT DEFINED "${required_var}")
-        message(FATAL_ERROR "${required_var} is not defined. Please set it in the .env file.")
-    endif ()
-endforeach ()
-
-add_library(Engine SHARED
-        include/ParameterConverter.h
-        include/ResultConverter.h
-        include/TypeRegistry.h
-        include/CustomTypeTraits.h
-        include/Registry.h
-        include/Registry.inl
-        include/GeneratedRegistry.h
-        include/UnityBridge.h
-        src/UnityBridge.cpp
-        src/Registry.cpp
-        src/Globals.cpp
-)
-
-# Default values for optional variables
-if (NOT DEFINED INCLUDE_DIR)
-    set(INCLUDE_DIR "include")
-endif ()
-if (NOT DEFINED BUILD_DIR)
-    set(BUILD_DIR "build")
-endif ()
-
-# Define Python virtual environment paths
-set(VENV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.venv)
-set(VENV_PYTHON ${CMAKE_CURRENT_SOURCE_DIR}/.venv/Scripts/python${CMAKE_EXECUTABLE_SUFFIX})
-set(VENV_PIP ${CMAKE_CURRENT_SOURCE_DIR}/.venv/Scripts/pip${CMAKE_EXECUTABLE_SUFFIX})
-
-# Find Python interpreter
-find_package(Python COMPONENTS Interpreter REQUIRED)
-
-# Setup Python virtual environment if it doesn't exist yet
-set(VENV_MARKER ${VENV_DIR}/.initialized)
-add_custom_command(
-        OUTPUT ${VENV_MARKER}
-        COMMAND ${CMAKE_COMMAND} -E echo "Setting up Python virtual environment..."
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${VENV_DIR}
-        COMMAND ${Python_EXECUTABLE} -m venv ${VENV_DIR}
-        COMMAND ${CMAKE_COMMAND} -E echo "Installing required Python packages..."
-        COMMAND ${VENV_PIP} install libclang
-        COMMAND ${VENV_PIP} install PyYAML
-        COMMAND ${VENV_PIP} install jinja2
-        COMMAND ${CMAKE_COMMAND} -E touch ${VENV_MARKER}
-        VERBATIM
-)
+# Define project structure
+set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(PROJECT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(PROJECT_GENERATED_DIR ${PROJECT_SOURCE_DIR}/generated)
 
 # Create directory for generated source files
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
+file(MAKE_DIRECTORY ${PROJECT_GENERATED_DIR})
+
+include(cmake/Dependencies.cmake)
+
+set(HEADERS
+        include/core/reflection/MethodRegistry.h
+        include/core/reflection/RegistrationMacros.h
+        include/core/Engine.h
+        include/model/MethodDescriptor.h
+        include/network/NetworkManager.h
+        include/serialization/JsonRttrConverter.h
+        include/serialization/MethodJsonSerializer.h
+)
+
+set(SOURCES
+        src/main.cpp
+        src/core/reflection/MethodRegistry.cpp
+        src/core/Engine.cpp
+        src/network/NetworkManager.cpp
+        src/serialization/JsonRttrConverter.cpp
+        src/serialization/MethodJsonSerializer.cpp
+)
+
+add_executable(Engine ${HEADERS} ${SOURCES})
+
+# Add precompiled header configuration
+target_precompile_headers(Engine PRIVATE ${PROJECT_INCLUDE_DIR}/pch.h)
 
 # Registry code generation
 # This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
+set(REFLECTION_GENERATED_FILE ${PROJECT_GENERATED_DIR}/ReflectionRegistration.cpp)
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
+        OUTPUT ${REFLECTION_GENERATED_FILE}
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
-        COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py > ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp
-        DEPENDS ${VENV_MARKER} ${CMAKE_CURRENT_SOURCE_DIR}/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/registry_config.yaml
+        COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py
+        --config=${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
+        --templates=${CMAKE_CURRENT_SOURCE_DIR}/templates
+        > ${REFLECTION_GENERATED_FILE}
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
         VERBATIM
 )
 
 # Add the generated implementation to the build
-target_sources(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/GeneratedRegistry.cpp)
+target_sources(Engine PRIVATE ${REFLECTION_GENERATED_FILE})
 
-# Use file(TO_CMAKE_PATH) for platform-independent path conversion
-file(TO_CMAKE_PATH "${ROOT_DIR}/${INCLUDE_DIR}" INCLUDE_DIR)
-target_include_directories(Engine PRIVATE "${INCLUDE_DIR}")
+# Add dependency targets and link with external libraries
+add_dependencies(Engine setup-python-environment)
+link_common_dependencies(Engine)
 
-if (DEFINED LIBRARIES)
-    string(REPLACE ";" " " libs "${LIBRARIES}")
-    separate_arguments(libs)
-    foreach (lib ${libs})
-        file(TO_CMAKE_PATH "${ROOT_DIR}/${BUILD_DIR}/${lib}" LIB_PATH)
-        if (NOT EXISTS "${LIB_PATH}")
-            message(WARNING "Library '${LIB_PATH}' not found.")
-        endif ()
-        target_link_libraries(Engine PRIVATE "${LIB_PATH}")
-    endforeach ()
-endif ()
-
-# Set Unity Plugins directory from environment or use default
-if (NOT DEFINED UNITY_PROJECT_DIR)
-    set(UNITY_PLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/UnityPlugin)
-    message(STATUS "Using default Unity Plugin directory: ${UNITY_PLUGIN_DIR}")
-else ()
-    message(STATUS "Using Unity Project directory from .env: ${UNITY_PROJECT_DIR}")
-endif ()
-
-if (NOT DEFINED DLL_OUTPUT_NAME)
-    set(DLL_OUTPUT_NAME "EngineBridge")
-endif ()
-
-set_target_properties(Engine PROPERTIES
-        PREFIX ""  # Remove "lib" prefix from DLL
-        OUTPUT_NAME ${DLL_OUTPUT_NAME}
-)
-
-# Post-build command to copy DLL to Unity Plugins directory
-add_custom_command(TARGET Engine POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Copying DLL to Unity Plugins directory..."
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${UNITY_PROJECT_DIR}/Assets/Plugins
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Engine> ${UNITY_PLUGINS_PATH}/$<TARGET_FILE_NAME:Engine>
-        VERBATIM
-)
-
-# Disable specific warnings for MSVC
+# Set compiler warnings
 if (MSVC)
-    target_compile_options(Engine PRIVATE /wd4068)  # Disable unknown pragma 'mark' warning
+    target_compile_options(Engine PRIVATE /W4)
+else ()
+    target_compile_options(Engine PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
+
+install(TARGETS Engine
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib/static
+)
