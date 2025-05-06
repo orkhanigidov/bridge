@@ -2,38 +2,39 @@
 
 #include "../../include/serialization/JsonRttrConverter.h"
 
+using namespace rttr;
+
 namespace engine::serialization
 {
 
-std::optional<rttr::argument> JsonRttrConverter::jsonToArgument(const nlohmann::json &jsonValue,
-                                                                const rttr::type &paramType)
+std::optional<argument> JsonRttrConverter::jsonToArgument(const nlohmann::json &jsonValue, const type &type)
 {
     try
     {
-        if (paramType == rttr::type::get<int>() && jsonValue.is_number_integer())
-        {
-            return rttr::argument(jsonValue.get<int>());
-        }
-        if (paramType == rttr::type::get<double>() && jsonValue.is_number())
-        {
-            return rttr::argument(jsonValue.get<double>());
-        }
-        if (paramType == rttr::type::get<float>() && jsonValue.is_number())
-        {
-            return rttr::argument(jsonValue.get<float>());
-        }
-        if (paramType == rttr::type::get<std::string>() && jsonValue.is_string())
-        {
-            return rttr::argument(jsonValue.get<std::string>());
-        }
-        if (paramType == rttr::type::get<bool>() && jsonValue.is_boolean())
-        {
-            return rttr::argument(jsonValue.get<bool>());
-        }
-
         if (jsonValue.is_null())
         {
-            return rttr::argument();
+            return argument();
+        }
+
+        if (type == type::get<int>() && jsonValue.is_number())
+        {
+            return argument(jsonValue.get<int>());
+        }
+        if (type == type::get<float>() && jsonValue.is_number())
+        {
+            return argument(jsonValue.get<float>());
+        }
+        if (type == type::get<double>() && jsonValue.is_number())
+        {
+            return argument(jsonValue.get<double>());
+        }
+        if (type == type::get<std::string>() && jsonValue.is_string())
+        {
+            return argument(jsonValue.get<std::string>());
+        }
+        if (type == type::get<bool>() && jsonValue.is_boolean())
+        {
+            return argument(jsonValue.get<bool>());
         }
 
         return std::nullopt;
@@ -44,36 +45,51 @@ std::optional<rttr::argument> JsonRttrConverter::jsonToArgument(const nlohmann::
     }
 }
 
-nlohmann::json JsonRttrConverter::variantToJson(const rttr::variant &result)
+std::vector<argument> JsonRttrConverter::convertMethodParams(const method &method, const nlohmann::json &params)
 {
-    if (!result.is_valid())
+    std::vector<argument> args;
+    const auto paramList = method.get_parameter_infos();
+
+    for (const auto &param : paramList)
+    {
+        if (const std::string &paramName = param.get_name().to_string(); params.contains(paramName))
+        {
+            if (auto arg = jsonToArgument(params.at(paramName), param.get_type()); arg.has_value())
+            {
+                args.push_back(arg.value());
+            }
+        }
+    }
+
+    return args;
+}
+
+nlohmann::json JsonRttrConverter::variantToJson(const variant &returnValue)
+{
+    if (!returnValue.is_valid())
     {
         return errorToJson("Invalid result variant");
     }
 
-    if (result.is_type<nlohmann::json>())
+    if (returnValue.is_type<int>())
     {
-        return result.get_value<nlohmann::json>();
+        return returnValue.get_value<int>();
     }
-    if (result.is_type<std::string>())
+    if (returnValue.is_type<float>())
     {
-        return result.get_value<std::string>();
+        return returnValue.get_value<float>();
     }
-    if (result.is_type<int>())
+    if (returnValue.is_type<double>())
     {
-        return result.get_value<int>();
+        return returnValue.get_value<double>();
     }
-    if (result.is_type<double>())
+    if (returnValue.is_type<std::string>())
     {
-        return result.get_value<double>();
+        return returnValue.get_value<std::string>();
     }
-    if (result.is_type<float>())
+    if (returnValue.is_type<bool>())
     {
-        return result.get_value<float>();
-    }
-    if (result.is_type<bool>())
-    {
-        return result.get_value<bool>();
+        return returnValue.get_value<bool>();
     }
 
     return errorToJson("Result type not directly convertible to JSON");

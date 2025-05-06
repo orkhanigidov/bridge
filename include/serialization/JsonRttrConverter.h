@@ -8,8 +8,9 @@ namespace engine::serialization
 class JsonRttrConverter
 {
   public:
-    static std::optional<rttr::argument> jsonToArgument(const nlohmann::json &jsonValue, const rttr::type &paramType);
-    static nlohmann::json variantToJson(const rttr::variant &result);
+    static std::vector<rttr::argument> convertMethodParams(const rttr::method &method, const nlohmann::json &params);
+    static std::optional<rttr::argument> jsonToArgument(const nlohmann::json &jsonValue, const rttr::type &type);
+    static nlohmann::json variantToJson(const rttr::variant &returnValue);
 
     static nlohmann::json errorToJson(const std::string &message, int code = -1);
 

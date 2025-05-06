@@ -1,32 +1,29 @@
 #pragma once
 
-#include "Method.h"
-#include <mutex>
-#include <rttr/registration>
+#include "../pch.h"
 
-namespace engine {
+namespace engine::core
+{
 
-    class Engine {
-    public:
-        static Engine& instance();
-        ~Engine() = default;
+class Engine
+{
+  public:
+    ~Engine() = default;
 
-        Engine(const Engine&)            = delete;
-        Engine& operator=(const Engine&) = delete;
+    static Engine &getInstance();
 
-        void registerMethods();
-        std::vector<Method> getAvailableMethods() const;
+    nlohmann::json executeMethod(const std::string &methodName, const nlohmann::json &params);
 
-        nlohmann::json executeMethod(const std::string& methodName, const nlohmann::json& params);
+    Engine(const Engine &) = delete;
+    Engine &operator=(const Engine &) = delete;
+    Engine(Engine &&) = delete;
+    Engine &operator=(Engine &&) = delete;
 
-    private:
-        Engine() = default;
+  private:
+    Engine() = default;
 
-        static std::mutex instanceMutex;
-        static std::unique_ptr<Engine> instancePtr;
+    static std::mutex instanceMutex;
+    static std::unique_ptr<Engine> instancePtr;
+};
 
-        std::unordered_map<std::string, rttr::method> methodRegistry;
-        mutable std::mutex methodMutex;
-    };
-
-} // namespace engine
+} // namespace engine::core
