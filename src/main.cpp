@@ -56,11 +56,12 @@ int main(int argc, char *argv[])
 
         engine::core::reflection::MethodRegistry::getInstance().registerAll();
 
-        auto methods = engine::core::reflection::MethodRegistry::getInstance().getRegisteredMethods();
-        std::cout << "Registered " << methods.size() << " methods:" << std::endl;
-        for (const auto &method : methods)
+        const auto methodDescriptor = engine::core::reflection::MethodRegistry::getInstance().getRegisteredMethods();
+        std::cout << "Registered " << methodDescriptor.size() << " methods:" << std::endl;
+        for (const auto &descriptor : methodDescriptor)
         {
-            std::cout << "  - " << method.name << " (Category: " << method.category << ")" << std::endl;
+            std::cout << "  - " << descriptor.getMethod().get_name() << " (Category: " << descriptor.getCategory()
+                      << ")" << std::endl;
         }
 
         engine::network::NetworkManager networkManager(processMessage);

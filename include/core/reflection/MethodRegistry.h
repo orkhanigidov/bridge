@@ -28,13 +28,13 @@ class MethodRegistry
   private:
     MethodRegistry() = default;
 
-    void registerMethod(const rttr::method &method, const std::string &methodName);
+    void registerMethod(const method &method);
 
-    static std::mutex instanceMutex;
-    static std::unique_ptr<MethodRegistry> instancePtr;
+    static std::mutex s_instanceMutex;
+    static std::unique_ptr<MethodRegistry> s_instancePtr;
 
-    mutable std::mutex methodMutex;
-    std::unordered_map<std::string, model::MethodDescriptor> methodMap;
+    mutable std::mutex m_methodMutex;
+    std::unordered_map<std::string, model::MethodDescriptor> m_methodMap;
 };
 
 } // namespace engine::core::reflection
