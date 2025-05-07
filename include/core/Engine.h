@@ -22,8 +22,8 @@ class Engine
   private:
     Engine() = default;
 
-    static std::mutex instanceMutex;
-    static std::unique_ptr<Engine> instancePtr;
+    static std::mutex s_instanceMutex;
+    static std::unique_ptr<Engine> s_instancePtr;
 };
 
 } // namespace engine::core
