@@ -40,7 +40,9 @@ nlohmann::json Engine::executeMethod(const std::string &methodName, const nlohma
             return serialization::JsonRttrConverter::errorToJson("Invalid RTTR method: " + methodName);
         }
 
-        const auto args = serialization::JsonRttrConverter::convertMethodParams(method, params);
+        const std::vector<variant> convertedParams =
+            serialization::JsonRttrConverter::convertMethodParams(method, params);
+        const std::vector<argument> args(convertedParams.begin(), convertedParams.end());
         const variant returnValue = method.invoke_variadic({}, args);
 
         if (!returnValue.is_valid() && method.get_return_type() != type::get<void>())
