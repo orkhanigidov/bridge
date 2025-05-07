@@ -7,34 +7,34 @@ using namespace rttr;
 namespace engine::serialization
 {
 
-std::optional<argument> JsonRttrConverter::jsonToArgument(const nlohmann::json &jsonValue, const type &type)
+std::optional<variant> JsonRttrConverter::jsonToVariant(const nlohmann::json &jsonValue, const type &type)
 {
     try
     {
         if (jsonValue.is_null())
         {
-            return argument();
+            return variant();
         }
 
-        if (type == type::get<int>() && jsonValue.is_number())
+        if (type == type::get<int>())
         {
-            return argument(jsonValue.get<int>());
+            return variant(jsonValue.get<int>());
         }
-        if (type == type::get<float>() && jsonValue.is_number())
+        if (type == type::get<float>())
         {
-            return argument(jsonValue.get<float>());
+            return variant(jsonValue.get<float>());
         }
-        if (type == type::get<double>() && jsonValue.is_number())
+        if (type == type::get<double>())
         {
-            return argument(jsonValue.get<double>());
+            return variant(jsonValue.get<double>());
         }
-        if (type == type::get<std::string>() && jsonValue.is_string())
+        if (type == type::get<std::string>())
         {
-            return argument(jsonValue.get<std::string>());
+            return variant(jsonValue.get<std::string>());
         }
-        if (type == type::get<bool>() && jsonValue.is_boolean())
+        if (type == type::get<bool>())
         {
-            return argument(jsonValue.get<bool>());
+            return variant(jsonValue.get<bool>());
         }
 
         return std::nullopt;
@@ -45,16 +45,16 @@ std::optional<argument> JsonRttrConverter::jsonToArgument(const nlohmann::json &
     }
 }
 
-std::vector<argument> JsonRttrConverter::convertMethodParams(const method &method, const nlohmann::json &params)
+std::vector<variant> JsonRttrConverter::convertMethodParams(const method &method, const nlohmann::json &params)
 {
-    std::vector<argument> args;
+    std::vector<variant> args;
     const auto paramList = method.get_parameter_infos();
 
     for (const auto &param : paramList)
     {
         if (const std::string &paramName = param.get_name().to_string(); params.contains(paramName))
         {
-            if (auto arg = jsonToArgument(params.at(paramName), param.get_type()); arg.has_value())
+            if (auto arg = jsonToVariant(params.at(paramName), param.get_type()); arg.has_value())
             {
                 args.push_back(arg.value());
             }
