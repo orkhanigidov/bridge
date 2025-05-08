@@ -43,16 +43,19 @@ target_precompile_headers(Engine PRIVATE ${PROJECT_INCLUDE_DIR}/pch.h)
 # Registry code generation
 # This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
 set(REFLECTION_GENERATED_FILE ${PROJECT_GENERATED_DIR}/ReflectionRegistration.cpp)
+set_source_files_properties(${REFLECTION_GENERATED_FILE} PROPERTIES GENERATED TRUE)
 add_custom_command(
         OUTPUT ${REFLECTION_GENERATED_FILE}
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
         COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py
         --config=${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
         --templates=${CMAKE_CURRENT_SOURCE_DIR}/templates
-        > ${REFLECTION_GENERATED_FILE}.tmp
+        --output=${REFLECTION_GENERATED_FILE}.tmp
         COMMAND ${CMAKE_COMMAND} -E copy ${REFLECTION_GENERATED_FILE}.tmp ${REFLECTION_GENERATED_FILE}
         COMMAND ${CMAKE_COMMAND} -E remove ${REFLECTION_GENERATED_FILE}.tmp
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py ${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
+        ${CMAKE_CURRENT_SOURCE_DIR}/templates/reflection_registration_template.j2
         VERBATIM
 )
 
