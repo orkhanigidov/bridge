@@ -60,17 +60,23 @@ def main() -> None:
         default=Path(__file__).resolve().parent / "templates",
         help="Path to Jinja2 template directory"
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path(__file__).resolve().parent / "src" / "generated" / "ReflectionRegistration.cpp",
+        help="Path to output file for generated C++ code"
+    )
 
     args = parser.parse_args()
 
     try:
         config = load_yaml(args.config)
-        output = render_registry(config, args.templates)
+        output_content = render_registry(config, args.templates)
+        args.output.write_text(output_content, encoding="utf-8")
+        logger.info(f"Generated C++ code written to {args.output}")
     except ConfigError as e:
         logger.error(e)
         sys.exit(1)
-
-    sys.stdout.write(output)
 
 
 if __name__ == "__main__":
