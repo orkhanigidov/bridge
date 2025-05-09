@@ -21,6 +21,7 @@ set(HEADERS
         include/core/reflection/RegistrationMacros.h
         include/core/Engine.h
         include/model/MethodDescriptor.h
+        include/model/MethodParameterDescriptor.h
         include/network/NetworkManager.h
         include/serialization/JsonRttrConverter.h
         include/serialization/MethodJsonSerializer.h
