@@ -28,7 +28,7 @@ class MethodRegistry
   private:
     MethodRegistry() = default;
 
-    void registerMethod(const method &method);
+    void registerMethod(const rttr::method &method);
 
     static std::mutex s_instanceMutex;
     static std::unique_ptr<MethodRegistry> s_instancePtr;

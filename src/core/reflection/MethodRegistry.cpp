@@ -18,7 +18,7 @@ MethodRegistry &MethodRegistry::getInstance()
     return *s_instancePtr;
 }
 
-void MethodRegistry::registerMethod(const method &method)
+void MethodRegistry::registerMethod(const rttr::method &method)
 {
     const auto methodName = method.get_name();
     const auto category = method.get_metadata("category").to_string();
@@ -44,12 +44,12 @@ void MethodRegistry::registerAll()
     std::lock_guard lock(m_methodMutex);
     m_methodMap.clear();
 
-    for (const auto &method : type::get_global_methods())
+    for (const auto &method : rttr::type::get_global_methods())
     {
         registerMethod(method);
     }
 
-    for (const auto &type : type::get_types())
+    for (const auto &type : rttr::type::get_types())
     {
         for (const auto &method : type.get_methods())
         {
@@ -86,7 +86,7 @@ model::MethodDescriptor MethodRegistry::findMethod(const std::string &methodName
         return it->second;
     }
 
-    return model::MethodDescriptor(type::get_global_method(""), type::get<void>(), {}, "", "");
+    return model::MethodDescriptor(rttr::type::get_global_method(""), rttr::type::get<void>(), {}, "", "");
 }
 
 } // namespace engine::core::reflection

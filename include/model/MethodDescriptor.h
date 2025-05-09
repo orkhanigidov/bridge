@@ -2,46 +2,16 @@
 
 #include "../pch.h"
 
-using namespace rttr;
+#include "MethodParameterDescriptor.h"
 
 namespace engine::model
 {
-
-class MethodParameterDescriptor
-{
-  public:
-    MethodParameterDescriptor() = delete;
-    explicit MethodParameterDescriptor(const argument &name, const type &paramType, const variant &defaultValue)
-        : m_name(name), m_paramType(paramType), m_defaultValue(defaultValue)
-    {
-    }
-
-    const argument &getName() const
-    {
-        return m_name;
-    }
-
-    const type &getParamType() const
-    {
-        return m_paramType;
-    }
-
-    const variant &getDefaultValue() const
-    {
-        return m_defaultValue;
-    }
-
-  private:
-    argument m_name;
-    type m_paramType;
-    variant m_defaultValue;
-};
 
 class MethodDescriptor
 {
   public:
     MethodDescriptor() = delete;
-    explicit MethodDescriptor(const method &method, const type &returnType,
+    explicit MethodDescriptor(const rttr::method &method, const rttr::type &returnType,
                               const std::vector<MethodParameterDescriptor> &parameters, const std::string &category,
                               const std::string &description)
         : m_method(method), m_returnType(returnType), m_parameters(parameters), m_category(std::move(category)),
@@ -49,12 +19,12 @@ class MethodDescriptor
     {
     }
 
-    const method &getMethod() const
+    const rttr::method &getMethod() const
     {
         return m_method;
     }
 
-    const type &getReturnType() const
+    const rttr::type &getReturnType() const
     {
         return m_returnType;
     }
@@ -75,8 +45,8 @@ class MethodDescriptor
     }
 
   private:
-    method m_method;
-    type m_returnType;
+    rttr::method m_method;
+    rttr::type m_returnType;
     std::vector<MethodParameterDescriptor> m_parameters;
     std::string m_category;
     std::string m_description;
