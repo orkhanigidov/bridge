@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(Engine VERSION 0.1.0 LANGUAGES CXX)
+project(Engine LANGUAGES CXX)
 
 # Set C++ standard for all targets
 set(CMAKE_CXX_STANDARD 17)
@@ -7,75 +7,56 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Define project structure
-set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(PROJECT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(PROJECT_GENERATED_DIR ${PROJECT_SOURCE_DIR}/generated)
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(SOURCE_DIR ${PROJECT_ROOT}/src)
+set(INCLUDE_DIR ${PROJECT_ROOT}/include)
+set(GENERATED_DIR ${SOURCE_DIR}/generated)
+set(REFLECTION_CONFIG ${PROJECT_ROOT}/config/reflection_config.yaml)
+set(REFLECTION_TEMPLATE ${PROJECT_ROOT}/templates/reflection_registration_template.j2)
+set(REFLECTION_OUTPUT ${GENERATED_DIR}/ReflectionRegistration.cpp)
 
 # Create directory for generated source files
-file(MAKE_DIRECTORY ${PROJECT_GENERATED_DIR})
+file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-include(cmake/Dependencies.cmake)
+# Find required dependencies
+find_package(Python COMPONENTS Interpreter REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(rttr CONFIG REQUIRED)
+find_package(cppzmq CONFIG REQUIRED)
+find_package(ogdf CONFIG REQUIRED)
 
-set(HEADERS
-        include/core/reflection/MethodRegistry.h
-        include/core/reflection/RegistrationMacros.h
-        include/core/Engine.h
-        include/model/MethodDescriptor.h
-        include/model/MethodParameterDescriptor.h
-        include/network/NetworkManager.h
-        include/serialization/JsonRttrConverter.h
-        include/serialization/MethodJsonSerializer.h
+if (WIN32)
+    set(PYTHON_EXE ${PROJECT_ROOT}/.venv/Scripts/python.exe)
+else ()
+    set(PYTHON_EXE ${PROJECT_ROOT}/.venv/bin/python)
+endif ()
+
+# Registry code generation
+# This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
+add_custom_command(
+        OUTPUT ${REFLECTION_OUTPUT}
+        COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
+        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/scripts/codegen/generate_registry.py
+        --config=${REFLECTION_CONFIG}
+        --templates=${REFLECTION_TEMPLATE}
+        --output=${REFLECTION_OUTPUT}
+        DEPENDS ${PROJECT_ROOT}/scripts/codegen/generate_registry.py ${REFLECTION_CONFIG} ${REFLECTION_TEMPLATE}
+        VERBATIM
 )
 
-set(SOURCES
-        src/main.cpp
-        src/core/reflection/MethodRegistry.cpp
-        src/core/Engine.cpp
-        src/network/NetworkManager.cpp
-        src/serialization/JsonRttrConverter.cpp
-        src/serialization/MethodJsonSerializer.cpp
-)
+file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.h)
+file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp ${GENERATED_DIR}/*.cpp)
 
 add_executable(Engine ${HEADERS} ${SOURCES})
 
 # Add precompiled header configuration
-target_precompile_headers(Engine PRIVATE ${PROJECT_INCLUDE_DIR}/pch.h)
+target_precompile_headers(Engine PRIVATE ${INCLUDE_DIR}/pch.h)
 
-# Registry code generation
-# This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
-set(REFLECTION_GENERATED_FILE ${PROJECT_GENERATED_DIR}/ReflectionRegistration.cpp)
-set_source_files_properties(${REFLECTION_GENERATED_FILE} PROPERTIES GENERATED TRUE)
-add_custom_command(
-        OUTPUT ${REFLECTION_GENERATED_FILE}
-        COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
-        COMMAND ${VENV_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py
-        --config=${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
-        --templates=${CMAKE_CURRENT_SOURCE_DIR}/templates
-        --output=${REFLECTION_GENERATED_FILE}.tmp
-        COMMAND ${CMAKE_COMMAND} -E copy ${REFLECTION_GENERATED_FILE}.tmp ${REFLECTION_GENERATED_FILE}
-        COMMAND ${CMAKE_COMMAND} -E remove ${REFLECTION_GENERATED_FILE}.tmp
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/codegen/generate_registry.py
-        ${CMAKE_CURRENT_SOURCE_DIR}/config/reflection_config.yaml
-        ${CMAKE_CURRENT_SOURCE_DIR}/templates/reflection_registration_template.j2
-        VERBATIM
-)
-
-# Add the generated implementation to the build
-target_sources(Engine PRIVATE ${REFLECTION_GENERATED_FILE})
-
-# Add dependency targets and link with external libraries
-add_dependencies(Engine setup-python-environment)
-link_common_dependencies(Engine)
+target_link_libraries(Engine PRIVATE nlohmann_json::nlohmann_json RTTR::Core_Lib cppzmq ogdf::ogdf)
 
 # Set compiler warnings
 if (MSVC)
-    target_compile_options(Engine PRIVATE /W4)
+    target_compile_options(Engine PRIVATE /W4 /permissive-)
 else ()
     target_compile_options(Engine PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
-
-install(TARGETS Engine
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib/static
-)
