@@ -35,7 +35,7 @@ BEGIN_RTTR_REGISTRATION
         WITH_CONSTRUCTOR()
         {% for method in config.methods %}
         {% if method.type_id == type.id %}
-        REGISTER_METHOD({{ type.name }}, {{ method.name }}, {{ method.return_type }}{% if method.parameter_types %}, {% for type in method.parameter_types %}{% if not loop.first %}, {% endif %}{{ type }}{% endfor %}{% endif %})
+        REGISTER_METHOD({{ type.name }}::{{ method.name }}, {{ method.return_type }}{% if method.parameter_types %}, {% for type in method.parameter_types %}{% if not loop.first %}, {% endif %}{{ type }}{% endfor %}{% endif %})
             {% if method.defaults %}
             WITH_DEFAULT_ARGS({% for default in method.defaults %}{% if not loop.first %}, {% endif %}{{ default }}{% endfor %})
             {% endif %}

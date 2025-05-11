@@ -34,5 +34,5 @@
 #define WITH_CONSTRUCTOR() .constructor<>()
 
 // Macro for registering a class method with parameters and metadata
-#define REGISTER_METHOD(TypeName, method, returnType, ...)                                                             \
-    .method(#method, select_overload<returnType(__VA_ARGS__)>(&TypeName::method))
+#define REGISTER_METHOD(classMethod, returnType, ...)                                                                  \
+    .method(#classMethod, select_overload<returnType(__VA_ARGS__)>(&classMethod))
