@@ -20,14 +20,18 @@ pip install -U pip
 pip install -r "${PROJECT_ROOT}/scripts/codegen/requirements.txt"
 pip install -r "${PROJECT_ROOT}/scripts/third_party/requirements.txt"
 
+if ! conan profile list | grep -q "default"; then
+    conan profile detect
+fi
+
 echo "Installing C   dependencies with Conan..."
 mkdir -p "${BUILD_DIR}"
 conan install "${CONAN_PY_FILE}" --output-folder="${BUILD_DIR}" --build=missing
 
 echo "Configuring project with CMake..."
-cmake --preset default
+cmake --preset release
 
 echo "Building project..."
-cmake --build --preset debug
+cmake --build --preset release
 
 echo "Setup complete. Project built successfully."
