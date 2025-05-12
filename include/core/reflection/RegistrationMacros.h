@@ -16,16 +16,16 @@
     registration::method(#func, select_overload<returnType(__VA_ARGS__)>(&func))
 
 // Macro to add default arguments to a function or method registration
-#define WITH_DEFAULT_ARGS(...) (default_arguments(__VA_ARGS__))
+#define WITH_DEFAULT_ARGS(...) default_arguments(__VA_ARGS__)
 
 // Macro to add parameter names to a function or method registration
-#define WITH_PARAMETER_NAMES(...) (parameter_names(__VA_ARGS__))
+#define WITH_PARAMETER_NAMES(...) parameter_names(__VA_ARGS__)
 
 // Macro to add category metadata
-#define WITH_CATEGORY(category) (metadata("category", category))
+#define WITH_CATEGORY(category) metadata("category", category)
 
 // Macro to add description metadata
-#define WITH_DESCRIPTION(description) (metadata("description", description))
+#define WITH_DESCRIPTION(description) metadata("description", description)
 
 // Macro for registering a class
 #define REGISTER_CLASS(TypeName) registration::class_<TypeName>(#TypeName)

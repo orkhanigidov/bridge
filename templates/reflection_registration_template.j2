@@ -15,19 +15,21 @@ BEGIN_RTTR_REGISTRATION
 
     {% for function in config.functions %}
     REGISTER_FUNCTION({{ function.name }}, {{ function.return_type }}{% if function.parameter_types %}, {% for type in function.parameter_types %}{% if not loop.first %}, {% endif %}{{ type }}{% endfor %}{% endif %})
+        (
         {% if function.defaults %}
-        WITH_DEFAULT_ARGS({% for default in function.defaults %}{% if not loop.first %}, {% endif %}{{ default }}{% endfor %})
+        WITH_DEFAULT_ARGS({% for default in function.defaults %}{% if not loop.first %}, {% endif %}{{ default }}{% endfor %}),
         {% endif %}
         {% if function.parameters %}
-        WITH_PARAMETER_NAMES({% for param in function.parameters %}{% if not loop.first %}, {% endif %}"{{ param }}"{% endfor %})
+        WITH_PARAMETER_NAMES({% for param in function.parameters %}{% if not loop.first %}, {% endif %}"{{ param }}"{% endfor %}),
         {% endif %}
         {% if function.category %}
-        WITH_CATEGORY("{{ function.category }}")
+        WITH_CATEGORY("{{ function.category }}"),
         {% endif %}
         {% if function.description %}
-        WITH_DESCRIPTION("{{ function.description }}");
+        WITH_DESCRIPTION("{{ function.description }}")
         {% else %};
         {% endif %}
+        );
     {% endfor %}
 
     {% for type in config.types %}
@@ -36,19 +38,21 @@ BEGIN_RTTR_REGISTRATION
         {% for method in config.methods %}
         {% if method.type_id == type.id %}
         REGISTER_METHOD({{ type.name }}::{{ method.name }}, {{ method.return_type }}{% if method.parameter_types %}, {% for type in method.parameter_types %}{% if not loop.first %}, {% endif %}{{ type }}{% endfor %}{% endif %})
+            (
             {% if method.defaults %}
-            WITH_DEFAULT_ARGS({% for default in method.defaults %}{% if not loop.first %}, {% endif %}{{ default }}{% endfor %})
+            WITH_DEFAULT_ARGS({% for default in method.defaults %}{% if not loop.first %}, {% endif %}{{ default }}{% endfor %}),
             {% endif %}
             {% if method.parameters %}
-            WITH_PARAMETER_NAMES({% for param in method.parameters %}{% if not loop.first %}, {% endif %}"{{ param }}"{% endfor %})
+            WITH_PARAMETER_NAMES({% for param in method.parameters %}{% if not loop.first %}, {% endif %}"{{ param }}"{% endfor %}),
             {% endif %}
             {% if method.category %}
-            WITH_CATEGORY("{{ method.category }}")
+            WITH_CATEGORY("{{ method.category }}"),
             {% endif %}
             {% if method.description %}
-            WITH_DESCRIPTION("{{ method.description }}");
+            WITH_DESCRIPTION("{{ method.description }}")
             {% else %};
             {% endif %}
+            );
         {% endif %}
         {% endfor %}
     {% endfor %}
