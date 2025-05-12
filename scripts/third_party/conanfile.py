@@ -6,6 +6,7 @@ class ConanApplication(ConanFile):
     package_type = "application"
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps"
+    default_options = {"rttr*:with_rtti": True}
 
     def layout(self):
         cmake_layout(self)
@@ -19,7 +20,4 @@ class ConanApplication(ConanFile):
     def requirements(self):
         requirements = self.conan_data.get('requirements', [])
         for requirement in requirements:
-            if "rttr" in requirement:
-                self.requires(requirement, options={"with_rtti": True})
-            else:
-                self.requires(requirement)
+            self.requires(requirement)
