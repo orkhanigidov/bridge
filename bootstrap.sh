@@ -6,8 +6,10 @@ VENV_DIR="${PROJECT_ROOT}/.venv"
 BUILD_DIR="${PROJECT_ROOT}/build"
 CONAN_PY_FILE="${PROJECT_ROOT}/scripts/third_party/conanfile.py"
 
-echo "Setting up Python virtual environment..."
-python3 -m venv "${VENV_DIR}"
+if [ ! -d "${VENV_DIR}" ]; then
+    echo "Setting up Python virtual environment..."
+    python3 -m venv "${VENV_DIR}"
+fi
 
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
     source "${VENV_DIR}/Scripts/activate"
@@ -24,7 +26,7 @@ if ! conan profile list | grep -q "default"; then
     conan profile detect
 fi
 
-echo "Installing C   dependencies with Conan..."
+echo "Installing C++ dependencies with Conan..."
 mkdir -p "${BUILD_DIR}"
 conan install "${CONAN_PY_FILE}" --output-folder="${BUILD_DIR}" --build=missing
 
