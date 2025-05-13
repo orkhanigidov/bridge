@@ -17,6 +17,11 @@ nlohmann::json processMessage(const std::string &message)
         }
 
         std::string methodName = request["method"];
+        if (methodName == "getRegisteredMethods")
+        {
+            return engine::core::Engine::getInstance().getRegisteredMethods();
+        }
+
         nlohmann::json params = request.value("params", nlohmann::json::object());
 
         return engine::core::Engine::getInstance().executeMethod(methodName, params);
@@ -54,14 +59,6 @@ int main(int argc, char *argv[])
         std::cout << "Starting engine service..." << std::endl;
 
         engine::core::reflection::MethodRegistry::getInstance().registerAll();
-
-        const auto methodDescriptor = engine::core::reflection::MethodRegistry::getInstance().getRegisteredMethods();
-        std::cout << "Registered " << methodDescriptor.size() << " methods:" << std::endl;
-        for (const auto &descriptor : methodDescriptor)
-        {
-            std::cout << "  - " << descriptor.getMethod().get_name() << " (Category: " << descriptor.getCategory()
-                      << ")" << std::endl;
-        }
 
         engine::network::NetworkManager networkManager(processMessage);
         networkManager.initialize(endpoint);
