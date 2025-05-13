@@ -15,7 +15,7 @@ class MethodRegistry
     static MethodRegistry &getInstance();
 
     void registerAll();
-    std::vector<model::MethodDescriptor> getRegisteredMethods() const;
+    std::vector<model::MethodDescriptor> getAllMethods() const;
 
     bool hasMethod(const std::string &methodName) const;
     model::MethodDescriptor findMethod(const std::string &methodName) const;
