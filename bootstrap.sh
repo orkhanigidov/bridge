@@ -1,6 +1,24 @@
 #!/bin/bash
 set -e
 
+BUILD_TYPE="Debug"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --build-type)
+        if [[ "$2" != "Debug" && "$2" != "Release" ]]; then
+            echo "Error: --build-type must be Debug or Release"
+            exit 1
+        fi
+        BUILD_TYPE="$2"
+        shift 2
+        ;;
+    *)
+        shift
+        ;;
+    esac
+done
+
 PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
 VENV_DIR="${PROJECT_ROOT}/.venv"
 BUILD_DIR="${PROJECT_ROOT}/build"
@@ -28,12 +46,12 @@ fi
 
 echo "Installing C++ dependencies with Conan..."
 mkdir -p "${BUILD_DIR}"
-conan install "${CONAN_PY_FILE}" --output-folder="${BUILD_DIR}" --build=missing
+conan install "${CONAN_PY_FILE}" --output-folder="${BUILD_DIR}" --build=missing --settings=build_type=${BUILD_TYPE}
 
 echo "Configuring project with CMake..."
-cmake --preset release
+cmake --preset $(echo "${BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')
 
 echo "Building project..."
-cmake --build --preset release
+cmake --build --preset $(echo "${BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')
 
 echo "Setup complete. Project built successfully."

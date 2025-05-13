@@ -3,6 +3,7 @@
 #include "../../include/core/Engine.h"
 #include "../../include/core/reflection/MethodRegistry.h"
 #include "../../include/serialization/JsonRttrConverter.h"
+#include "../../include/serialization/JsonSerializer.h"
 
 using namespace rttr;
 
@@ -77,6 +78,29 @@ nlohmann::json Engine::executeMethod(const std::string &methodName, const nlohma
         }
 
         return {{"success", true}, {"result", serialization::JsonRttrConverter::variantToJson(result)}};
+    }
+    catch (const std::exception &e)
+    {
+        return serialization::JsonRttrConverter::errorToJson("Exception: " + std::string(e.what()));
+    }
+}
+
+nlohmann::json Engine::getRegisteredMethods()
+{
+    std::lock_guard lock(s_instanceMutex);
+
+    try
+    {
+        const auto &registry = reflection::MethodRegistry::getInstance();
+        const auto methods = registry.getAllMethods();
+
+        nlohmann::json result = nlohmann::json::array();
+        for (const auto &method : methods)
+        {
+            result.push_back(serialization::JsonSerializer::serialize(method));
+        }
+
+        return {{"success", true}, {"methods", result}};
     }
     catch (const std::exception &e)
     {

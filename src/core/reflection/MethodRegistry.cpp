@@ -58,7 +58,7 @@ void MethodRegistry::registerAll()
     }
 }
 
-std::vector<model::MethodDescriptor> MethodRegistry::getRegisteredMethods() const
+std::vector<model::MethodDescriptor> MethodRegistry::getAllMethods() const
 {
     std::lock_guard lock(m_methodMutex);
     std::vector<model::MethodDescriptor> result;

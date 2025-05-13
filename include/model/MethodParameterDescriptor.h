@@ -11,11 +11,11 @@ class MethodParameterDescriptor
     MethodParameterDescriptor() = delete;
     explicit MethodParameterDescriptor(const rttr::argument &name, const rttr::type &paramType,
                                        const rttr::variant &defaultValue)
-        : m_name(name), m_paramType(paramType), m_defaultValue(defaultValue)
+        : m_name(name.get_value<std::string>()), m_paramType(paramType), m_defaultValue(defaultValue)
     {
     }
 
-    const rttr::argument &getName() const
+    std::string getName() const
     {
         return m_name;
     }
@@ -31,7 +31,7 @@ class MethodParameterDescriptor
     }
 
   private:
-    rttr::argument m_name;
+    std::string m_name;
     rttr::type m_paramType;
     rttr::variant m_defaultValue;
 };

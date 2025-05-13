@@ -13,6 +13,7 @@ class Engine
     static Engine &getInstance();
 
     nlohmann::json executeMethod(const std::string &methodName, const nlohmann::json &params);
+    nlohmann::json getRegisteredMethods();
 
     Engine(const Engine &) = delete;
     Engine &operator=(const Engine &) = delete;
