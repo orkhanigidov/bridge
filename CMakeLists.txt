@@ -22,7 +22,6 @@ file(MAKE_DIRECTORY ${GENERATED_DIR})
 # Find required dependencies
 find_package(Python COMPONENTS Interpreter REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(RapidJSON CONFIG REQUIRED)
 find_package(rttr CONFIG REQUIRED)
 find_package(cppzmq CONFIG REQUIRED)
 find_package(ogdf CONFIG REQUIRED)
@@ -51,15 +50,11 @@ file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${REFLECTION_OUTPUT})
 
-add_subdirectory(json_serialization)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
-        rapidjson
         RTTR::Core_Lib
         cppzmq
         ogdf::ogdf
-        json_serialization
 )
 
 # Add precompiled header configuration
