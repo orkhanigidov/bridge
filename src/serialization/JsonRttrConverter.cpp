@@ -48,6 +48,8 @@ std::optional<variant> JsonRttrConverter::jsonToVariant(const nlohmann::json &js
 std::vector<variant> JsonRttrConverter::convertMethodParams(const method &method, const nlohmann::json &params)
 {
     std::vector<variant> args;
+    args.reserve(method.get_parameter_infos().size());
+
     const auto paramList = method.get_parameter_infos();
 
     for (const auto &param : paramList)
