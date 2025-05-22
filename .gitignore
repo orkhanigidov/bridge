@@ -1,14 +1,6 @@
-# Default ignored files
-/shelf/
-/.idea/workspace.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
-# JetBrains IDE files
-*.iml
+# IDE and Editor specific files
 .idea/
+.vscode/
 # Python virtual environment
 .venv/
 # CMake build output directories

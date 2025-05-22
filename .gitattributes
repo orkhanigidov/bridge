@@ -1,0 +1,3 @@
+# This file is used to define attributes for files in the repository. 
+
+* text=auto # Automatically normalize line endings for text files across platforms
