@@ -19,7 +19,7 @@ SortIncludes: true
 IncludeBlocks: Regroup
 
 # Braces and spacing
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Allman
 SpaceBeforeParens: ControlStatements
 SpaceAfterCStyleCast: true
 SpaceBeforeAssignmentOperators: true
@@ -35,7 +35,7 @@ BreakTemplateDeclarations: Yes
 # Indentation
 IndentCaseLabels: true
 IndentPPDirectives: BeforeHash
-NamespaceIndentation: None
+NamespaceIndentation: All
 
 # Modern C++ features
 Cpp11BracedListStyle: true

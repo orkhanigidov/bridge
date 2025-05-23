@@ -1,5 +1,3 @@
-#pragma once
-
 #include "../../include/pch.h"
 #include "../../include/operation/Result.h"
 
