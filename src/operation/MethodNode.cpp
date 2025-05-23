@@ -2,6 +2,8 @@
 #include "../../include/operation/MethodNode.h"
 #include "../../include/operation/ExecutionError.h"
 #include "../../include/operation/ObjectNode.h"
+#include "../../include/serialization/JsonRttrConverter.h"
+#include "../../include/operation/PersistentObjectStore.h"
 
 namespace engine::operation
 {
@@ -42,12 +44,31 @@ namespace engine::operation
     {
         try
         {
-            resolve();
+            if (!isResolved()) resolve();
             if (!isValid()) throw ExecutionError(ErrorType::MissingNode, "Method not found: " + m_name);
 
-            const rttr::instance instance = m_object.value();
-            const std::vector<rttr::argument> args = prepareArguments(m_method.value());
-            const rttr::variant result = m_method.value().invoke_variadic(instance, args);
+            auto pos = m_name.find("::");
+            if (pos == std::string::npos)
+                throw ExecutionError(ErrorType::MissingNode, "Invalid method name: " + m_name);
+
+            const std::string className = m_name.substr(0, pos);
+            rttr::variant instance;
+            if (className != "GraphIO")
+                instance = PersistentObjectStore::getInstance().retrieveVariant(className);
+
+            const std::vector<rttr::variant> params = prepareArguments(m_method.value());
+            const std::vector<rttr::argument> args(params.begin(), params.end());
+
+            rttr::variant result;
+            if (m_method->is_static()) {
+                result = m_method.value().invoke({}, args[0], args[1], nullptr);
+            } else {
+                result = m_method.value().invoke_variadic(instance, args);
+            }
+
+            if (!result.is_type<void>()) {
+                std::cout << serialization::JsonRttrConverter::variantToJson(result) << std::endl;
+            }
 
             return Result(result);
         }

@@ -33,7 +33,7 @@ namespace engine::operation
         virtual void resolve() = 0;
 
     protected:
-        std::vector<rttr::argument> prepareArguments(rttr::method method) const;
+        std::vector<rttr::variant> prepareArguments(rttr::method method) const;
 
         std::string m_id;
         NodeType m_type;
