@@ -16,6 +16,6 @@ namespace engine::operation
         void resolve() override;
 
     private:
-        std::optional<rttr::instance> m_instance;
+        rttr::variant m_object;
     };
 } // namespace engine::operation

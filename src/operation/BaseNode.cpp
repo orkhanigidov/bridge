@@ -1,5 +1,6 @@
 #include "../../include/pch.h"
 #include "../../include/operation/BaseNode.h"
+#include "../../include/operation/PersistentObjectStore.h"
 
 namespace engine::operation
 {
@@ -26,10 +27,42 @@ namespace engine::operation
 
     bool BaseNode::isResolved() const { return m_resolved; }
 
-    std::vector<rttr::argument> BaseNode::prepareArguments(const rttr::method method) const
+    std::vector<rttr::variant> BaseNode::prepareArguments(const rttr::method method) const
     {
-        // method.get_parameter_infos();
+        std::vector<rttr::variant> args;
+        const auto& parameterInfos = method.get_parameter_infos();
 
-        return {};
+        for (const auto& parameterInfo : parameterInfos) {
+            const std::string paramName = parameterInfo.get_name().to_string();
+
+            auto it = m_parameters.find(paramName);
+            if (it == m_parameters.end()) {
+                continue; // Parameter not found
+            }
+            const Parameter& parameter = it->second;
+
+            if (parameter.isReference()) {
+                std::string refId = parameter.getReference();
+                rttr::variant &node = PersistentObjectStore::getInstance().retrieveVariant(refId);
+                args.push_back(node);
+                PersistentObjectStore::getInstance().debugPrintLiveObjects();
+            } else {
+                if (parameter.isInt()) {
+                    args.push_back(parameter.asInt());
+                } else if (parameter.isFloat()) {
+                    args.push_back(parameter.asFloat());
+                } else if (parameter.isDouble()) {
+                    args.push_back(parameter.asDouble());
+                } else if (parameter.isBool()) {
+                    args.push_back(parameter.asBool());
+                } else if (parameter.isString()) {
+                    args.push_back(parameter.asString());
+                } else {
+                    throw std::runtime_error("Unsupported parameter type");
+                }
+            }
+        }
+
+        return args;
     }
 } // namespace engine::operation

@@ -1,6 +1,7 @@
 #include "../../include/pch.h"
 
 #include "../../include/network/NetworkManager.h"
+#include "../../include/operation/GraphExecution.h"
 
 namespace engine::network
 {
@@ -155,12 +156,20 @@ void NetworkManager::handleIncomingMessage(const std::string &message) const
 {
     nlohmann::json response;
 
-    try
-    {
-        response = messageHandler(message);
+    try {
+        auto jsonRequest = nlohmann::json::parse(message);
+
+        if (jsonRequest.contains("graph")) {
+            operation::GraphExecution graphExecution;
+            graphExecution.loadFromJson(jsonRequest);
+            graphExecution.executeGraph();
+            response = {{"error", false}, {"message", "Graph executed successfully"}};
+        }
+        else {
+            response = messageHandler(message);
+        }
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception& e) {
         response = {{"error", true}, {"message", "Error: " + std::string(e.what())}};
     }
 

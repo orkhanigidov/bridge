@@ -7,7 +7,7 @@
   },
   "configurePresets": [
     {
-      "name": "debug",
+      "name": "Debug",
       "displayName": "Debug Config",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
@@ -17,8 +17,8 @@
       }
     },
     {
-      "name": "release",
-      "inherits": "debug",
+      "name": "Release",
+      "inherits": "Debug",
       "displayName": "Release Config",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -27,13 +27,13 @@
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug",
+      "name": "Debug",
+      "configurePreset": "Debug",
       "configuration": "Debug"
     },
     {
-      "name": "release",
-      "configurePreset": "release",
+      "name": "Release",
+      "configurePreset": "Release",
       "configuration": "Release"
     }
   ]

@@ -1,6 +1,7 @@
 #include "../../include/pch.h"
 #include "../../include/operation/ObjectNode.h"
 #include "../../include/operation/BaseNode.h"
+#include "../../include/operation/PersistentObjectStore.h"
 
 namespace engine::operation
 {
@@ -10,13 +11,15 @@ namespace engine::operation
 
     bool ObjectNode::hasInstance() const
     {
-        return m_instance.value().is_valid();
+        return m_object.is_valid();
     }
 
     void ObjectNode::resolve()
     {
-        if (!isResolved())
-            m_instance.emplace(rttr::type::get_by_name(m_name).create());
+        if (!isResolved()) {
+            m_object = rttr::type::get_by_name(m_name).create();
+            PersistentObjectStore::getInstance().store(m_id, m_object);
+        }
 
         m_resolved = true;
     }

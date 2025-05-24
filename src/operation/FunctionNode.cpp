@@ -2,6 +2,8 @@
 #include "../../include/operation/FunctionNode.h"
 #include "../../include/operation/ExecutionError.h"
 #include "../../include/operation/Result.h"
+#include "../../include/operation/PersistentObjectStore.h"
+#include "../../include/serialization/JsonRttrConverter.h"
 
 namespace engine::operation
 {
@@ -32,8 +34,21 @@ namespace engine::operation
             resolve();
             if (!isValid()) throw ExecutionError(ErrorType::MissingNode, "Function not found: " + m_name);
 
-            const std::vector<rttr::argument> args = prepareArguments(m_method.value());
+            rttr::variant& originalG = PersistentObjectStore::getInstance().retrieveVariant("G");
+
+            const std::vector<rttr::variant> params = prepareArguments(m_method.value());
+            const std::vector<rttr::argument> args(params.begin(), params.end());
             const rttr::variant result = m_method.value().invoke_variadic({}, args);
+
+            for (const auto& param : params) {
+                if (param.get_type() == originalG.get_type()) {
+                    PersistentObjectStore::getInstance().updateVariant("G", param);
+                }
+            }
+
+            if (!result.is_type<void>()) {
+                std::cout << serialization::JsonRttrConverter::variantToJson(result) << std::endl;
+            }
 
             return Result(result);
         }
