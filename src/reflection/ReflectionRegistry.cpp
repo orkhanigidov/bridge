@@ -31,14 +31,14 @@ namespace engine::reflection
         }
     }
 
-    std::vector<model::Method> ReflectionRegistry::getAllMethods() const
+    std::vector<const model::Method*> ReflectionRegistry::getAllMethods() const
     {
-        std::vector<model::Method> result;
+        std::vector<const model::Method*> result;
         result.reserve(m_methods.size());
 
         for (const auto& [key, method] : m_methods)
         {
-            result.push_back(method);
+            result.emplace_back(&method);
         }
 
         return result;
@@ -80,7 +80,7 @@ namespace engine::reflection
 
     void ReflectionRegistry::registerMethod(const rttr::method& method)
     {
-        std::string name              = method.get_name().to_string();
+        const std::string name        = method.get_name().to_string();
         const rttr::type returnType   = method.get_return_type();
         const std::string category    = method.get_metadata("category").to_string();
         const std::string description = method.get_metadata("description").to_string();
@@ -94,7 +94,6 @@ namespace engine::reflection
                                     parameter.get_default_value());
         }
 
-        m_methods.emplace(
-            name, std::move(model::Method(name, returnType, parameters, category, description)));
+        m_methods.emplace(name, std::move(model::Method(method, returnType, parameters, category, description)));
     }
 } // namespace engine::reflection

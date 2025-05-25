@@ -10,10 +10,10 @@ namespace engine::model
         explicit Parameter(std::string name, const rttr::type& type, rttr::variant defaultValue);
         ~Parameter() = default;
 
-        Parameter(const Parameter&)            = delete;
-        Parameter& operator=(const Parameter&) = delete;
-        Parameter(Parameter&&)                 = default;
-        Parameter& operator=(Parameter&&)      = default;
+        Parameter(const Parameter&)                = delete;
+        Parameter& operator=(const Parameter&)     = delete;
+        Parameter(Parameter&&) noexcept            = default;
+        Parameter& operator=(Parameter&&) noexcept = default;
 
         [[nodiscard]] const std::string& getName() const noexcept;
         [[nodiscard]] const rttr::type& getType() const noexcept;

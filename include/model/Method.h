@@ -8,7 +8,7 @@ namespace engine::model
     class Method final
     {
       public:
-        explicit Method(std::string name, const rttr::type& returnType, std::vector<Parameter> parameters,
+        explicit Method(const rttr::method& method, const rttr::type& returnType, std::vector<Parameter> parameters,
                         std::string category = "", std::string description = "", bool isStatic = true);
         ~Method() = default;
 
@@ -17,7 +17,7 @@ namespace engine::model
         Method(Method&&)                 = default;
         Method& operator=(Method&&)      = default;
 
-        [[nodiscard]] const std::string& getName() const noexcept;
+        [[nodiscard]] const rttr::method& getMethod() const noexcept;
         [[nodiscard]] const rttr::type& getReturnType() const noexcept;
         [[nodiscard]] const std::vector<Parameter>& getParameters() const noexcept;
         [[nodiscard]] const std::string& getCategory() const noexcept;
@@ -25,7 +25,7 @@ namespace engine::model
         [[nodiscard]] bool isStatic() const noexcept;
 
       private:
-        std::string m_name;
+        rttr::method m_method;
         rttr::type m_returnType;
         std::vector<Parameter> m_parameters;
         std::string m_category;

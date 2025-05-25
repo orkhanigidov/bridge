@@ -18,7 +18,7 @@ namespace engine::reflection
 
         void registerAllFromRTTR();
 
-        std::vector<model::Method> getAllMethods() const;
+        std::vector<const model::Method*> getAllMethods() const;
         [[nodiscard]] const model::Type* getType(const std::string& name) const;
         [[nodiscard]] const model::Method* getMethod(const std::string& name) const;
 

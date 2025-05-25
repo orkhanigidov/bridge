@@ -4,21 +4,21 @@
 
 namespace engine::model
 {
-    Method::Method(std::string name, const rttr::type& returnType, std::vector<Parameter> parameters,
-                   std::string category, std::string description, bool isStatic)
-        : m_name(std::move(name)), m_returnType(returnType), m_parameters(std::move(parameters)),
-          m_category(std::move(category)), m_description(std::move(description), m_isStatic(isStatic))
+    Method::Method(const rttr::method& method, const rttr::type& returnType, std::vector<Parameter> parameters,
+                   std::string category, std::string description, const bool isStatic)
+        : m_method(method), m_returnType(returnType), m_parameters(std::move(parameters)),
+          m_category(std::move(category)), m_description(std::move(description)), m_isStatic(isStatic)
     {
-        if (m_name.empty())
-            throw std::invalid_argument("Method name cannot be empty");
+        if (!method.is_valid())
+            throw std::invalid_argument("Method must be valid");
 
         if (!m_returnType.is_valid())
             throw std::invalid_argument("Return type must be valid");
     }
 
-    const std::string& Method::getName() const noexcept
+    const rttr::method& Method::getMethod() const noexcept
     {
-        return m_name;
+        return m_method;
     }
 
     const rttr::type& Method::getReturnType() const noexcept
