@@ -2,7 +2,7 @@
 
 #include "../../include/pch.h"
 #include "../../include/reflection/ReflectionRegistry.h"
-#include "../../include/serialization/JsonRttrConverter.h"
+#include "../../include/serialization/RttrConverter.h"
 
 namespace engine::serialization
 {
@@ -15,7 +15,7 @@ namespace engine::serialization
 
         const rttr::variant& defaultValue = parameter.getDefaultValue();
         if (defaultValue.is_valid())
-            result[JsonFields::DEFAULT_VALUE] = JsonRttrConverter::variantToJson(defaultValue);
+            result[JsonFields::DEFAULT_VALUE] = RttrConverter::toJson(defaultValue);
         else
             result[JsonFields::DEFAULT_VALUE] = nullptr;
 
@@ -42,7 +42,7 @@ namespace engine::serialization
 
             rttr::variant defaultValue;
             if (isValidJsonField<std::any>(json, JsonFields::DEFAULT_VALUE))
-                defaultValue = JsonRttrConverter::jsonToVariant(json[JsonFields::DEFAULT_VALUE], type);
+                defaultValue = RttrConverter::fromJson(json[JsonFields::DEFAULT_VALUE], type);
 
             return model::Parameter(name, type, std::move(defaultValue));
         }

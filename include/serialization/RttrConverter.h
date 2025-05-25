@@ -1,0 +1,18 @@
+#pragma once
+
+#include "../pch.h"
+
+namespace engine::serialization
+{
+    class RttrConverter final
+    {
+      public:
+        RttrConverter() = delete;
+
+        static std::optional<rttr::variant> fromJson(const nlohmann::json& json, const rttr::type& type);
+        static nlohmann::json toJson(const rttr::variant& variant);
+
+        static std::vector<rttr::variant> prepareMethodArguments(const rttr::method& method,
+                                                                 const nlohmann::json& json);
+    };
+} // namespace engine::serialization
