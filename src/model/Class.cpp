@@ -1,25 +1,15 @@
-#include "../../include/model/Class.h"
-
 #include "../../include/pch.h"
+
+#include "../../include/model/Class.h"
 
 namespace engine::model
 {
-    Class::Class(std::string id, const rttr::type& type) : m_id(std::move(id)), m_type(type)
+    Class::Class(std::string_view id, const rttr::type& type) : id_(id), type_(type)
     {
-        if (m_id.empty())
-            throw std::invalid_argument("Type ID cannot be empty");
+        if (id.empty())
+            throw std::invalid_argument("Class ID cannot be empty");
 
-        if (!m_type.is_valid())
-            throw std::invalid_argument("Class type must be valid");
-    }
-
-    std::string Class::getId() const noexcept
-    {
-        return m_id;
-    }
-
-    rttr::type Class::getType() const noexcept
-    {
-        return m_type;
+        if (!type.is_valid())
+            throw std::invalid_argument("Invalid RTTR type provided for Class");
     }
 } // namespace engine::model

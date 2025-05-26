@@ -7,19 +7,20 @@ namespace engine::model
     class Class final
     {
       public:
-        explicit Class(std::string id, const rttr::type& type);
-        ~Class() = default;
+        explicit Class(std::string_view id, const rttr::type& type);
 
-        Class(const Class&)            = delete;
-        Class& operator=(const Class&) = delete;
-        Class(Class&&)                 = default;
-        Class& operator=(Class&&)      = default;
+        [[nodiscard]] const std::string& id() const noexcept
+        {
+            return id_;
+        }
 
-        [[nodiscard]] std::string getId() const noexcept;
-        [[nodiscard]] rttr::type getType() const noexcept;
+        [[nodiscard]] const rttr::type& type() const noexcept
+        {
+            return type_;
+        }
 
       private:
-        std::string m_id;
-        rttr::type m_type;
+        std::string id_;
+        rttr::type  type_;
     };
 } // namespace engine::model

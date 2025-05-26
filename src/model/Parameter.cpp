@@ -1,36 +1,16 @@
-#include "../../include/model/Parameter.h"
-
 #include "../../include/pch.h"
+
+#include "../../include/model/Parameter.h"
 
 namespace engine::model
 {
-    Parameter::Parameter(std::string name, const rttr::type& type, rttr::variant defaultValue, const bool isReference)
-        : m_name(std::move(name)), m_type(type), m_defaultValue(std::move(defaultValue)), m_isReference(isReference)
+    Parameter::Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value, bool is_reference)
+        : name_(name), type_(type), default_value_(std::move(default_value)), is_reference_(is_reference)
     {
-        if (m_name.empty())
+        if (name.empty())
             throw std::invalid_argument("Parameter name cannot be empty");
 
-        if (!m_type.is_valid())
-            throw std::invalid_argument("Parameter type must be valid");
-    }
-
-    std::string Parameter::getName() const noexcept
-    {
-        return m_name;
-    }
-
-    rttr::type Parameter::getType() const noexcept
-    {
-        return m_type;
-    }
-
-    rttr::variant Parameter::getDefaultValue() const noexcept
-    {
-        return m_defaultValue;
-    }
-
-    bool Parameter::isReference() const noexcept
-    {
-        return m_isReference;
+        if (!type.is_valid())
+            throw std::invalid_argument("Invalid type provided for parameter");
     }
 } // namespace engine::model

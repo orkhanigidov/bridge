@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../pch.h"
+
 #include "Parameter.h"
 
 namespace engine::model
@@ -8,28 +9,45 @@ namespace engine::model
     class Method final
     {
       public:
-        explicit Method(rttr::method method, const rttr::type& returnType, const std::vector<Parameter>& parameters,
-                        std::string category = "", std::string description = "", bool isStatic = true);
-        ~Method() = default;
+        explicit Method(const rttr::method& method, const rttr::type& return_type, std::vector<Parameter> parameters,
+                        bool is_static, std::string_view category = "", std::string_view description = "");
 
-        Method(const Method&)            = delete;
-        Method& operator=(const Method&) = delete;
-        Method(Method&&)                 = default;
-        Method& operator=(Method&&)      = default;
+        [[nodiscard]] const rttr::method& method() const noexcept
+        {
+            return method_;
+        }
 
-        [[nodiscard]] rttr::method getMethod() const noexcept;
-        [[nodiscard]] rttr::type getReturnType() const noexcept;
-        [[nodiscard]] const std::vector<Parameter>& getParameters() const noexcept;
-        [[nodiscard]] std::string getCategory() const noexcept;
-        [[nodiscard]] std::string getDescription() const noexcept;
-        [[nodiscard]] bool isStatic() const noexcept;
+        [[nodiscard]] const rttr::type& return_type() const noexcept
+        {
+            return return_type_;
+        }
+
+        [[nodiscard]] const std::vector<Parameter>& parameters() const noexcept
+        {
+            return parameters_;
+        }
+
+        [[nodiscard]] bool is_static() const noexcept
+        {
+            return is_static_;
+        }
+
+        [[nodiscard]] const std::string& category() const noexcept
+        {
+            return category_;
+        }
+
+        [[nodiscard]] const std::string& description() const noexcept
+        {
+            return description_;
+        }
 
       private:
-        rttr::method m_method;
-        rttr::type m_returnType;
-        std::vector<Parameter> m_parameters;
-        std::string m_category;
-        std::string m_description;
-        bool m_isStatic{true};
+        rttr::method           method_;
+        rttr::type             return_type_;
+        std::vector<Parameter> parameters_;
+        bool                   is_static_;
+        std::string            category_;
+        std::string            description_;
     };
 } // namespace engine::model

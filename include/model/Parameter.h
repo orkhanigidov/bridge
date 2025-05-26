@@ -4,32 +4,36 @@
 
 namespace engine::model
 {
-    enum class ParameterType
-    {
-        Literal,
-        Reference,
-    };
-
     class Parameter final
     {
       public:
-        explicit Parameter(std::string name, const rttr::type& type, rttr::variant defaultValue, bool isReference);
-        ~Parameter() = default;
+        explicit Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value = rttr::variant(),
+                           bool is_reference = false);
 
-        Parameter(const Parameter&)                = delete;
-        Parameter& operator=(const Parameter&)     = delete;
-        Parameter(Parameter&&) noexcept            = default;
-        Parameter& operator=(Parameter&&) noexcept = default;
+        [[nodiscard]] const std::string& name() const noexcept
+        {
+            return name_;
+        }
 
-        [[nodiscard]] std::string getName() const noexcept;
-        [[nodiscard]] rttr::type getType() const noexcept;
-        [[nodiscard]] rttr::variant getDefaultValue() const noexcept;
-        [[nodiscard]] bool isReference() const noexcept;
+        [[nodiscard]] const rttr::type& type() const noexcept
+        {
+            return type_;
+        }
+
+        [[nodiscard]] const rttr::variant& default_value() const noexcept
+        {
+            return default_value_;
+        }
+
+        [[nodiscard]] bool is_reference() const noexcept
+        {
+            return is_reference_;
+        }
 
       private:
-        std::string m_name;
-        rttr::type m_type;
-        rttr::variant m_defaultValue;
-        bool m_isReference;
+        std::string   name_;
+        rttr::type    type_;
+        rttr::variant default_value_;
+        bool          is_reference_;
     };
 } // namespace engine::model
