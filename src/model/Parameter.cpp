@@ -4,8 +4,8 @@
 
 namespace engine::model
 {
-    Parameter::Parameter(std::string name, const rttr::type& type, rttr::variant defaultValue)
-        : m_name(std::move(name)), m_type(type), m_defaultValue(std::move(defaultValue))
+    Parameter::Parameter(std::string name, const rttr::type& type, rttr::variant defaultValue, const bool isReference)
+        : m_name(std::move(name)), m_type(type), m_defaultValue(std::move(defaultValue)), m_isReference(isReference)
     {
         if (m_name.empty())
             throw std::invalid_argument("Parameter name cannot be empty");
@@ -14,18 +14,23 @@ namespace engine::model
             throw std::invalid_argument("Parameter type must be valid");
     }
 
-    const std::string& Parameter::getName() const noexcept
+    std::string Parameter::getName() const noexcept
     {
         return m_name;
     }
 
-    const rttr::type& Parameter::getType() const noexcept
+    rttr::type Parameter::getType() const noexcept
     {
         return m_type;
     }
 
-    const rttr::variant& Parameter::getDefaultValue() const noexcept
+    rttr::variant Parameter::getDefaultValue() const noexcept
     {
         return m_defaultValue;
+    }
+
+    bool Parameter::isReference() const noexcept
+    {
+        return m_isReference;
     }
 } // namespace engine::model

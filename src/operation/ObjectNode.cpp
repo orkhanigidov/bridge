@@ -1,12 +1,22 @@
-#include "../../include/pch.h"
 #include "../../include/operation/ObjectNode.h"
+
 #include "../../include/operation/BaseNode.h"
-#include "../../include/operation/PersistentObjectStore.h"
+#include "../../include/pch.h"
+#include "../../include/reflection/ReflectionRegistry.h"
 
 namespace engine::operation
 {
-    ObjectNode::ObjectNode(const std::string& id, const std::string& name) : BaseNode(id, NodeType::Object, name)
+    ObjectNode::ObjectNode(std::string name) : BaseNode(std::move(name), NodeType::Object)
     {
+        const model::Class* type = reflection::ReflectionRegistry::getInstance().getClass(name);
+
+        m_id     = type->getId();
+        m_object = type->getType().create();
+    }
+
+    rttr::variant ObjectNode::getObject() const
+    {
+        return m_object;
     }
 
     bool ObjectNode::hasInstance() const
@@ -14,13 +24,8 @@ namespace engine::operation
         return m_object.is_valid();
     }
 
-    void ObjectNode::resolve()
+    bool ObjectNode::isValid() const
     {
-        if (!isResolved()) {
-            m_object = rttr::type::get_by_name(m_name).create();
-            PersistentObjectStore::getInstance().store(m_id, m_object);
-        }
-
-        m_resolved = true;
+        return m_object.is_valid();
     }
 } // namespace engine::operation

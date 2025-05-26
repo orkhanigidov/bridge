@@ -1,19 +1,24 @@
-#include "../../include/pch.h"
 #include "../../include/operation/Result.h"
+
+#include "../../include/pch.h"
 
 namespace engine::operation
 {
-    Result::Result(const rttr::variant& value): m_value(value), m_hasValue(value.is_valid())
+    Result::Result(const rttr::variant& variant) : m_variant(variant), m_hasVariant(variant.is_valid()) {}
+
+    rttr::variant Result::getVariant() const
     {
+        if (!hasVariant())
+            throw std::runtime_error("Result has no value");
+
+        return m_variant;
     }
 
-    const rttr::variant& Result::getValue() const
+    bool Result::hasVariant() const
     {
-        return m_value;
-    }
+        if (!m_hasVariant)
+            throw std::runtime_error("Result has no value");
 
-    bool Result::hasValue() const
-    {
-        return m_hasValue && m_value.is_valid();
+        return m_hasVariant;
     }
 } // namespace engine::operation

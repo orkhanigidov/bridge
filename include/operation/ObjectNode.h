@@ -7,15 +7,19 @@ namespace engine::operation
 {
     class ObjectNode final : public BaseNode
     {
-    public:
-        ObjectNode(const std::string& id, const std::string& name);
+      public:
+        explicit ObjectNode(std::string name);
         ~ObjectNode() override = default;
 
-        bool hasInstance() const;
+        [[nodiscard]] rttr::variant getObject() const;
+        [[nodiscard]] bool hasInstance() const;
 
-        void resolve() override;
+        void resolve();
 
-    private:
+        bool isValid() const override;
+
+      private:
+        std::string m_id;
         rttr::variant m_object;
     };
 } // namespace engine::operation

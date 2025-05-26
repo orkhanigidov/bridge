@@ -1,101 +1,80 @@
-#include "../../include/pch.h"
 #include "../../include/operation/NodeFactory.h"
-#include "../../include/operation/ExecutionError.h"
+
+#include "../../include/model/Parameter.h"
 #include "../../include/operation/FunctionNode.h"
 #include "../../include/operation/MethodNode.h"
 #include "../../include/operation/ObjectNode.h"
-#include "../../include/operation/ParameterConverter.h"
+#include "../../include/pch.h"
+#include "../../include/serialization/MethodSerializer.h"
 
 namespace engine::operation
 {
-    std::shared_ptr<BaseNode> NodeFactory::createNode(const nlohmann::json& nodeJson)
+    std::shared_ptr<BaseNode> NodeFactory::createNode(const nlohmann::json& json)
     {
-        if (!nodeJson.contains("id") || !nodeJson.contains("type") || !nodeJson.contains("name"))
-        {
-            throw ExecutionError(ErrorType::InvalidFormat, "Missing required node fields (id, type, name)");
-        }
+        if (!json.contains("type") || !json.contains("name"))
+            throw std::invalid_argument("Missing required node fields (type, name)");
 
-        try
-        {
-            const std::string id = nodeJson["id"];
-            const std::string type = nodeJson["type"];
-            const std::string name = nodeJson["name"];
+        const std::string type = json["type"];
+        const std::string name = json["name"];
 
-            std::shared_ptr<BaseNode> node;
+        std::shared_ptr<BaseNode> node;
 
-            if (type == "object")
-            {
-                node = createObjectNode(id, name);
-            }
-            else if (type == "method")
-            {
-                node = createMethodNode(id, name);
-            }
-            else if (type == "function")
-            {
-                node = createFunctionNode(id, name);
-            }
-            else
-            {
-                throw ExecutionError(ErrorType::InvalidFormat, "Unknown node type: " + type);
-            }
+        if (type == "object")
+            node = createObjectNode(name);
+        else if (type == "method")
+            node = createMethodNode(name);
+        else if (type == "function")
+            node = createFunctionNode(name);
+        else
+            throw std::invalid_argument("Unknown node type" + type);
 
-            setNodeParameters(node, nodeJson);
-            setNodeDependencies(node, nodeJson);
+        setNodeParameters(node, json);
+        addDependencies(node, json);
 
-            node->resolve();
-
-            return node;
-        }
-        catch (const std::exception& e)
-        {
-            throw ExecutionError(ErrorType::FailedExecution, "Error creating node: " + std::string(e.what()));
-        }
+        return node;
     }
 
-    std::shared_ptr<BaseNode> NodeFactory::createObjectNode(const std::string& id, const std::string& name)
+    std::shared_ptr<BaseNode> NodeFactory::createObjectNode(std::string name)
     {
-        return std::make_shared<ObjectNode>(id, name);
+        return std::make_shared<ObjectNode>(std::move(name));
     }
 
-    std::shared_ptr<InvokableNode> NodeFactory::createMethodNode(const std::string& id, const std::string& name)
+    std::shared_ptr<InvokableNode> NodeFactory::createMethodNode(std::string name)
     {
-        return std::make_shared<MethodNode>(id, name);
+        return std::make_shared<MethodNode>(std::move(name));
     }
 
-    std::shared_ptr<InvokableNode> NodeFactory::createFunctionNode(const std::string& id, const std::string& name)
+    std::shared_ptr<InvokableNode> NodeFactory::createFunctionNode(std::string name)
     {
-        return std::make_shared<FunctionNode>(id, name);
+        return std::make_shared<FunctionNode>(std::move(name));
     }
 
-    void NodeFactory::setNodeParameters(const std::shared_ptr<BaseNode>& node, const nlohmann::json& nodeJson)
+    void NodeFactory::setNodeParameters(const std::shared_ptr<BaseNode>& node, const nlohmann::json& json)
     {
-        if (!nodeJson["parameters"].is_object())
+        if (!json["parameters"].is_object())
+            throw std::invalid_argument("Parameters field must be an object");
+
+        for (const auto& [key, value] : json["parameters"].items())
         {
-            throw ExecutionError(ErrorType::InvalidFormat, "Parameters field must be an object");
-        }
-
-        for (const auto& [key, value] : nodeJson["parameters"].items())
-        {
-            const Parameter parameter = parameterFromJson(value);
+            const model::Parameter parameter = serialization::MethodSerializer::parameterFromJson(value);
             node->setParameter(key, parameter);
 
-            if (parameter.isReference()) node->addDependency(parameter.getReference());
+            if (parameter.isReference())
+                node->addDependency(parameter.getReference());
         }
     }
 
-    void NodeFactory::setNodeDependencies(const std::shared_ptr<BaseNode>& node, const nlohmann::json& nodeJson)
+    void NodeFactory::addDependencies(const std::shared_ptr<BaseNode>& node, const nlohmann::json& json)
     {
-        if (!nodeJson["dependencies"].is_array())
-        {
-            throw ExecutionError(ErrorType::InvalidFormat, "Dependencies field must be an array");
-        }
+        if (!json["dependencies"] || !json["dependencies"].is_array())
+            throw std::invalid_argument("Dependencies field must be an array");
 
-        std::unordered_set existingDependencies(node->getDependencies().begin(), node->getDependencies().end());
+        std::unordered_set dependencies(node->getDependencies().begin(), node->getDependencies().end());
 
-        for (const auto& dependency : nodeJson["dependencies"])
+        for (const auto& dependency : json["dependencies"])
         {
-            if (existingDependencies.insert(dependency).second) node->addDependency(dependency);
+            if (dependencies.insert(dependency).second)
+                node->addDependency(dependency);
         }
     }
 } // namespace engine::operation

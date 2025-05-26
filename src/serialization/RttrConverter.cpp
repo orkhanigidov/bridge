@@ -1,28 +1,26 @@
 #include "../../include/serialization/RttrConverter.h"
 
+#include "../../include/model/Method.h"
+#include "../../include/operation/ObjectStore.h"
 #include "../../include/pch.h"
 
 namespace engine::serialization
 {
-    std::vector<rttr::variant> RttrConverter::prepareMethodArguments(const rttr::method& method,
+    std::vector<rttr::variant> RttrConverter::prepareMethodArguments(const model::Method& method,
                                                                      const nlohmann::json& json)
     {
-        if (!method.is_valid())
-            throw std::invalid_argument("Invalid method provided for argument preparation");
-
         if (!json.is_object())
             throw std::invalid_argument("JSON input must be an object for method argument preparation");
 
-        const auto parameters = method.get_parameter_infos();
+        const std::vector<model::Parameter>& parameters = method.getParameters();
         std::vector<rttr::variant> args;
         args.reserve(parameters.size());
 
         for (const auto& parameter : parameters)
         {
-            const std::string parameterName = parameter.get_name().to_string();
-            if (json.contains(parameterName))
+            if (const std::string& parameterName = parameter.getName(); json.contains(parameterName))
             {
-                const std::optional<rttr::variant> arg = fromJson(json, parameter.get_type());
+                const std::optional<rttr::variant> arg = fromJson(json, parameter.getType());
 
                 if (arg.has_value())
                     args.emplace_back(arg.value());
@@ -41,6 +39,9 @@ namespace engine::serialization
 
         try
         {
+            if (json.is_object() && json.contains("ref"))
+                return operation::ObjectStore::getInstance().getObject(json["ref"].get<std::string>());
+
             if (json.is_number_integer() && type == rttr::type::get<int>())
                 return json.get<int>();
             if (json.is_string() && type == rttr::type::get<std::string>())

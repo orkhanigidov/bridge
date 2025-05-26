@@ -14,7 +14,7 @@ namespace engine::reflection
     {
         for (const auto& type : rttr::type::get_types())
         {
-            registerType(type);
+            registerClass(type);
         }
 
         for (const auto& type : rttr::type::get_types())
@@ -44,10 +44,10 @@ namespace engine::reflection
         return result;
     }
 
-    const model::Type* ReflectionRegistry::getType(const std::string& name) const
+    const model::Class* ReflectionRegistry::getClass(const std::string& name) const
     {
-        if (hasType(name))
-            return &m_types.find(name)->second;
+        if (hasClass(name))
+            return &m_classes.find(name)->second;
 
         return nullptr;
     }
@@ -60,9 +60,9 @@ namespace engine::reflection
         return nullptr;
     }
 
-    bool ReflectionRegistry::hasType(const std::string& name) const
+    bool ReflectionRegistry::hasClass(const std::string& name) const
     {
-        return m_types.find(name) != m_types.end();
+        return m_classes.find(name) != m_classes.end();
     }
 
     bool ReflectionRegistry::hasMethod(const std::string& name) const
@@ -70,12 +70,12 @@ namespace engine::reflection
         return m_methods.find(name) != m_methods.end();
     }
 
-    void ReflectionRegistry::registerType(const rttr::type& type)
+    void ReflectionRegistry::registerClass(const rttr::type& type)
     {
-        std::string name     = type.get_name().to_string();
-        const std::string id = type.get_metadata("id").to_string();
+        const std::string name = type.get_name().to_string();
+        const std::string id   = type.get_metadata("id").to_string();
 
-        m_types.emplace(name, model::Type(id, name));
+        m_classes.emplace(name, model::Class(id, type));
     }
 
     void ReflectionRegistry::registerMethod(const rttr::method& method)
@@ -90,10 +90,27 @@ namespace engine::reflection
 
         for (const auto& parameter : method.get_parameter_infos())
         {
-            parameters.emplace_back(parameter.get_name().to_string(), parameter.get_type(),
-                                    parameter.get_default_value());
+            if (parameter.get_type().is_class())
+            {
+                const std::string className = parameter.get_name().to_string();
+                parameters.emplace_back(registerClassAsParameter(className));
+            }
+            else
+                parameters.emplace_back(parameter.get_name().to_string(), parameter.get_type(),
+                                        parameter.get_default_value(), false);
         }
 
         m_methods.emplace(name, std::move(model::Method(method, returnType, parameters, category, description)));
+    }
+
+    model::Parameter ReflectionRegistry::registerClassAsParameter(const std::string& name) const
+    {
+        if (!hasClass(name))
+            throw std::runtime_error("Class not found: " + name);
+
+        const model::Class* type = getClass(name);
+        const std::string id     = type->getId();
+
+        return model::Parameter(id, type->getType(), nullptr, true);
     }
 } // namespace engine::reflection

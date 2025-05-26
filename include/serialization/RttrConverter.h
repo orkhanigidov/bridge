@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../model/Method.h"
 #include "../pch.h"
 
 namespace engine::serialization
@@ -12,7 +13,7 @@ namespace engine::serialization
         static std::optional<rttr::variant> fromJson(const nlohmann::json& json, const rttr::type& type);
         static nlohmann::json toJson(const rttr::variant& variant);
 
-        static std::vector<rttr::variant> prepareMethodArguments(const rttr::method& method,
+        static std::vector<rttr::variant> prepareMethodArguments(const model::Method& method,
                                                                  const nlohmann::json& json);
     };
 } // namespace engine::serialization

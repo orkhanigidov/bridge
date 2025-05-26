@@ -2,12 +2,14 @@
 
 #include "../../include/pch.h"
 
+#include <utility>
+
 namespace engine::model
 {
-    Method::Method(const rttr::method& method, const rttr::type& returnType, std::vector<Parameter> parameters,
+    Method::Method(const rttr::method method, const rttr::type& returnType, const std::vector<Parameter>& parameters,
                    std::string category, std::string description, const bool isStatic)
-        : m_method(method), m_returnType(returnType), m_parameters(std::move(parameters)),
-          m_category(std::move(category)), m_description(std::move(description)), m_isStatic(isStatic)
+        : m_method(method), m_returnType(returnType), m_parameters(parameters), m_category(std::move(category)),
+          m_description(std::move(description)), m_isStatic(isStatic)
     {
         if (!method.is_valid())
             throw std::invalid_argument("Method must be valid");
@@ -16,12 +18,12 @@ namespace engine::model
             throw std::invalid_argument("Return type must be valid");
     }
 
-    const rttr::method& Method::getMethod() const noexcept
+    rttr::method Method::getMethod() const noexcept
     {
         return m_method;
     }
 
-    const rttr::type& Method::getReturnType() const noexcept
+    rttr::type Method::getReturnType() const noexcept
     {
         return m_returnType;
     }
@@ -31,12 +33,12 @@ namespace engine::model
         return m_parameters;
     }
 
-    const std::string& Method::getCategory() const noexcept
+    std::string Method::getCategory() const noexcept
     {
         return m_category;
     }
 
-    const std::string& Method::getDescription() const noexcept
+    std::string Method::getDescription() const noexcept
     {
         return m_description;
     }

@@ -4,17 +4,17 @@
 
 namespace engine::operation
 {
-    class Result
+    class Result final
     {
-    public:
+      public:
         Result() = default;
-        explicit Result(const rttr::variant& value);
+        explicit Result(const rttr::variant& variant);
 
-        const rttr::variant& getValue() const;
-        bool hasValue() const;
+        [[nodiscard]] rttr::variant getVariant() const;
+        [[nodiscard]] bool hasVariant() const;
 
-    private:
-        rttr::variant m_value;
-        bool m_hasValue{false};
+      private:
+        rttr::variant m_variant;
+        bool m_hasVariant{false};
     };
 } // namespace engine::operation
