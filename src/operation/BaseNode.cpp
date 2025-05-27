@@ -1,38 +1,16 @@
-#include "../../include/operation/BaseNode.h"
-
 #include "../../include/pch.h"
+
+#include "../../include/operation/BaseNode.h"
 
 namespace engine::operation
 {
-    BaseNode::BaseNode(std::string name, const NodeType type) : m_name(std::move(name)), m_type(type) {}
-
-    std::string BaseNode::getName() const
+    BaseNode::BaseNode(std::string_view name, NodeType type) : name_(name), type_(type)
     {
-        return m_name;
+        // dependencies_.reserve(4);
     }
 
-    NodeType BaseNode::getType() const
-    {
-        return m_type;
-    }
-
-    // const std::unordered_map<std::string, Parameter>& BaseNode::getParameters() const
+    // void BaseNode::add_dependency(std::string_view dependency)
     // {
-    //     return m_parameters;
+    //     dependencies_.emplace_back(dependency);
     // }
-    //
-    // void BaseNode::setParameter(const std::string& key, const Parameter& parameter)
-    // {
-    //     m_parameters[key] = parameter;
-    // }
-
-    void BaseNode::addDependency(const std::string& dependency)
-    {
-        m_dependencies.emplace_back(dependency);
-    }
-
-    const std::vector<std::string>& BaseNode::getDependencies() const
-    {
-        return m_dependencies;
-    }
 } // namespace engine::operation

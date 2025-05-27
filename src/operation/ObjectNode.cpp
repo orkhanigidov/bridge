@@ -1,31 +1,33 @@
-#include "../../include/operation/ObjectNode.h"
-
-#include "../../include/operation/BaseNode.h"
 #include "../../include/pch.h"
+
+#include "../../include/operation/ObjectNode.h"
+#include "../../include/operation/BaseNode.h"
+#include "../../include/operation/ObjectPool.h"
 #include "../../include/reflection/ReflectionRegistry.h"
 
 namespace engine::operation
 {
-    ObjectNode::ObjectNode(std::string name) : BaseNode(std::move(name), NodeType::Object)
-    {
-        const model::Class* type = reflection::ReflectionRegistry::getInstance().getClass(name);
+    ObjectNode::ObjectNode(std::string_view name) : BaseNode(name, NodeType::Object) {}
 
-        m_id     = type->getId();
-        m_object = type->getType().create();
+    bool ObjectNode::has_object() const noexcept
+    {
+        return object_.is_valid();
     }
 
-    rttr::variant ObjectNode::getObject() const
+    void ObjectNode::resolve()
     {
-        return m_object;
+        const auto& registry   = reflection::ReflectionRegistry::instance();
+        const auto* class_type = registry.get_class(name());
+
+        id_     = class_type->id();
+        object_ = class_type->type().create();
+
+        if (!ObjectPool::instance().has_object(id_))
+            ObjectPool::instance().store(id_, std::make_unique<ObjectNode>(*this));
     }
 
-    bool ObjectNode::hasInstance() const
+    bool ObjectNode::is_valid() const noexcept
     {
-        return m_object.is_valid();
-    }
-
-    bool ObjectNode::isValid() const
-    {
-        return m_object.is_valid();
+        return object_.is_valid();
     }
 } // namespace engine::operation

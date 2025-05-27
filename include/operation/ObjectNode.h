@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../pch.h"
+
 #include "BaseNode.h"
 
 namespace engine::operation
@@ -8,18 +9,25 @@ namespace engine::operation
     class ObjectNode final : public BaseNode
     {
       public:
-        explicit ObjectNode(std::string name);
-        ~ObjectNode() override = default;
+        explicit ObjectNode(std::string_view name);
 
-        [[nodiscard]] rttr::variant getObject() const;
-        [[nodiscard]] bool hasInstance() const;
+        [[nodiscard]] std::string_view id() const noexcept
+        {
+            return id_;
+        }
 
-        void resolve();
+        [[nodiscard]] const rttr::variant& object() const noexcept
+        {
+            return object_;
+        }
 
-        bool isValid() const override;
+        [[nodiscard]] bool has_object() const noexcept;
+
+        void               resolve() override;
+        [[nodiscard]] bool is_valid() const noexcept override;
 
       private:
-        std::string m_id;
-        rttr::variant m_object;
+        std::string   id_;
+        rttr::variant object_;
     };
 } // namespace engine::operation

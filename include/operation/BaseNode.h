@@ -4,7 +4,7 @@
 
 namespace engine::operation
 {
-    enum class NodeType
+    enum class NodeType : std::uint8_t
     {
         Object,
         Method,
@@ -14,20 +14,33 @@ namespace engine::operation
     class BaseNode
     {
       public:
-        explicit BaseNode(std::string name, NodeType type);
+        explicit BaseNode(std::string_view name, NodeType type);
+
         virtual ~BaseNode() = default;
 
-        [[nodiscard]] std::string getName() const;
-        [[nodiscard]] NodeType getType() const;
-        [[nodiscard]] const std::vector<std::string>& getDependencies() const;
+        [[nodiscard]] std::string_view name() const noexcept
+        {
+            return name_;
+        }
 
-        void addDependency(const std::string& dependency);
+        [[nodiscard]] NodeType type() const noexcept
+        {
+            return type_;
+        }
 
-        virtual bool isValid() const = 0;
+        // [[nodiscard]] const std::vector<std::string>& dependencies() const noexcept
+        // {
+        //     return dependencies_;
+        // }
+
+        // void add_dependency(std::string_view dependency);
+
+        virtual void               resolve()                 = 0;
+        [[nodiscard]] virtual bool is_valid() const noexcept = 0;
 
       protected:
-        std::string m_name;
-        NodeType m_type;
-        std::vector<std::string> m_dependencies;
+        std::string name_;
+        NodeType    type_;
+        // std::vector<std::string> dependencies_;
     };
 } // namespace engine::operation
