@@ -8,29 +8,30 @@ namespace engine::reflection
     {
       public:
         template <typename Func, typename... ParamNames>
-        static void registerGlobalMethod(const std::string& name, Func func, const std::string& category = "",
-                                         const std::string& description = "", ParamNames&&... parameterNames)
+        static void register_global_method(std::string_view name, Func func, std::string_view category = "",
+                                           std::string_view description = "", ParamNames&&... parameterNames)
         {
+            // TODO: Check if arg_count matches parameter names count
             static_assert(sizeof...(ParamNames) == rttr::detail::function_traits<Func>::arg_count,
                           "Parameter name count must match function argument count");
 
-            rttr::registration::method(name, func)(rttr::parameter_names(parameterNames...),
+            rttr::registration::method(name, func)(rttr::parameter_names(std::forward<ParamNames>(parameterNames...)),
                                                    rttr::metadata("category", category),
                                                    rttr::metadata("description", description));
         }
 
         template <typename Class, typename Func, typename... ParamNames>
-        static void registerMemberMethod(const std::string& name, Func func, const std::string& category = "",
-                                         const std::string& description = "", ParamNames&&... parameterNames)
+        static void register_member_method(std::string_view class_name, std::string_view name, Func func,
+                                           std::string_view category = "", std::string_view description = "",
+                                           ParamNames&&... parameterNames)
         {
+            // TODO: Check if arg_count matches parameter names count
             static_assert(sizeof...(ParamNames) == rttr::detail::function_traits<Func>::arg_count,
                           "Parameter name count must match function argument count");
 
-            const auto className = std::string{rttr::type::get<Class>().get_name()};
-
-            rttr::registration::class_<Class>(className).method(name, func)(rttr::parameter_names(parameterNames...),
-                                                                            rttr::metadata("category", category),
-                                                                            rttr::metadata("description", description));
+            rttr::registration::class_<Class>(class_name)
+                .method(name, func)(rttr::parameter_names(std::forward<ParamNames>(parameterNames...)),
+                                    rttr::metadata("category", category), rttr::metadata("description", description));
         }
     };
 } // namespace engine::reflection

@@ -8,14 +8,14 @@ namespace engine::reflection
     {
       public:
         template <typename Class, typename... Args>
-        static void registerType(const std::string& id, const std::string& name)
+        static void register_type(std::string_view id, std::string_view name)
         {
+            auto registration = rttr::registration::class_<Class>(name)(rttr::metadata("id", id));
+
             if constexpr (sizeof...(Args) == 0)
-                rttr::registration::class_<Class>(name).constructor()(rttr::policy::ctor::as_object)(
-                    rttr::metadata("id", id));
+                registration.constructor()(rttr::policy::ctor::as_object);
             else
-                rttr::registration::class_<Class>(name).template constructor<Args...>()(rttr::policy::ctor::as_object)(
-                    rttr::metadata("id", id));
+                registration.template constructor<Args...>()(rttr::policy::ctor::as_object);
         }
     };
 } // namespace engine::reflection
