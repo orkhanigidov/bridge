@@ -1,38 +1,32 @@
 #pragma once
 
+#include "../pch.h"
+
 #include "../model/Class.h"
 #include "../model/Method.h"
-#include "../pch.h"
 
 namespace engine::reflection
 {
     class ReflectionRegistry
     {
       public:
-        static ReflectionRegistry& getInstance();
+        static ReflectionRegistry& instance();
 
-        ReflectionRegistry(const ReflectionRegistry&)            = delete;
-        ReflectionRegistry& operator=(const ReflectionRegistry&) = delete;
-        ReflectionRegistry(ReflectionRegistry&&)                 = delete;
-        ReflectionRegistry& operator=(ReflectionRegistry&&)      = delete;
-
-        void registerAllFromRTTR();
-
-        std::vector<const model::Method*> getAllMethods() const;
-        [[nodiscard]] const model::Class* getClass(const std::string& name) const;
-        [[nodiscard]] const model::Method* getMethod(const std::string& name) const;
-
-        bool hasClass(const std::string& name) const;
-        bool hasMethod(const std::string& name) const;
+        void                              register_all_from_rttr();
+        std::vector<const model::Method*> get_registered_methods() const;
+        bool                              has_class(std::string_view name) const;
+        const model::Class*               get_class(std::string_view name) const;
+        bool                              has_method(std::string_view name) const;
+        const model::Method*              get_method(std::string_view name) const;
 
       private:
-        std::unordered_map<std::string, model::Class> m_classes;
-        std::unordered_map<std::string, model::Method> m_methods;
+        std::unordered_map<std::string, model::Class>  classes_;
+        std::unordered_map<std::string, model::Method> methods_;
 
         ReflectionRegistry() = default;
 
-        void registerClass(const rttr::type& type);
-        void registerMethod(const rttr::method& method);
-        model::Parameter registerClassAsParameter(const std::string& name) const;
+        void             register_class(const rttr::type& type);
+        void             register_method(const rttr::method& method);
+        model::Parameter register_class_as_parameter(std::string_view name) const;
     };
 } // namespace engine::reflection
