@@ -9,7 +9,7 @@ namespace engine::model
       public:
         explicit Class(std::string_view id, const rttr::type& type);
 
-        [[nodiscard]] const std::string& id() const noexcept
+        [[nodiscard]] std::string_view id() const noexcept
         {
             return id_;
         }

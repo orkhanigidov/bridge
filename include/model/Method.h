@@ -32,12 +32,12 @@ namespace engine::model
             return is_static_;
         }
 
-        [[nodiscard]] const std::string& category() const noexcept
+        [[nodiscard]] std::string_view category() const noexcept
         {
             return category_;
         }
 
-        [[nodiscard]] const std::string& description() const noexcept
+        [[nodiscard]] std::string_view description() const noexcept
         {
             return description_;
         }

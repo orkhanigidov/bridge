@@ -10,7 +10,7 @@ namespace engine::model
         explicit Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value = rttr::variant(),
                            bool is_reference = false);
 
-        [[nodiscard]] const std::string& name() const noexcept
+        [[nodiscard]] std::string_view name() const noexcept
         {
             return name_;
         }
