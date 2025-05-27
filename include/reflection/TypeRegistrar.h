@@ -8,9 +8,9 @@ namespace engine::reflection
     {
       public:
         template <typename Class, typename... Args>
-        static void register_type(std::string_view id, std::string_view name)
+        static void register_type(rttr::string_view id, rttr::string_view name)
         {
-            auto registration = rttr::registration::class_<Class>(name)(rttr::metadata("id", id));
+            auto& registration = rttr::registration::class_<Class>(name)(rttr::metadata("id", id));
 
             if constexpr (sizeof...(Args) == 0)
                 registration.constructor()(rttr::policy::ctor::as_object);
