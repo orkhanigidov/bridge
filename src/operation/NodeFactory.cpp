@@ -1,80 +1,87 @@
-#include "../../include/operation/NodeFactory.h"
+#include "../../include/pch.h"
 
+#include "../../include/operation/NodeFactory.h"
 #include "../../include/model/Parameter.h"
 #include "../../include/operation/FunctionNode.h"
 #include "../../include/operation/MethodNode.h"
 #include "../../include/operation/ObjectNode.h"
-#include "../../include/pch.h"
 #include "../../include/serialization/MethodSerializer.h"
 
 namespace engine::operation
 {
-    std::shared_ptr<BaseNode> NodeFactory::createNode(const nlohmann::json& json)
+    std::unique_ptr<BaseNode> NodeFactory::create_node(const nlohmann::json& json)
     {
         if (!json.contains("type") || !json.contains("name"))
             throw std::invalid_argument("Missing required node fields (type, name)");
 
-        const std::string type = json["type"];
-        const std::string name = json["name"];
+        const auto type = json["type"].get<std::string_view>();
+        const auto name = json["name"].get<std::string_view>();
 
-        std::shared_ptr<BaseNode> node;
+        std::unique_ptr<BaseNode> node;
 
         if (type == "object")
-            node = createObjectNode(name);
+            node = create_object_node(name);
         else if (type == "method")
-            node = createMethodNode(name);
+            node = create_method_node(name);
         else if (type == "function")
-            node = createFunctionNode(name);
+            node = create_function_node(name);
         else
-            throw std::invalid_argument("Unknown node type" + type);
+            throw std::invalid_argument("Unknown node type" + std::string{type});
 
-        setNodeParameters(node, json);
-        addDependencies(node, json);
+        if (node->type() == NodeType::Method || node->type() == NodeType::Function)
+            set_parameters(dynamic_cast<InvokableNode&>(*node), json);
+
+        // set_dependencies(*node, json);
 
         return node;
     }
 
-    std::shared_ptr<BaseNode> NodeFactory::createObjectNode(std::string name)
+    std::unique_ptr<BaseNode> NodeFactory::create_object_node(std::string_view name)
     {
-        return std::make_shared<ObjectNode>(std::move(name));
+        return std::make_unique<ObjectNode>(name);
     }
 
-    std::shared_ptr<InvokableNode> NodeFactory::createMethodNode(std::string name)
+    std::unique_ptr<InvokableNode> NodeFactory::create_method_node(std::string_view name)
     {
-        return std::make_shared<MethodNode>(std::move(name));
+        return std::make_unique<MethodNode>(name);
     }
 
-    std::shared_ptr<InvokableNode> NodeFactory::createFunctionNode(std::string name)
+    std::unique_ptr<InvokableNode> NodeFactory::create_function_node(std::string_view name)
     {
-        return std::make_shared<FunctionNode>(std::move(name));
+        return std::make_unique<FunctionNode>(name);
     }
 
-    void NodeFactory::setNodeParameters(const std::shared_ptr<BaseNode>& node, const nlohmann::json& json)
+    void NodeFactory::set_parameters(InvokableNode& node, const nlohmann::json& json)
     {
-        if (!json["parameters"].is_object())
-            throw std::invalid_argument("Parameters field must be an object");
+        const auto& parameters = json["parameters"];
 
-        for (const auto& [key, value] : json["parameters"].items())
+        if (!parameters || !parameters.is_object())
+            throw std::invalid_argument("Parameters field must be a JSON object");
+
+        for (const auto& [key, value] : parameters.items())
         {
-            const model::Parameter parameter = serialization::MethodSerializer::parameterFromJson(value);
-            node->setParameter(key, parameter);
+            const auto parameter = serialization::MethodSerializer::parameter_from_json(value);
 
-            if (parameter.isReference())
-                node->addDependency(parameter.getReference());
+            if (!parameter.has_value())
+                throw std::invalid_argument("Invalid parameter definition for key: " + key);
+
+            node.set_parameter(key, parameter.value());
+
+            // if (parameter->is_reference())
+            //     node.add_dependency(parameter->name());
         }
     }
 
-    void NodeFactory::addDependencies(const std::shared_ptr<BaseNode>& node, const nlohmann::json& json)
-    {
-        if (!json["dependencies"] || !json["dependencies"].is_array())
-            throw std::invalid_argument("Dependencies field must be an array");
-
-        std::unordered_set dependencies(node->getDependencies().begin(), node->getDependencies().end());
-
-        for (const auto& dependency : json["dependencies"])
-        {
-            if (dependencies.insert(dependency).second)
-                node->addDependency(dependency);
-        }
-    }
+    // void NodeFactory::set_dependencies(BaseNode& node, const nlohmann::json& json)
+    // {
+    //     const auto& dependencies = json["dependencies"];
+    //
+    //     if (!dependencies || !dependencies.is_array())
+    //         throw std::invalid_argument("Dependencies field must be a JSON array");
+    //
+    //     for (const auto& dependency : dependencies)
+    //     {
+    //         node.add_dependency(dependency.get<std::string_view>());
+    //     }
+    // }
 } // namespace engine::operation
