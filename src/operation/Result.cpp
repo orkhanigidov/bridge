@@ -1,24 +1,31 @@
-#include "../../include/operation/Result.h"
-
 #include "../../include/pch.h"
+
+#include "../../include/operation/Result.h"
+#include "../../include/serialization/RttrConverter.h"
 
 namespace engine::operation
 {
-    Result::Result(const rttr::variant& variant) : m_variant(variant), m_hasVariant(variant.is_valid()) {}
-
-    rttr::variant Result::getVariant() const
+    Result::Result(rttr::variant value) : value_(std::move(value))
     {
-        if (!hasVariant())
-            throw std::runtime_error("Result has no value");
+        if (!value.is_valid())
+            throw std::invalid_argument("Invalid value provided to Result");
 
-        return m_variant;
+        if (value.is_type<void>())
+            value_ = rttr::variant();
+
+        value_ = serialization::RttrConverter::to_json(value);
     }
 
-    bool Result::hasVariant() const
+    bool Result::has_value() const noexcept
     {
-        if (!m_hasVariant)
-            throw std::runtime_error("Result has no value");
+        return value_.is_valid();
+    }
 
-        return m_hasVariant;
+    const rttr::variant& Result::value() const noexcept
+    {
+        if (!has_value())
+            throw std::runtime_error("Result does not have a value");
+
+        return value_;
     }
 } // namespace engine::operation

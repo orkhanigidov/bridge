@@ -7,14 +7,12 @@ namespace engine::operation
     class Result final
     {
       public:
-        Result() = default;
-        explicit Result(const rttr::variant& variant);
+        explicit Result(rttr::variant value);
 
-        [[nodiscard]] rttr::variant getVariant() const;
-        [[nodiscard]] bool hasVariant() const;
+        [[nodiscard]] bool                 has_value() const noexcept;
+        [[nodiscard]] const rttr::variant& value() const noexcept;
 
       private:
-        rttr::variant m_variant;
-        bool m_hasVariant{false};
+        rttr::variant value_;
     };
 } // namespace engine::operation
