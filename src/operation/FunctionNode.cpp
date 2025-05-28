@@ -1,31 +1,29 @@
-#include "../../include/operation/FunctionNode.h"
-
-#include "../../include/operation/Result.h"
 #include "../../include/pch.h"
-#include "../../include/reflection/ReflectionRegistry.h"
+
+#include "../../include/operation/FunctionNode.h"
+#include "../../include/operation/Result.h"
 #include "../../include/serialization/RttrConverter.h"
 
 namespace engine::operation
 {
-    FunctionNode::FunctionNode(std::string name) : InvokableNode(std::move(name), NodeType::Function)
-    {
-        const model::Method* method = reflection::ReflectionRegistry::getInstance().getMethod(name);
-
-        m_method = method->getMethod();
-    }
+    FunctionNode::FunctionNode(std::string_view name) : InvokableNode(name, NodeType::Function) {}
 
     Result FunctionNode::invoke()
     {
-        if (!isValid())
-            throw std::runtime_error("Function not found: " + getName());
+        if (!is_valid())
+            throw std::runtime_error("Function not found: " + name_);
 
-        const std::vector<rttr::variant> parameters = serialization::RttrConverter::prepareMethodArguments(m_method);
-        const std::vector<rttr::argument> args(parameters.begin(), parameters.end());
-        const rttr::variant result = m_method.invoke_variadic({}, args);
+        const auto prepared_args = serialization::RttrConverter::prepare_arguments(method_, parameters_);
+        const std::vector<rttr::argument> args{prepared_args.begin(), prepared_args.end()};
 
-        // if (result.is_type<void>())
-        // return Result(serialization::RttrConverter::toJson(result));
+        const auto result = method_.invoke_variadic({}, args);
 
-        return Result(result);
+        if (!result.is_valid())
+            throw std::runtime_error("Invalid invocation result for function: " + name_);
+
+        if (result.is_type<void>())
+            return Result(rttr::variant());
+
+        return Result(serialization::RttrConverter::to_json(result));
     }
 } // namespace engine::operation

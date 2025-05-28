@@ -1,72 +1,45 @@
-#include "../../include/operation/MethodNode.h"
-
-#include "../../include/operation/ObjectNode.h"
 #include "../../include/pch.h"
-#include "../../include/reflection/ReflectionRegistry.h"
+
+#include "../../include/operation/MethodNode.h"
+#include "../../include/operation/ObjectNode.h"
+#include "../../include/operation/ObjectPool.h"
 #include "../../include/serialization/RttrConverter.h"
 
 namespace engine::operation
 {
-    MethodNode::MethodNode(std::string name) : InvokableNode(std::move(name), NodeType::Method)
-    {
-        const model::Method* method = reflection::ReflectionRegistry::getInstance().getMethod(name);
+    MethodNode::MethodNode(std::string_view name) : InvokableNode(name, NodeType::Method) {}
 
-        m_method = method->getMethod();
+    void MethodNode::resolve()
+    {
+        const auto name = method().get_declaring_type().get_name().to_string();
+
+        if (!ObjectPool::instance().has_object(name))
+            throw std::runtime_error("Object not found in pool: " + name);
+
+        instance_ = ObjectPool::instance().get_object(name);
     }
 
     Result MethodNode::invoke()
     {
-        if (!isValid())
-            throw std::runtime_error("Method not found: " + getName());
+        if (!is_valid())
+            throw std::runtime_error("Method not found: " + name_);
 
-        const std::vector<rttr::variant> parameters = serialization::RttrConverter::prepareMethodArguments(m_method);
-        const std::vector<rttr::argument> args(parameters.begin(), parameters.end());
+        const auto prepared_args = serialization::RttrConverter::prepare_arguments(method_, parameters_);
+        const std::vector<rttr::argument> args{prepared_args.begin(), prepared_args.end()};
 
-        rttr::variant result;
-        if (m_method.is_static())
-            result = m_method.invoke({}, args);
+        auto result = rttr::variant();
+
+        if (method().is_static())
+            result = method().invoke_variadic({}, args);
         else
-            m_method.invoke_variadic(object, args);
+            result = method().invoke_variadic(instance_, args);
 
-        if (!result.is_type<void>())
-            return Result(serialization::RttrConverter::toJson(result));
+        if (!result.is_valid())
+            throw std::runtime_error("Invalid invocation result for function: " + name_);
 
-        return Result();
+        if (result.is_type<void>())
+            return Result(rttr::variant());
+
+        return Result(serialization::RttrConverter::to_json(result));
     }
-
-
-    // void MethodNode::resolve()
-    // {
-    //     if (!isResolved())
-    //     {
-    //         if (auto pos = m_name.find("::"); pos != std::string::npos)
-    //         {
-    //             const std::string className  = m_name.substr(0, pos);
-    //             const std::string methodName = m_name.substr(pos + 2);
-    //
-    //             m_object = rttr::type::get_by_name(className);
-    //             if (m_object.value().is_valid())
-    //                 m_method = m_object.value().get_method(methodName);
-    //         }
-    //     }
-    //
-    //     m_resolved = true;
-    // }
-    //
-    // Result MethodNode::invoke()
-    // {
-    //         auto pos = m_name.find("::");
-    //         if (pos == std::string::npos)
-    //             throw ExecutionError(ErrorType::MissingNode, "Invalid method name: " + m_name);
-    //
-    //         const std::string className = m_name.substr(0, pos);
-    //         rttr::variant instance;
-    //         if (className != "GraphIO")
-    //             instance = ObjectStore::getInstance().retrieveVariant(className);
-    //
-    //         rttr::variant result;
-    //         if (m_method->is_static())
-    //         {
-    //             result = m_method.value().invoke({}, args[0], args[1], nullptr);
-    //         }
 } // namespace engine::operation
