@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../pch.h"
+#include "pch.hpp"
 
 namespace engine::operation
 {
@@ -22,12 +22,12 @@ namespace engine::operation
 
     class ExecutionError final : public std::runtime_error
     {
-    public:
+      public:
         ExecutionError(ErrorType type, const std::string& message);
 
         ErrorType getType() const;
 
-    private:
+      private:
         ErrorType m_type;
     };
 } // namespace engine::operation

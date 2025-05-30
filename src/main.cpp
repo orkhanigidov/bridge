@@ -1,11 +1,11 @@
-#include "../include/pch.h"
+#include "core/Engine.hpp"
+#include "network/NetworkManager.hpp"
+#include "pch.hpp"
+#include "reflection/MethodRegistrar.hpp"
+#include "reflection/ReflectionRegistry.hpp"
+#include "serialization/RttrConverter.hpp"
 
-#include "../include/core/Engine.h"
-#include "../include/core/reflection/MethodRegistry.h"
-#include "../include/network/NetworkManager.h"
-#include "../include/serialization/JsonRttrConverter.h"
-
-nlohmann::json processMessage(const std::string &message)
+nlohmann::json processMessage(const std::string& message)
 {
     try
     {
@@ -13,7 +13,7 @@ nlohmann::json processMessage(const std::string &message)
 
         if (!request.contains("method") || !request["method"].is_string())
         {
-            return engine::serialization::JsonRttrConverter::errorToJson("Missing or invalid 'method' field");
+            throw std::invalid_argument("Missing or invalid 'method' field");
         }
 
         std::string methodName = request["method"];
@@ -26,13 +26,13 @@ nlohmann::json processMessage(const std::string &message)
 
         return engine::core::Engine::getInstance().executeMethod(methodName, params);
     }
-    catch (const nlohmann::json::exception &e)
+    catch (const nlohmann::json::exception& e)
     {
-        return engine::serialization::JsonRttrConverter::errorToJson("Invalid JSON: " + std::string(e.what()));
+        throw std::invalid_argument("Invalid JSON format: " + std::string(e.what()));
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
-        return engine::serialization::JsonRttrConverter::errorToJson("Error: " + std::string(e.what()));
+        throw std::runtime_error("Error processing message: " + std::string(e.what()));
     }
 }
 
@@ -43,7 +43,7 @@ void signalHandler(int signal)
     running = false;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     try
     {
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
         std::cout << "Starting engine service..." << std::endl;
 
-        engine::core::reflection::MethodRegistry::getInstance().registerAll();
+        engine::reflection::ReflectionRegistry::instance().register_all_from_rttr();
 
         engine::network::NetworkManager networkManager(processMessage);
         networkManager.initialize(endpoint);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
         return 0;
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;

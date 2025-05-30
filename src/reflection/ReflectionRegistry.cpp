@@ -1,6 +1,6 @@
-#include "../../include/pch.h"
+#include "reflection/ReflectionRegistry.hpp"
 
-#include "../../include/reflection/ReflectionRegistry.h"
+#include "pch.hpp"
 
 using namespace engine::model;
 
@@ -84,10 +84,10 @@ namespace engine::reflection
 
     void ReflectionRegistry::register_method(const rttr::method& method)
     {
-        const auto  name        = method.get_name().to_string();
+        const auto name         = method.get_name().to_string();
         const auto& return_type = method.get_return_type();
-        const auto  category    = method.get_metadata("category").to_string();
-        const auto  description = method.get_metadata("description").to_string();
+        const auto category     = method.get_metadata("category").to_string();
+        const auto description  = method.get_metadata("description").to_string();
 
         // TODO: std::make_unique for Parameter
         std::vector<Parameter> parameters;
@@ -100,12 +100,13 @@ namespace engine::reflection
             if (parameter.get_type().is_class())
                 parameters.emplace_back(register_class_as_parameter(parameter_name));
             else
-                parameters.emplace_back(parameter_name, parameter.get_type(), parameter.get_default_value());
+                parameters.emplace_back(parameter_name, parameter.get_type(),
+                                        parameter.get_default_value());
         }
 
         // TODO: std::make_unique for Method
-        methods_.emplace(name,
-                         Method(method, return_type, std::move(parameters), method.is_static(), category, description));
+        methods_.emplace(name, Method(method, return_type, std::move(parameters),
+                                      method.is_static(), category, description));
     }
 
     Parameter ReflectionRegistry::register_class_as_parameter(std::string_view name) const

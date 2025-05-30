@@ -1,5 +1,6 @@
-#include "../../include/pch.h"
-#include "../../include/operation/ExecutionError.h"
+#include "pipeline/ExecutionError.hpp"
+
+#include "pch.hpp"
 
 namespace engine::operation
 {

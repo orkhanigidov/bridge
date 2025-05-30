@@ -1,11 +1,13 @@
-#include "../../include/pch.h"
+#include "model/Parameter.hpp"
 
-#include "../../include/model/Parameter.h"
+#include "pch.hpp"
 
 namespace engine::model
 {
-    Parameter::Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value, bool is_reference)
-        : name_(name), type_(type), default_value_(std::move(default_value)), is_reference_(is_reference)
+    Parameter::Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value,
+                         bool is_reference)
+        : name_(name), type_(type), default_value_(std::move(default_value)),
+          is_reference_(is_reference)
     {
         if (name.empty())
             throw std::invalid_argument("Parameter name cannot be empty");

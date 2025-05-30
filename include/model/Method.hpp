@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../pch.h"
-
-#include "Parameter.h"
+#include "Parameter.hpp"
+#include "pch.hpp"
 
 namespace engine::model
 {
     class Method final
     {
       public:
-        explicit Method(const rttr::method& method, const rttr::type& return_type, std::vector<Parameter> parameters,
-                        bool is_static, std::string_view category = "", std::string_view description = "");
+        explicit Method(const rttr::method& method, const rttr::type& return_type,
+                        std::vector<Parameter> parameters, bool is_static,
+                        std::string_view category = "", std::string_view description = "");
 
         [[nodiscard]] const rttr::method& method() const noexcept
         {
@@ -43,11 +43,11 @@ namespace engine::model
         }
 
       private:
-        rttr::method           method_;
-        rttr::type             return_type_;
+        rttr::method method_;
+        rttr::type return_type_;
         std::vector<Parameter> parameters_;
-        bool                   is_static_;
-        std::string            category_;
-        std::string            description_;
+        bool is_static_;
+        std::string category_;
+        std::string description_;
     };
 } // namespace engine::model

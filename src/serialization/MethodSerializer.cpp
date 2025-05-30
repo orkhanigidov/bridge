@@ -1,8 +1,11 @@
-#include "../../include/serialization/MethodSerializer.h"
+#include "serialization/MethodSerializer.hpp"
 
-#include "../../include/pch.h"
-#include "../../include/reflection/ReflectionRegistry.h"
-#include "../../include/serialization/RttrConverter.h"
+#include "model/Method.hpp"
+#include "pch.hpp"
+#include "reflection/ReflectionRegistry.hpp"
+#include "serialization/RttrConverter.hpp"
+
+#include <string>
 
 namespace engine::serialization
 {
@@ -10,10 +13,10 @@ namespace engine::serialization
     {
         nlohmann::json result;
 
-        result[JsonFields::PARAM_NAME] = parameter.getName();
-        result[JsonFields::PARAM_TYPE] = parameter.getType().get_name().to_string();
+        result[JsonFields::PARAM_NAME] = parameter.name();
+        result[JsonFields::PARAM_TYPE] = parameter.type().get_name().to_string();
 
-        const rttr::variant& defaultValue = parameter.getDefaultValue();
+        const rttr::variant& defaultValue = parameter.default_value();
         if (defaultValue.is_valid())
             result[JsonFields::DEFAULT_VALUE] = RttrConverter::toJson(defaultValue);
         else
@@ -41,7 +44,7 @@ namespace engine::serialization
                 return std::nullopt;
 
             rttr::variant defaultValue;
-            if (isValidJsonField<std::any>(json, JsonFields::DEFAULT_VALUE))
+            if (isValidJsonField<std::string>(json, JsonFields::DEFAULT_VALUE))
                 defaultValue = RttrConverter::fromJson(json[JsonFields::DEFAULT_VALUE], type);
 
             return model::Parameter(name, type, std::move(defaultValue));
@@ -56,14 +59,14 @@ namespace engine::serialization
     {
         nlohmann::json result;
 
-        result[JsonFields::METHOD_NAME] = method.getMethod().get_name().to_string();
-        result[JsonFields::RETURN_TYPE] = method.getReturnType().get_name().to_string();
-        result[JsonFields::CATEGORY]    = method.getCategory();
-        result[JsonFields::DESCRIPTION] = method.getDescription();
-        result[JsonFields::IS_STATIC]   = method.isStatic();
+        result[JsonFields::METHOD_NAME] = method.method().get_name().to_string();
+        result[JsonFields::RETURN_TYPE] = method.return_type().get_name().to_string();
+        result[JsonFields::CATEGORY]    = method.category();
+        result[JsonFields::DESCRIPTION] = method.description();
+        result[JsonFields::IS_STATIC]   = method.is_static();
 
         result[JsonFields::PARAMETERS] = nlohmann::json::array();
-        for (const auto& parameter : method.getParameters())
+        for (const auto& parameter : method.parameters())
         {
             result[JsonFields::PARAMETERS].emplace_back(parameterToJson(parameter));
         }
@@ -81,13 +84,14 @@ namespace engine::serialization
 
         try
         {
-            const std::string name         = json[JsonFields::METHOD_NAME].get<std::string>();
-            const model::Method* methodPtr = reflection::ReflectionRegistry::getInstance().getMethod(name);
+            const std::string name = json[JsonFields::METHOD_NAME].get<std::string>();
+            const model::Method* methodPtr =
+                reflection::ReflectionRegistry::instance().get_method(name);
 
-            if (!methodPtr || !methodPtr->getMethod().is_valid())
+            if (!methodPtr || !methodPtr->method().is_valid())
                 return std::nullopt;
 
-            const rttr::method method = methodPtr->getMethod();
+            const rttr::method method = methodPtr->method();
 
             const std::string returnTypeStr = json[JsonFields::RETURN_TYPE].get<std::string>();
             const rttr::type returnType     = rttr::type::get_by_name(returnTypeStr);
@@ -119,7 +123,8 @@ namespace engine::serialization
             if (isValidJsonField<bool>(json, JsonFields::IS_STATIC))
                 isStatic = json[JsonFields::IS_STATIC].get<bool>();
 
-            return model::Method(method, returnType, std::move(parameters), category, std::move(description), isStatic);
+            return model::Method(method, returnType, std::move(parameters), isStatic, category,
+                                 std::move(description));
         }
         catch (const std::exception&)
         {

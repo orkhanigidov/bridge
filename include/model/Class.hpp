@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../pch.h"
+#include "pch.hpp"
 
 namespace engine::model
 {
@@ -21,6 +21,6 @@ namespace engine::model
 
       private:
         std::string id_;
-        rttr::type  type_;
+        rttr::type type_;
     };
 } // namespace engine::model

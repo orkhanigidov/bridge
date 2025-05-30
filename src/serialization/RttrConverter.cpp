@@ -1,8 +1,11 @@
-#include "../../include/serialization/RttrConverter.h"
+#include "serialization/RttrConverter.hpp"
 
-#include "../../include/model/Method.h"
-#include "../../include/operation/ObjectStore.h"
-#include "../../include/pch.h"
+#include "model/Method.hpp"
+#include "pch.hpp"
+#include "pipeline/ObjectPool.hpp"
+
+#include <string>
+#include <string_view>
 
 namespace engine::serialization
 {
@@ -10,29 +13,33 @@ namespace engine::serialization
                                                                      const nlohmann::json& json)
     {
         if (!json.is_object())
-            throw std::invalid_argument("JSON input must be an object for method argument preparation");
+            throw std::invalid_argument(
+                "JSON input must be an object for method argument preparation");
 
-        const std::vector<model::Parameter>& parameters = method.getParameters();
+        const std::vector<model::Parameter>& parameters = method.parameters();
         std::vector<rttr::variant> args;
         args.reserve(parameters.size());
 
         for (const auto& parameter : parameters)
         {
-            if (const std::string& parameterName = parameter.getName(); json.contains(parameterName))
+            if (std::string_view parameterName = parameter.name();
+                json.contains(std::string(parameterName)))
             {
-                const std::optional<rttr::variant> arg = fromJson(json, parameter.getType());
+                const std::optional<rttr::variant> arg = fromJson(json, parameter.type());
 
                 if (arg.has_value())
                     args.emplace_back(arg.value());
                 else
-                    throw std::runtime_error("Failed to convert JSON to variant for parameter: " + parameterName);
+                    throw std::runtime_error("Failed to convert JSON to variant for parameter: " +
+                                             std::string(parameterName));
             }
         }
 
         return args;
     }
 
-    std::optional<rttr::variant> RttrConverter::fromJson(const nlohmann::json& json, const rttr::type& type)
+    std::optional<rttr::variant> RttrConverter::fromJson(const nlohmann::json& json,
+                                                         const rttr::type& type)
     {
         if (!type.is_valid())
             return std::nullopt;
@@ -40,7 +47,7 @@ namespace engine::serialization
         try
         {
             if (json.is_object() && json.contains("ref"))
-                return operation::ObjectStore::getInstance().getObject(json["ref"].get<std::string>());
+                return pipeline::ObjectPool::instance().get_object(json["ref"].get<std::string>());
 
             if (json.is_number_integer() && type == rttr::type::get<int>())
                 return json.get<int>();

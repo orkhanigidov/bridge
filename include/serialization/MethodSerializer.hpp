@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../model/Method.h"
-#include "../pch.h"
+#include "model/Method.hpp"
+#include "pch.hpp"
 
 namespace engine::serialization
 {
@@ -15,10 +15,12 @@ namespace engine::serialization
 
       private:
         [[nodiscard]] static nlohmann::json parameterToJson(const model::Parameter& parameter);
-        [[nodiscard]] static std::optional<model::Parameter> parameterFromJson(const nlohmann::json& json);
+        [[nodiscard]] static std::optional<model::Parameter>
+        parameterFromJson(const nlohmann::json& json);
 
         template <typename T>
-        [[nodiscard]] static bool isValidJsonField(const nlohmann::json& json, std::string_view fieldName)
+        [[nodiscard]] static bool isValidJsonField(const nlohmann::json& json,
+                                                   std::string_view fieldName)
         {
             if (!json.contains(fieldName) || json[fieldName].is_null())
                 return false;

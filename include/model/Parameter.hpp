@@ -1,14 +1,15 @@
 #pragma once
 
-#include "../pch.h"
+#include "pch.hpp"
 
 namespace engine::model
 {
     class Parameter final
     {
       public:
-        explicit Parameter(std::string_view name, const rttr::type& type, rttr::variant default_value = rttr::variant(),
-                           bool is_reference = false);
+        explicit Parameter(std::string_view name, const rttr::type& type,
+                           rttr::variant default_value = rttr::variant(),
+                           bool is_reference           = false);
 
         [[nodiscard]] std::string_view name() const noexcept
         {
@@ -31,9 +32,9 @@ namespace engine::model
         }
 
       private:
-        std::string   name_;
-        rttr::type    type_;
+        std::string name_;
+        rttr::type type_;
         rttr::variant default_value_;
-        bool          is_reference_;
+        bool is_reference_;
     };
 } // namespace engine::model

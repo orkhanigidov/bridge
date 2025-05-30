@@ -1,6 +1,6 @@
-#include "../../include/pch.h"
+#include "model/Class.hpp"
 
-#include "../../include/model/Class.h"
+#include "pch.hpp"
 
 namespace engine::model
 {
