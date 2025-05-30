@@ -45,10 +45,12 @@ add_custom_command(
         VERBATIM
 )
 
-file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.h)
+file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${REFLECTION_OUTPUT})
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
@@ -58,7 +60,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # Add precompiled header configuration
-target_precompile_headers(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR}/pch.h)
+target_precompile_headers(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR}/pch.hpp)
 
 # Set compiler warnings
 if (MSVC)
