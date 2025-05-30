@@ -10,12 +10,12 @@ namespace engine::reflection
         template <typename Class, typename... Args>
         static void register_type(rttr::string_view id, rttr::string_view name)
         {
-            auto& registration = rttr::registration::class_<Class>(name)(rttr::metadata("id", id));
-
             if constexpr (sizeof...(Args) == 0)
-                registration.constructor()(rttr::policy::ctor::as_object);
+                rttr::registration::class_<Class>(name).constructor()(
+                    rttr::policy::ctor::as_object)(rttr::metadata("id", id));
             else
-                registration.template constructor<Args...>()(rttr::policy::ctor::as_object);
+                rttr::registration::class_<Class>(name).template constructor<Args...>()(
+                    rttr::policy::ctor::as_object)(rttr::metadata("id", id));
         }
     };
 } // namespace engine::reflection

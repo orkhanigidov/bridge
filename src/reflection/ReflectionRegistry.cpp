@@ -16,7 +16,8 @@ namespace engine::reflection
     {
         for (const auto& type : rttr::type::get_types())
         {
-            register_class(type);
+            if (type.get_metadata("id").is_valid())
+                register_class(type);
         }
 
         for (const auto& type : rttr::type::get_types())
@@ -75,11 +76,11 @@ namespace engine::reflection
     // TODO: std::string to std::string_view (might dangling reference issue)
     void ReflectionRegistry::register_class(const rttr::type& type)
     {
-        const auto name = type.get_name().to_string();
-        const auto id   = type.get_metadata("id").to_string();
+        const auto name      = type.get_name().to_string();
+        const std::string id = type.get_metadata("id").get_value<std::string>();
 
         // TODO: std::make_unique for Class
-        classes_.emplace(name, Class(id, type));
+        classes_.emplace(name, Class(std::string{id}, type));
     }
 
     void ReflectionRegistry::register_method(const rttr::method& method)
@@ -97,11 +98,11 @@ namespace engine::reflection
         {
             const auto parameter_name = parameter.get_name().to_string();
 
-            if (parameter.get_type().is_class())
-                parameters.emplace_back(register_class_as_parameter(parameter_name));
-            else
-                parameters.emplace_back(parameter_name, parameter.get_type(),
-                                        parameter.get_default_value());
+            // if (parameter.get_type().is_class())
+            // parameters.emplace_back(register_class_as_parameter(parameter_name));
+            // else
+            parameters.emplace_back(parameter_name, parameter.get_type(),
+                                    parameter.get_default_value());
         }
 
         // TODO: std::make_unique for Method

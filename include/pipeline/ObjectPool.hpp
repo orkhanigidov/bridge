@@ -12,6 +12,7 @@ namespace engine::pipeline
         void store(std::string_view id, rttr::variant object);
         bool has_object(std::string_view id) const noexcept;
         const rttr::variant& get_object(std::string_view id) const;
+        void update_object(std::string_view id, const rttr::variant& updated_object);
         bool remove(std::string_view id);
         void clear_all();
 

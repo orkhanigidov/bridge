@@ -1,6 +1,7 @@
 #include "core/Engine.hpp"
 #include "network/NetworkManager.hpp"
 #include "pch.hpp"
+#include "pipeline/PipelineExecutor.hpp"
 #include "reflection/MethodRegistrar.hpp"
 #include "reflection/ReflectionRegistry.hpp"
 #include "serialization/RttrConverter.hpp"
@@ -10,6 +11,27 @@ nlohmann::json processMessage(const std::string& message)
     try
     {
         nlohmann::json request = nlohmann::json::parse(message);
+
+        if (request.contains("pipeline"))
+        {
+            try
+            {
+                auto& executor = engine::pipeline::PipelineExecutor::instance();
+                executor.load_json(request);
+                executor.execute();
+
+                return nlohmann::json{{"status", "success"},
+                                      {"message", "Pipeline executed successfully"},
+                                      {"pipeline", request["pipeline"].get<std::string>()}};
+            }
+            catch (const std::exception& e)
+            {
+                return nlohmann::json{
+                    {"status", "error"},
+                    {"message", std::string("Pipeline execution failed: ") + e.what()},
+                    {"pipeline", request.value("pipeline", "unknown")}};
+            }
+        }
 
         if (!request.contains("method") || !request["method"].is_string())
         {

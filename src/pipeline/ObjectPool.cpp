@@ -51,4 +51,15 @@ namespace engine::pipeline
     {
         return get_object(reference);
     }
+
+    void ObjectPool::update_object(std::string_view id, const rttr::variant& updated_object)
+    {
+        if (!has_object(id))
+        {
+            throw std::runtime_error("Object not found for update: " + std::string{id});
+        }
+
+        objects_[std::string{id}] = updated_object;
+        std::cout << "Updated object '" << id << "' in pool" << std::endl;
+    }
 } // namespace engine::pipeline
