@@ -8,6 +8,7 @@ class CodeBuilder:
             self.lines.append("    " * self.indent_level + text)
         else:
             self.lines.append("")
+
         return self
 
     def indent(self):
@@ -35,5 +36,5 @@ class BlockContext:
     def __enter__(self):
         return self.builder
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         self.builder.dedent().line(self.end)
