@@ -4,11 +4,11 @@
 
 namespace engine::reflection
 {
-    class TypeRegistrar
+    class ClassRegistrar
     {
       public:
         template <typename Class, typename... Args>
-        static void register_type(rttr::string_view id, rttr::string_view name)
+        static void register_class(rttr::string_view id, rttr::string_view name)
         {
             if constexpr (sizeof...(Args) == 0)
                 rttr::registration::class_<Class>(name).constructor()(
