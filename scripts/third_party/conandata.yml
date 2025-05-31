@@ -1,6 +1,0 @@
-requirements:
-  - "nlohmann_json/3.12.0"
-  - "rapidjson/1.1.0"
-  - "rttr/0.9.6"
-  - "cppzmq/4.10.0"
-  - "ogdf/2023.09"

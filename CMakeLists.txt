@@ -12,19 +12,33 @@ set(SOURCE_DIR ${PROJECT_ROOT}/src)
 set(INCLUDE_DIR ${PROJECT_ROOT}/include)
 set(GENERATED_DIR ${SOURCE_DIR}/generated)
 set(TEMPLATES_DIR ${PROJECT_ROOT}/templates)
-set(REFLECTION_CONFIG ${PROJECT_ROOT}/config/reflection_config.yaml)
-set(REFLECTION_TEMPLATE ${PROJECT_ROOT}/templates/reflection_registration_template.j2)
+set(REFLECTION_CONFIG ${PROJECT_ROOT}/scripts/codegen/config/reflection_config.yaml)
 set(REFLECTION_OUTPUT ${GENERATED_DIR}/ReflectionRegistration.cpp)
 
 # Create directory for generated source files
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Find required dependencies
+include(cmake/CPM.cmake)
+
+CPMAddPackage(
+        URI "gh:nlohmann/json@3.12.0"
+)
+CPMAddPackage(
+        URI "gh:rttrorg/rttr@0.9.6"
+        OPTIONS "BUILD_UNIT_TESTS OFF" "BUILD_EXAMPLES OFF" "CUSTOM_DOXYGEN_STYLE OFF"
+)
+CPMAddPackage(
+        URI "gh:zeromq/libzmq@4.3.5"
+)
+CPMAddPackage(
+        URI "gh:zeromq/cppzmq@4.10.0"
+        OPTIONS "CPPZMQ_BUILD_TESTS OFF"
+)
+CPMAddPackage(
+        URI "gh:ogdf/ogdf#elderberry-202309"
+)
+
 find_package(Python COMPONENTS Interpreter REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(rttr CONFIG REQUIRED)
-find_package(cppzmq CONFIG REQUIRED)
-find_package(ogdf CONFIG REQUIRED)
 
 if (WIN32)
     set(PYTHON_EXE ${PROJECT_ROOT}/.venv/Scripts/python.exe)
@@ -33,15 +47,17 @@ else ()
 endif ()
 
 # Registry code generation
-# This command runs generate_registry.py to create the implementation file whenever the script or configuration file changes
+# This command runs main.py to create the implementation file whenever the script or configuration file changes
 add_custom_command(
         OUTPUT ${REFLECTION_OUTPUT}
         COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
-        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/scripts/codegen/generate_registry.py
+        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/scripts/codegen/main.py
         --config=${REFLECTION_CONFIG}
-        --templates=${TEMPLATES_DIR}
+        --package=ogdf
         --output=${REFLECTION_OUTPUT}
-        DEPENDS ${PROJECT_ROOT}/scripts/codegen/generate_registry.py ${REFLECTION_CONFIG} ${REFLECTION_TEMPLATE}
+        --verbose
+        DEPENDS ${PROJECT_ROOT}/scripts/codegen/main.py ${REFLECTION_CONFIG}
+        WORKING_DIRECTORY ${PROJECT_ROOT}/scripts/third_party
         VERBATIM
 )
 
@@ -54,9 +70,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
-        RTTR::Core_Lib
+        RTTR::Core
         cppzmq
-        ogdf::ogdf
+        ogdf
 )
 
 # Add precompiled header configuration

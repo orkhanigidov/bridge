@@ -12,7 +12,6 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/generators/conan_toolchain.cmake",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },

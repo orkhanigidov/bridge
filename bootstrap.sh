@@ -21,8 +21,14 @@ done
 
 PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
 VENV_DIR="${PROJECT_ROOT}/.venv"
-BUILD_DIR="${PROJECT_ROOT}/build"
-CONAN_PY_FILE="${PROJECT_ROOT}/scripts/third_party/conanfile.py"
+CMAKE_DIR="${PROJECT_ROOT}/cmake"
+
+mkdir -p ${CMAKE_DIR}
+
+if [ ! -d "${CMAKE_DIR}/CPM.cmake" ]; then
+    echo "Downloading CPM.cmake..."
+    wget -O cmake/CPM.cmake https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
+fi
 
 if [ ! -d "${VENV_DIR}" ]; then
     echo "Setting up Python virtual environment..."
@@ -38,20 +44,11 @@ fi
 echo "Installing required Python packages..."
 pip install -U pip
 pip install -r "${PROJECT_ROOT}/scripts/codegen/requirements.txt"
-pip install -r "${PROJECT_ROOT}/scripts/third_party/requirements.txt"
-
-if ! conan profile list | grep -q "default"; then
-    conan profile detect
-fi
-
-echo "Installing C++ dependencies with Conan..."
-mkdir -p "${BUILD_DIR}"
-conan install "${CONAN_PY_FILE}" --output-folder="${BUILD_DIR}" --build=missing --settings=build_type=${BUILD_TYPE}
 
 echo "Configuring project with CMake..."
-cmake --preset $(echo "${BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')
+cmake --preset $(echo "${BUILD_TYPE}")
 
 echo "Building project..."
-cmake --build --preset $(echo "${BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')
+cmake --build --preset $(echo "${BUILD_TYPE}")
 
 echo "Setup complete. Project built successfully."
