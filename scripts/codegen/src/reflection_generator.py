@@ -86,8 +86,10 @@ class ReflectionGenerator:
         if not functions_config:
             return
 
+        builder.line("// ==================== Function Registrations ====================")
         for func_config in functions_config:
             self._add_single_function(builder, func_config, parsed_data)
+            builder.line()
         builder.line()
 
     def _add_class_registrations(self, builder: CodeBuilder, config: Dict) -> None:
@@ -95,6 +97,7 @@ class ReflectionGenerator:
         if not classes_config:
             return
 
+        builder.line("// ==================== Class Registrations ====================")
         for class_config in classes_config:
             name = class_config["name"]
             alias = class_config.get("alias", name)
@@ -108,8 +111,10 @@ class ReflectionGenerator:
 
         class_map = {c["name"]: c["name"] for c in config.get("classes", [])}
 
+        builder.line("// ==================== Method Registrations ====================")
         for method_config in methods_config:
             self._add_single_method(builder, method_config, class_map, parsed_data)
+            builder.line()
         builder.line()
 
     def _add_single_function(self, builder: CodeBuilder, func_config: Dict, parsed_data: Dict) -> None:
