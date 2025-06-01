@@ -1,40 +1,44 @@
+from typing import List
+
+
 class CodeBuilder:
-    def __init__(self):
-        self.lines = []
-        self.indent_level = 0
+    def __init__(self, indent_size=4) -> None:
+        self._lines: List[str] = []
+        self._indent_level: int = 0
+        self._indent_size: int = indent_size
 
-    def line(self, text=""):
+    def line(self, text: str = "") -> "CodeBuilder":
         if text:
-            self.lines.append("    " * self.indent_level + text)
+            indent = " " * (self._indent_level * self._indent_size)
+            self._lines.append(indent + text)
         else:
-            self.lines.append("")
-
+            self._lines.append("")
         return self
 
-    def indent(self):
-        self.indent_level += 1
+    def indent(self) -> "CodeBuilder":
+        self._indent_level += 1
         return self
 
-    def dedent(self):
-        self.indent_level = max(0, self.indent_level - 1)
+    def dedent(self) -> "CodeBuilder":
+        self._indent_level = max(0, self._indent_level - 1)
         return self
 
-    def block(self, start, end="}"):
+    def block(self, start: str, end: str = "}") -> "BlockContext":
         self.line(start)
         self.indent()
         return BlockContext(self, end)
 
-    def build(self):
-        return "\n".join(self.lines)
+    def build(self) -> str:
+        return "\n".join(self._lines)
 
 
 class BlockContext:
-    def __init__(self, builder, end):
-        self.builder = builder
-        self.end = end
+    def __init__(self, builder: CodeBuilder, end: str) -> None:
+        self._builder = builder
+        self._end = end
 
-    def __enter__(self):
-        return self.builder
+    def __enter__(self) -> CodeBuilder:
+        return self._builder
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.builder.dedent().line(self.end)
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
+        self._builder.dedent().line(self._end)

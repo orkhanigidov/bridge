@@ -91,10 +91,10 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${REFLECTION_OUTPUT})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        nlohmann_json::nlohmann_json
+        nlohmann_json
         RTTR::Core_Lib
         cppzmq
-        ogdf
+        OGDF COIN
 )
 
 # Add precompiled header configuration
