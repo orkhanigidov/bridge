@@ -181,7 +181,7 @@ class ReflectionGenerator:
         overload_suffix = f"_{index + 1}" if total_overloads > 1 else ""
         registration_name = f"{method_data.name}{overload_suffix}"
 
-        builder.line("MethodRegistrar::register_member_method<{class_name}>(")
+        builder.line(f"MethodRegistrar::register_member_method<{class_name}>(")
         builder.indent()
         builder.line(f'"{class_name}", "{registration_name}",')
         builder.line(f"rttr::select_overload<{return_type}({param_types_str})>(&{class_name}::{method_data.name}),")
