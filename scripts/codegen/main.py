@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -36,11 +37,17 @@ def _get_dependency_include_paths(package_names=None):
                 pkg_name = pkg_dir.name.replace("-src", "")
 
                 if not package_names:
-                    include_paths.append(str(include_dir))
+                    if os.name == "nt":
+                        include_paths.append(str(include_dir))
+                    else:
+                        include_paths.append(include_dir.as_posix())
                     continue
 
                 if any(package.lower() in pkg_name.lower() for package in package_names):
-                    include_paths.append(str(include_dir))
+                    if os.name == "nt":
+                        include_paths.append(str(include_dir))
+                    else:
+                        include_paths.append(include_dir.as_posix())
 
         return include_paths
 

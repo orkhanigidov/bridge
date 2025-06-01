@@ -1,10 +1,15 @@
 import os
+from pathlib import Path
 
 import clang.cindex
 
 
 def _setup_clang():
-    library_path = os.path.join(os.path.dirname(clang.cindex.__file__), 'native', 'libclang.so')
+    if os.name == "nt":
+        library_path = os.path.join(os.path.dirname(clang.cindex.__file__), 'native', 'libclang.dll')
+    else:
+        library_path = os.path.join(os.path.dirname(clang.cindex.__file__), 'native', 'libclang.so')
+
     clang.cindex.conf.set_library_file(library_path)
 
 
@@ -37,6 +42,7 @@ def _extract_class_info(cursor):
     try:
         methods = {}
         static_methods = {}
+        base_classes = []
 
         for child in cursor.get_children():
             if child.kind == clang.cindex.CursorKind.CXX_METHOD:
@@ -46,11 +52,16 @@ def _extract_class_info(cursor):
                         static_methods[method_info["name"]] = method_info
                     else:
                         methods[method_info["name"]] = method_info
+            elif child.kind == clang.cindex.CursorKind.CXX_BASE_SPECIFIER:
+                base_type = child.get_definition()
+                if base_type:
+                    base_classes.append(base_type.spelling)
 
         return {
             "name": cursor.spelling,
             "methods": methods,
-            "static_methods": static_methods
+            "static_methods": static_methods,
+            "base_classes": base_classes
         }
 
     except Exception as e:
@@ -81,7 +92,16 @@ class LibClangAnalyzer:
 
     def _analyze_single_header(self, header, result):
         args = self._get_compile_args()
-        tu = self.index.parse(header, args=args)
+
+        header_path = None
+
+        for include_path in self.include_paths:
+            potential_path = os.path.join(include_path, header)
+            if os.path.exists(potential_path):
+                header_path = potential_path
+                break
+
+        tu = self.index.parse(header_path, args=args)
 
         if tu.diagnostics:
             for diag in tu.diagnostics:
@@ -91,9 +111,23 @@ class LibClangAnalyzer:
         self._extract_from_cursor(tu.cursor, result)
 
     def _get_compile_args(self):
-        return [
-            '-std=c++17'
-        ] + [f"-I{path}" for path in self.include_paths]
+        args = ['-x', 'c++', '-std=c++17']
+
+        if os.name == "nt":
+            pass
+        else:
+            args.extend([
+                '-I/usr/include',
+                '-I/usr/local/include',
+            ])
+
+        for path in self.include_paths:
+            if os.name == "nt":
+                args.append(f"-I{os.path.abspath(path)}")
+            else:
+                args.append(f"-I{Path(path).absolute().as_posix()}")
+
+        return args
 
     def _extract_from_cursor(self, cursor, result):
         for child in cursor.get_children():

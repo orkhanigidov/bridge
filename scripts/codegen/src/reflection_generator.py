@@ -20,11 +20,12 @@ def _add_includes(builder, config):
     builder.line('#include "reflection/MethodRegistrar.hpp"')
     builder.line('#include "reflection/ClassRegistrar.hpp"')
     builder.line()
+    builder.line("#include <rttr/registration>")
+    builder.line()
 
     for header in config.get("headers", []):
         builder.line(f"#include <{header}>")
 
-    builder.line("#include <rttr/registration>")
     builder.line()
 
 
@@ -49,6 +50,35 @@ def _add_class_registrations(builder, config):
         builder.line(f'ClassRegistrar::register_class<{name}>("{alias}", "{name}");')
 
     builder.line()
+
+
+def _find_method_in_class_hierarchy(class_name, method_name, parsed_data, visited=None):
+    if visited is None:
+        visited = set()
+
+    if class_name in visited:
+        return None, None
+
+    visited.add(class_name)
+
+    class_data = parsed_data["classes"].get(class_name)
+
+    if not class_data:
+        return None, None
+
+    if method_name in class_data["methods"]:
+        return class_data["methods"][method_name], False
+
+    if method_name in class_data["methods"]:
+        return class_data["static_methods"][method_name], True
+
+    for base_class in class_data.get("base_classes", []):
+        method_data, is_static = _find_method_in_class_hierarchy(base_class, method_name, parsed_data, visited)
+
+        if method_data:
+            return method_data, is_static
+
+    return None, None
 
 
 def _add_single_function(builder, func_config, parsed_data):
@@ -79,7 +109,7 @@ def _add_single_method(builder, method_config, class_map, parsed_data):
     class_name = class_map.get(method_config["class_name"])
 
     if not class_name:
-        print(f"Warning: Class ID {method_config["class_name"]} not found")
+        print(f'Warning: Class ID {method_config["class_name"]} not found')
         return
 
     method_name = method_config["name"]
@@ -89,7 +119,10 @@ def _add_single_method(builder, method_config, class_map, parsed_data):
         print(f"Warning: Class {class_name} not found in parsed data")
         return
 
-    method_data = (class_data["methods"].get(method_name) or class_data["static_methods"].get(method_name))
+    if not class_data.get("base_classes"):
+        method_data = (class_data["methods"].get(method_name) or class_data["static_methods"].get(method_name))
+    else:
+        method_data, is_static = _find_method_in_class_hierarchy(class_name, method_name, parsed_data)
 
     if not method_data:
         print(f"Warning: Method {class_name}::{method_name} not found in parsed data")
@@ -181,8 +214,8 @@ class ReflectionGenerator:
         print(f"Analyzing headers: {headers}")
 
         parsed_data = self.analyzer.analyze_headers(headers)
-        print(f"Found {len(parsed_data["functions"])} functions")
-        print(f"Found {len(parsed_data["classes"])} classes")
-        print(f"Found namespaces: {parsed_data["namespaces"]}")
+        print(f'Found {len(parsed_data["functions"])} functions')
+        print(f'Found {len(parsed_data["classes"])} classes')
+        print(f'Found namespaces: {parsed_data["namespaces"]}')
 
         return parsed_data
