@@ -21,21 +21,44 @@ file(MAKE_DIRECTORY ${GENERATED_DIR})
 include(cmake/CPM.cmake)
 
 CPMAddPackage(
-        URI "gh:nlohmann/json@3.12.0"
+        NAME nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        VERSION 3.12.0
 )
 CPMAddPackage(
-        URI "gh:rttrorg/rttr@0.9.6"
-        OPTIONS "BUILD_UNIT_TESTS OFF" "BUILD_EXAMPLES OFF" "CUSTOM_DOXYGEN_STYLE OFF"
+        NAME rttr
+        GIT_REPOSITORY https://github.com/rttrorg/rttr.git
+        VERSION 0.9.6
+        OPTIONS
+        "BUILD_RTTR_DYNAMIC OFF"
+        "BUILD_STATIC ON"
+        "BUILD_UNIT_TESTS OFF"
+        "BUILD_EXAMPLES OFF"
+        "BUILD_DOCUMENTATION OFF"
+        "BUILD_INSTALLER OFF"
+        "BUILD_PACKAGE OFF"
+        "CUSTOM_DOXYGEN_STYLE OFF"
 )
 CPMAddPackage(
-        URI "gh:zeromq/libzmq@4.3.5"
+        NAME libzmq
+        GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+        VERSION 4.3.5
+        OPTIONS
+        "ZMQ_BUILD_TESTS OFF"
+        "WITH_PERF_TOOL OFF"
+        "WITH_DOCS OFF"
+        "BUILD_TESTS OFF"
 )
 CPMAddPackage(
-        URI "gh:zeromq/cppzmq@4.10.0"
+        NAME cppzmq
+        GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
+        VERSION 4.10.0
         OPTIONS "CPPZMQ_BUILD_TESTS OFF"
 )
 CPMAddPackage(
-        URI "gh:ogdf/ogdf#elderberry-202309"
+        NAME ogdf
+        GIT_REPOSITORY https://github.com/ogdf/ogdf.git
+        GIT_TAG elderberry-202309
 )
 
 find_package(Python COMPONENTS Interpreter REQUIRED)
@@ -57,7 +80,6 @@ add_custom_command(
         --output=${REFLECTION_OUTPUT}
         --verbose
         DEPENDS ${PROJECT_ROOT}/scripts/codegen/main.py ${REFLECTION_CONFIG}
-        WORKING_DIRECTORY ${PROJECT_ROOT}/scripts/third_party
         VERBATIM
 )
 
@@ -70,7 +92,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
-        RTTR::Core
+        RTTR::Core_Lib
         cppzmq
         ogdf
 )
