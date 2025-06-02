@@ -165,11 +165,33 @@ class LibClangAnalyzer:
     def _extract_function_info(self, cursor) -> Optional[FunctionInfo]:
         try:
             params = list(cursor.get_arguments())
+
+            is_class_method = False
+            class_name = ""
+            nested_types = set()
+
+            if cursor.semantic_parent and cursor.semantic_parent.kind in [clang.cindex.CursorKind.CLASS_DECL,
+                                                                          clang.cindex.CursorKind.STRUCT_DECL]:
+                is_class_method = True
+                class_name = cursor.semantic_parent.spelling
+                nested_types = self._find_nested_types(cursor.semantic_parent)
+
+            parameter_types = []
+            for param in params:
+                param_type = param.type.spelling
+
+                if is_class_method and "::" not in param_type:
+                    base_type = param_type.split()[0]
+                    if base_type in nested_types:
+                        param_type = param_type.replace(base_type, f"{class_name}::{base_type}", 1)
+
+                parameter_types.append(param_type)
+
             return FunctionInfo(
                 name=cursor.spelling,
                 return_type=cursor.result_type.spelling,
                 parameters=[p.spelling or f"param{i}" for i, p in enumerate(params)],
-                parameter_types=[p.type.spelling for p in params],
+                parameter_types=parameter_types,
                 signature=self._generate_signature(cursor),
                 is_static=cursor.storage_class == clang.cindex.StorageClass.STATIC,
                 location=f"{cursor.location.file}:{cursor.location.line}" if cursor.location.file else "unknown"
@@ -177,6 +199,17 @@ class LibClangAnalyzer:
         except Exception as e:
             print(f"Error extracting function {cursor.spelling}: {e}")
             return None
+
+    def _find_nested_types(self, cursor) -> Set[str]:
+        nested_types = set()
+
+        for child in cursor.get_children():
+            if child.kind in [clang.cindex.CursorKind.TYPEDEF_DECL, clang.cindex.CursorKind.TYPE_ALIAS_DECL,
+                              clang.cindex.CursorKind.CLASS_DECL, clang.cindex.CursorKind.STRUCT_DECL,
+                              clang.cindex.CursorKind.ENUM_DECL]:
+                nested_types.add(child.spelling)
+
+        return nested_types
 
     def _generate_signature(self, cursor) -> str:
         params = list(cursor.get_arguments())
