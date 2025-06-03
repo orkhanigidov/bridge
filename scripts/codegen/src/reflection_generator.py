@@ -10,6 +10,7 @@ from .code_builder import CodeBuilder
 class ReflectionGenerator:
     def __init__(self, include_paths: List[str]) -> None:
         self.analyzer = LibClangAnalyzer(include_paths)
+        self.registered_types = set()
 
     def generate_from_config(self, config_file: str, output_file: Optional[str] = None) -> str:
         config = self._load_config(config_file)
@@ -69,9 +70,9 @@ class ReflectionGenerator:
     def _add_registration_block(self, builder: CodeBuilder, config: Dict, parsed_data: Dict) -> None:
         with builder.block("RTTR_REGISTRATION {", "}"):
             self._add_using_statements(builder, config)
-            self._add_function_registrations(builder, config, parsed_data)
             self._add_class_registrations(builder, config)
             self._add_method_registrations(builder, config, parsed_data)
+            self._add_function_registrations(builder, config, parsed_data)
 
     def _add_using_statements(self, builder: CodeBuilder, config: Dict) -> None:
         builder.line()
@@ -102,6 +103,7 @@ class ReflectionGenerator:
             name = class_config["name"]
             alias = class_config.get("alias", name)
             builder.line(f'ClassRegistrar::register_class<{name}>("{alias}", "{name}");')
+            self.registered_types.add(name)
         builder.line()
 
     def _add_method_registrations(self, builder: CodeBuilder, config: Dict, parsed_data: Dict) -> None:
@@ -137,6 +139,10 @@ class ReflectionGenerator:
         return_type = func_config.get("return_type", func_data.return_type)
         parameter_types = func_config.get("parameter_types", func_data.parameter_types)
         parameters = func_config.get("parameters", func_data.parameters)
+
+        if not self._are_types_registered(return_type, parameter_types):
+            print(f"Skipping function {func_data.name}: types not registered")
+            return
 
         param_types_str = ", ".join(parameter_types)
         param_names_str = ", ".join(f'"{p}"' for p in parameters)
@@ -180,6 +186,10 @@ class ReflectionGenerator:
         parameter_types = method_config.get("parameter_types", method_data.parameter_types)
         parameters = method_config.get("parameters", method_data.parameters)
 
+        if class_name not in self.registered_types or not self._are_types_registered(return_type, parameter_types):
+            print(f"Skipping method {class_name}::{method_data.name}: types not registered")
+            return
+
         param_types_str = ", ".join(parameter_types)
         param_names_str = ", ".join(f'"{p}"' for p in parameters)
 
@@ -192,6 +202,21 @@ class ReflectionGenerator:
         builder.line(f"rttr::select_overload<{return_type}({param_types_str})>(&{class_name}::{method_data.name}),")
         builder.line(f'"{category}", "{description}", {param_names_str});')
         builder.dedent()
+
+    def _are_types_registered(self, return_type: str, parameter_types: List[str]) -> bool:
+        primitive_types = {"void", "int", "float", "double", "bool", "char", "long", "short", "unsigned", "string",
+                           "std::string", "std::vector", "std::ostream", "std::istream"}
+
+        return_type_clean = return_type.replace("const", "").replace("&", "").replace("*", "").strip()
+        if (return_type_clean not in primitive_types) and (return_type_clean not in self.registered_types):
+            return False
+
+        for param_type in parameter_types:
+            param_type_clean = param_type.replace("const", "").replace("&", "").replace("*", "").strip()
+            if (param_type_clean not in primitive_types) and (param_type_clean not in self.registered_types):
+                return False
+
+        return True
 
     def _find_method_in_class_hierarchy(self, class_name: str, method_name: str, parsed_data: Dict,
                                         visited: Optional[set] = None) -> tuple[List[FunctionInfo], List[FunctionInfo]]:
