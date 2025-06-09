@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 project(Engine LANGUAGES CXX)
 
 # Set C++ standard for all targets
@@ -71,17 +71,17 @@ endif ()
 
 # Registry code generation
 # This command runs main.py to create the implementation file whenever the script or configuration file changes
-add_custom_command(
-        OUTPUT ${REFLECTION_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
-        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/scripts/codegen/main.py
-        --config=${REFLECTION_CONFIG}
-        --package=ogdf
-        --output=${REFLECTION_OUTPUT}
-        --verbose
-        DEPENDS ${PROJECT_ROOT}/scripts/codegen/main.py ${REFLECTION_CONFIG}
-        VERBATIM
-)
+#add_custom_command(
+#        OUTPUT ${REFLECTION_OUTPUT}
+#        COMMAND ${CMAKE_COMMAND} -E echo "Generating registry code..."
+#        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/scripts/codegen/main.py
+#        --config=${REFLECTION_CONFIG}
+#        --package=ogdf
+#        --output=${REFLECTION_OUTPUT}
+#        --verbose
+#        DEPENDS ${PROJECT_ROOT}/scripts/codegen/main.py ${REFLECTION_CONFIG}
+#        VERBATIM
+#)
 
 file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp)

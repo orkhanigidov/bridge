@@ -1,7 +1,6 @@
 #include "pipeline/Pipeline.hpp"
 
 #include "pch.hpp"
-#include "pipeline/StepFactory.hpp"
 
 namespace engine::pipeline
 {
@@ -14,37 +13,27 @@ namespace engine::pipeline
 
         name_ = json["pipeline"].get<std::string>();
 
-        if (json.contains("steps"))
+        if (json.contains("steps") && json["steps"].is_array())
         {
-            load_steps(json["steps"]);
+            commands_.reserve(json["steps"].size());
+
+            for (const auto& step : json["steps"])
+            {
+                commands_.emplace_back(std::make_unique<Command>(step));
+            }
         }
     }
 
     void Pipeline::execute()
     {
-        for (auto& step : steps_)
+        for (auto& command : commands_)
         {
-            step->execute();
+            command->execute();
         }
     }
 
     void Pipeline::clear()
     {
-        steps_.clear();
-    }
-
-    void Pipeline::load_steps(const nlohmann::json& steps_json)
-    {
-        if (!steps_json.is_array())
-        {
-            throw std::invalid_argument("Steps must be an array");
-        }
-
-        steps_.reserve(steps_json.size());
-
-        for (const auto& step_json : steps_json)
-        {
-            steps_.emplace_back(StepFactory::create_step(step_json));
-        }
+        commands_.clear();
     }
 } // namespace engine::pipeline

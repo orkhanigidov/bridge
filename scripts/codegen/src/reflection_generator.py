@@ -53,15 +53,12 @@ class ReflectionGenerator:
         return builder.build()
 
     def _add_header(self, builder: CodeBuilder) -> None:
-        builder.line("// Auto-generated file. Do not edit manually!")
-        builder.line()
+        builder.line("// Auto-generated file. Do not edit manually!").line()
 
     def _add_includes(self, builder: CodeBuilder, config: Dict) -> None:
-        builder.line('#include "reflection/MethodRegistrar.hpp"')
         builder.line('#include "reflection/ClassRegistrar.hpp"')
-        builder.line()
-        builder.line("#include <rttr/registration>")
-        builder.line()
+        builder.line('#include "reflection/GlobalMethodRegistrar.hpp"').line()
+        builder.line("#include <rttr/registration>").line()
 
         for header in config.get("headers", []):
             builder.line(f"#include <{header}>")
@@ -75,8 +72,7 @@ class ReflectionGenerator:
             self._add_function_registrations(builder, config, parsed_data)
 
     def _add_using_statements(self, builder: CodeBuilder, config: Dict) -> None:
-        builder.line()
-        builder.line("using namespace engine::reflection;")
+        builder.line().line("using namespace engine::reflection;")
 
         for ns in config.get("namespaces", []):
             builder.line(f"using namespace {ns};")
@@ -87,7 +83,7 @@ class ReflectionGenerator:
         if not functions_config:
             return
 
-        builder.line("// ==================== Function Registrations ====================")
+        builder.line("// ==================== Global Method Registrations ====================").line()
         for func_config in functions_config:
             self._add_single_function(builder, func_config, parsed_data)
             builder.line()
@@ -150,10 +146,9 @@ class ReflectionGenerator:
         overload_suffix = f"_{index + 1}" if total_overloads > 1 else ""
         registration_name = f"{func_data.name}{overload_suffix}"
 
-        builder.line("MethodRegistrar::register_global_method(")
+        builder.line(f'GlobalMethodRegistrar::create("{registration_name}")')
         builder.indent()
-        builder.line(f'"{registration_name}",')
-        builder.line(f"rttr::select_overload<{return_type}({param_types_str})>(&{func_data.name}),")
+        builder.line(f".method(rttr::select_overload<{return_type}({param_types_str})>(&{func_data.name}),")
         builder.line(f'"{category}", "{description}", {param_names_str});')
         builder.dedent()
 

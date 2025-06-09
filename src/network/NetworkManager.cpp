@@ -1,7 +1,7 @@
 #include "network/NetworkManager.hpp"
 
 #include "pch.hpp"
-#include "pipeline/PipelineExecutor.hpp"
+#include "pipeline/PipelineManager.hpp"
 
 namespace engine::network
 {
@@ -162,9 +162,9 @@ namespace engine::network
 
             if (jsonRequest.contains("graph"))
             {
-                pipeline::PipelineExecutor::instance().load_json(jsonRequest);
-                pipeline::PipelineExecutor::instance().execute();
-                response = {{"error", false}, {"message", "Graph executed successfully"}};
+                // pipeline::PipelineExecutor::instance().load_json(jsonRequest);
+                // pipeline::PipelineExecutor::instance().execute();
+                // response = {{"error", false}, {"message", "Graph executed successfully"}};
             }
             else
             {
