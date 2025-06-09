@@ -6,17 +6,11 @@ using namespace engine::model;
 
 namespace engine::reflection
 {
-    ReflectionRegistry& ReflectionRegistry::instance()
-    {
-        static ReflectionRegistry instance;
-        return instance;
-    }
-
     void ReflectionRegistry::register_all_from_rttr()
     {
         for (const auto& type : rttr::type::get_types())
         {
-            if (type.get_metadata("id").is_valid())
+            if (type.get_metadata("alias").is_valid())
                 register_class(type);
         }
 
@@ -41,7 +35,7 @@ namespace engine::reflection
 
         for (const auto& [key, method] : methods_)
         {
-            methods.emplace_back(&method);
+            methods.emplace_back(method.get());
         }
 
         return methods;
@@ -55,7 +49,7 @@ namespace engine::reflection
     const Class* ReflectionRegistry::get_class(std::string_view name) const
     {
         if (has_class(name))
-            return &classes_.find(std::string{name})->second;
+            return classes_.find(std::string{name})->second.get();
 
         return nullptr;
     }
@@ -68,19 +62,17 @@ namespace engine::reflection
     const Method* ReflectionRegistry::get_method(std::string_view name) const
     {
         if (has_method(name))
-            return &methods_.find(std::string{name})->second;
+            return methods_.find(std::string{name})->second.get();
 
         return nullptr;
     }
 
-    // TODO: std::string to std::string_view (might dangling reference issue)
     void ReflectionRegistry::register_class(const rttr::type& type)
     {
-        const auto name      = type.get_name().to_string();
-        const std::string id = type.get_metadata("id").get_value<std::string>();
+        const auto name  = type.get_name().to_string();
+        const auto alias = type.get_metadata("alias").to_string();
 
-        // TODO: std::make_unique for Class
-        classes_.emplace(name, Class(std::string{id}, type));
+        classes_.emplace(name, std::make_unique<Class>(alias, type));
     }
 
     void ReflectionRegistry::register_method(const rttr::method& method)
@@ -90,33 +82,16 @@ namespace engine::reflection
         const auto category     = method.get_metadata("category").to_string();
         const auto description  = method.get_metadata("description").to_string();
 
-        // TODO: std::make_unique for Parameter
         std::vector<Parameter> parameters;
         parameters.reserve(method.get_parameter_infos().size());
 
         for (const auto& parameter : method.get_parameter_infos())
         {
-            const auto parameter_name = parameter.get_name().to_string();
-
-            // if (parameter.get_type().is_class())
-            // parameters.emplace_back(register_class_as_parameter(parameter_name));
-            // else
-            parameters.emplace_back(parameter_name, parameter.get_type(),
+            parameters.emplace_back(parameter.get_name().to_string(), parameter.get_type(),
                                     parameter.get_default_value());
         }
 
-        // TODO: std::make_unique for Method
-        methods_.emplace(name, Method(method, return_type, std::move(parameters),
-                                      method.is_static(), category, description));
-    }
-
-    Parameter ReflectionRegistry::register_class_as_parameter(std::string_view name) const
-    {
-        if (!has_class(name))
-            throw std::runtime_error("Class not found: " + std::string{name});
-
-        const auto* class_ = get_class(name);
-
-        return Parameter(class_->id(), class_->type(), rttr::variant(), true);
+        methods_.emplace(name, std::make_unique<Method>(method, return_type, std::move(parameters),
+                                                        method.is_static(), category, description));
     }
 } // namespace engine::reflection

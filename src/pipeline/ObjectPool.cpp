@@ -4,62 +4,40 @@
 
 namespace engine::pipeline
 {
-    ObjectPool& ObjectPool::instance()
+    void ObjectPool::store(std::string_view alias, rttr::variant object)
     {
-        static ObjectPool instance;
-        return instance;
-    }
-
-    void ObjectPool::store(std::string_view id, rttr::variant object)
-    {
-        if (has_object(id))
-            throw std::runtime_error("Object with ID " + std::string{id} +
+        if (has_object(alias))
+            throw std::runtime_error("Object with ID " + std::string{alias} +
                                      " already exists in the pool");
 
-        objects_.emplace(id, std::move(object));
+        objects_.emplace(alias, std::move(object));
     }
 
-    bool ObjectPool::has_object(std::string_view id) const noexcept
+    bool ObjectPool::has_object(std::string_view alias) const noexcept
     {
-        return objects_.find(std::string{id}) != objects_.end();
+        return objects_.find(std::string{alias}) != objects_.end();
     }
 
-    const rttr::variant& ObjectPool::get_object(std::string_view id) const
+    const rttr::variant& ObjectPool::get_object(std::string_view alias) const
     {
-        if (!has_object(id))
-            throw std::runtime_error("Object with ID " + std::string{id} +
+        if (!has_object(alias))
+            throw std::runtime_error("Object with ID " + std::string{alias} +
                                      " does not exist in the pool");
 
-        return objects_.at(std::string{id});
+        return objects_.at(std::string{alias});
     }
 
-    bool ObjectPool::remove(std::string_view id)
+    void ObjectPool::update_object(std::string_view alias, const rttr::variant& object)
     {
-        if (!has_object(id))
-            throw std::runtime_error("Object with ID " + std::string{id} +
-                                     " does not exist in the pool");
+        if (!has_object(alias))
+            throw std::runtime_error("Object not found for update: " + std::string{alias});
 
-        return objects_.erase(std::string{id}) > 0;
+        objects_[std::string{alias}] = object;
+        std::cout << "Updated object '" << alias << "' in pool" << std::endl;
     }
 
     void ObjectPool::clear_all()
     {
         objects_.clear();
-    }
-
-    rttr::variant ObjectPool::resolve_reference(std::string_view reference) const
-    {
-        return get_object(reference);
-    }
-
-    void ObjectPool::update_object(std::string_view id, const rttr::variant& updated_object)
-    {
-        if (!has_object(id))
-        {
-            throw std::runtime_error("Object not found for update: " + std::string{id});
-        }
-
-        objects_[std::string{id}] = updated_object;
-        std::cout << "Updated object '" << id << "' in pool" << std::endl;
     }
 } // namespace engine::pipeline

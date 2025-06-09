@@ -7,20 +7,22 @@ namespace engine::model
     class Class final
     {
       public:
-        explicit Class(std::string_view id, const rttr::type& type);
-
-        [[nodiscard]] std::string_view id() const noexcept
+        explicit Class(std::string_view alias, const rttr::type& type) : alias_{alias}, type_{type}
         {
-            return id_;
         }
 
-        [[nodiscard]] const rttr::type& type() const noexcept
+        std::string_view alias() const noexcept
+        {
+            return alias_;
+        }
+
+        const rttr::type& type() const noexcept
         {
             return type_;
         }
 
       private:
-        std::string id_;
+        std::string alias_;
         rttr::type type_;
     };
 } // namespace engine::model

@@ -8,25 +8,28 @@ namespace engine::model
     {
       public:
         explicit Parameter(std::string_view name, const rttr::type& type,
-                           rttr::variant default_value = rttr::variant(),
-                           bool is_reference           = false);
+                           rttr::variant default_value = rttr::variant(), bool is_reference = false)
+            : name_{name}, type_{type}, default_value_{std::move(default_value)},
+              is_reference_{is_reference}
+        {
+        }
 
-        [[nodiscard]] std::string_view name() const noexcept
+        std::string_view name() const noexcept
         {
             return name_;
         }
 
-        [[nodiscard]] const rttr::type& type() const noexcept
+        const rttr::type& type() const noexcept
         {
             return type_;
         }
 
-        [[nodiscard]] const rttr::variant& default_value() const noexcept
+        const rttr::variant& default_value() const noexcept
         {
             return default_value_;
         }
 
-        [[nodiscard]] bool is_reference() const noexcept
+        bool is_reference() const noexcept
         {
             return is_reference_;
         }

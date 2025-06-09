@@ -10,34 +10,38 @@ namespace engine::model
       public:
         explicit Method(const rttr::method& method, const rttr::type& return_type,
                         std::vector<Parameter> parameters, bool is_static,
-                        std::string_view category = "", std::string_view description = "");
+                        std::string_view category = "", std::string_view description = "")
+            : method_{method}, return_type_{return_type}, parameters_{std::move(parameters)},
+              is_static_{is_static}, category_{category}, description_{description}
+        {
+        }
 
-        [[nodiscard]] const rttr::method& method() const noexcept
+        const rttr::method& method() const noexcept
         {
             return method_;
         }
 
-        [[nodiscard]] const rttr::type& return_type() const noexcept
+        const rttr::type& return_type() const noexcept
         {
             return return_type_;
         }
 
-        [[nodiscard]] const std::vector<Parameter>& parameters() const noexcept
+        const std::vector<Parameter>& parameters() const noexcept
         {
             return parameters_;
         }
 
-        [[nodiscard]] bool is_static() const noexcept
+        bool is_static() const noexcept
         {
             return is_static_;
         }
 
-        [[nodiscard]] std::string_view category() const noexcept
+        std::string_view category() const noexcept
         {
             return category_;
         }
 
-        [[nodiscard]] std::string_view description() const noexcept
+        std::string_view description() const noexcept
         {
             return description_;
         }
