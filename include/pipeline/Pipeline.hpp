@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Step.hpp"
+#include "Command.hpp"
 #include "pch.hpp"
 
 namespace engine::pipeline
@@ -20,8 +20,6 @@ namespace engine::pipeline
 
       private:
         std::string name_;
-        std::vector<std::unique_ptr<Step>> steps_;
-
-        void load_steps(const nlohmann::json& steps_json);
+        std::vector<std::unique_ptr<Command>> commands_;
     };
 } // namespace engine::pipeline
