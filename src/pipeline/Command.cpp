@@ -4,6 +4,7 @@
 #include "pipeline/ObjectPool.hpp"
 #include "reflection/ReflectionRegistry.hpp"
 #include "serialization/RttrConverter.hpp"
+#include "sol/usertype.hpp"
 
 namespace engine::pipeline
 {

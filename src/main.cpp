@@ -1,10 +1,13 @@
 #include "core/Engine.hpp"
+#include "generated/ReflectionRegistration.cpp"
 #include "network/NetworkManager.hpp"
 #include "pch.hpp"
-#include "pipeline/PipelineExecutor.hpp"
+#include "pipeline/PipelineManager.hpp"
 #include "reflection/MethodRegistrar.hpp"
 #include "reflection/ReflectionRegistry.hpp"
 #include "serialization/RttrConverter.hpp"
+#include "sol/sol.hpp"
+
 
 nlohmann::json processMessage(const std::string& message)
 {
@@ -12,24 +15,29 @@ nlohmann::json processMessage(const std::string& message)
     {
         nlohmann::json request = nlohmann::json::parse(message);
 
-        if (request.contains("pipeline"))
+        if (request.contains("pipelines") && request["pipelines"].is_array())
         {
-            try
+            nlohmann::json results = nlohmann::json::array();
+            for (const auto& pipeline : request["pipelines"])
             {
-                auto& executor = engine::pipeline::PipelineExecutor::instance();
-                executor.load_json(request);
-                executor.execute();
+                try
+                {
+                    engine::pipeline::PipelineManager manager;
+                    std::string name = pipeline["pipeline"].get<std::string>();
+                    manager.load_pipeline(name, pipeline);
+                    manager.execute(name);
 
-                return nlohmann::json{{"status", "success"},
-                                      {"message", "Pipeline executed successfully"},
-                                      {"pipeline", request["pipeline"].get<std::string>()}};
-            }
-            catch (const std::exception& e)
-            {
-                return nlohmann::json{
-                    {"status", "error"},
-                    {"message", std::string("Pipeline execution failed: ") + e.what()},
-                    {"pipeline", request.value("pipeline", "unknown")}};
+                    return nlohmann::json{{"status", "success"},
+                                          {"message", "Pipeline executed successfully"},
+                                          {"pipeline", name}};
+                }
+                catch (const std::exception& e)
+                {
+                    return nlohmann::json{
+                        {"status", "error"},
+                        {"message", std::string("Pipeline execution failed: ") + e.what()},
+                        {"pipeline", request.value("pipeline", "unknown")}};
+                }
             }
         }
 
@@ -71,6 +79,39 @@ int main(int argc, char* argv[])
     {
         std::signal(SIGINT, signalHandler);
         std::signal(SIGTERM, signalHandler);
+
+        sol::state lua;
+        lua.open_libraries(sol::lib::base, sol::lib::string, sol::lib::table);
+
+        register_with_sol2(lua);
+
+        std::string script = R"(
+            local graph = ogdf.Graph()
+            local ga = ogdf.GraphAttributes(graph)
+            ogdf.read(ga, graph, "build/unix-history.gml")
+
+            local sugiyama = ogdf.SugiyamaLayout()
+            local optimalHierarchy = ogdf.OptimalHierarchyLayout()
+            optimalHierarchy:layerDistance(50)
+            optimalHierarchy:nodeDistance(20)
+            optimalHierarchy:weightBalancing(0.5)
+
+            sugiyama:setLayout(optimalHierarchy)
+            sugiyama:call(ga)
+
+            ogdf.write(ga, "build/output.gml")
+            ogdf.write(ga, "build/output.svg")
+        )";
+
+        try
+        {
+            lua.script(script);
+        }
+        catch (const sol::error& e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+
 
         std::string endpoint = "tcp://*:5555";
         if (argc > 1)

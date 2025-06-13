@@ -60,6 +60,11 @@ CPMAddPackage(
         GIT_REPOSITORY https://github.com/ogdf/ogdf.git
         GIT_TAG elderberry-202309
 )
+CPMAddPackage(
+        NAME sol2
+        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+        VERSION 3.3.0
+)
 
 find_package(Python COMPONENTS Interpreter REQUIRED)
 
@@ -90,11 +95,16 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${REFLECTION_OUTPUT})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
+find_package(Lua REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${LUA_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES})
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json
         RTTR::Core_Lib
         cppzmq
         OGDF COIN
+        sol2::sol2
 )
 
 # Add precompiled header configuration
