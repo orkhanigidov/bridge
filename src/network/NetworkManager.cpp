@@ -1,189 +1,132 @@
 #include "network/NetworkManager.hpp"
 
-#include "pch.hpp"
-#include "pipeline/PipelineManager.hpp"
+#include "oatpp/network/tcp/client/ConnectionProvider.hpp"
+#include "oatpp/parser/json/mapping/Deserializer.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 
 namespace engine::network
 {
-
-    NetworkManager::NetworkManager(MessageHandler handler) : messageHandler(std::move(handler))
+    NetworkManager::NetworkManager(const oatpp::String& base_url)
     {
-        if (!messageHandler)
+        auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared(
+            {"localhost", 80, oatpp::network::Address::IP_4});
+
+        auto request_executor =
+            oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
+
+        auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+
+        client_ = NetworkManagerApiClient::createShared(request_executor, object_mapper);
+
+        if (base_url && base_url->size() > 0)
         {
-            throw std::invalid_argument("Message handler cannot be null");
+            set_base_url(base_url);
         }
     }
 
-    NetworkManager::~NetworkManager()
+    oatpp::String NetworkManager::get(const oatpp::String& path)
     {
-        shutdown();
-    }
-
-    void NetworkManager::initialize(const std::string& endpoint)
-    {
-        if (zmqSocket || zmqContext)
-        {
-            shutdown();
-        }
-
         try
         {
-            zmqContext = std::make_unique<zmq::context_t>(1);
-            zmqSocket  = std::make_unique<zmq::socket_t>(*zmqContext, zmq::socket_type::rep);
-            zmqSocket->bind(endpoint);
-            std::cout << "NetworkManager initialized on endpoint: " << endpoint << std::endl;
-        }
-        catch (const zmq::error_t& e)
-        {
-            zmqSocket.reset();
-            zmqContext.reset();
-            throw std::runtime_error("Failed to initialize ZeroMQ: " + std::string(e.what()));
-        }
-    }
+            auto response = client_->get(path);
 
-    void NetworkManager::shutdown()
-    {
-        stopMessageLoop();
-
-        if (zmqSocket)
-        {
-            try
+            if (response->getStatusCode() == 200)
             {
-                zmqSocket->close();
+                return response->readBodyToString();
             }
-            catch (const zmq::error_t& e)
-            {
-                std::cerr << "Error closing socket: " << e.what() << std::endl;
-            }
-            zmqSocket.reset();
-        }
 
-        if (zmqContext)
-        {
-            try
-            {
-                zmqContext->close();
-            }
-            catch (const zmq::error_t& e)
-            {
-                std::cerr << "Error closing context: " << e.what() << std::endl;
-            }
-            zmqContext.reset();
-        }
-    }
-
-    void NetworkManager::startMessageLoop()
-    {
-        if (running)
-        {
-            return;
-        }
-
-        if (!zmqSocket || !zmqContext)
-        {
-            throw std::runtime_error("Cannot start message loop: not initialized");
-        }
-
-        running       = true;
-        messageThread = std::make_unique<std::thread>(&NetworkManager::messageLoop, this);
-        std::cout << "Message loop started" << std::endl;
-    }
-
-    void NetworkManager::stopMessageLoop()
-    {
-        if (!running)
-        {
-            return;
-        }
-
-        running = false;
-        if (messageThread && messageThread->joinable())
-        {
-            messageThread->join();
-            messageThread.reset();
-            std::cout << "Message loop stopped" << std::endl;
-        }
-    }
-
-    bool NetworkManager::isRunning() const
-    {
-        return running;
-    }
-
-    void NetworkManager::messageLoop() const
-    {
-        const auto timeout = std::chrono::milliseconds(100);
-
-        while (running)
-        {
-            try
-            {
-                zmq::message_t request;
-                if (zmqSocket->recv(request, zmq::recv_flags::dontwait))
-                {
-                    std::string messageStr(static_cast<char*>(request.data()), request.size());
-                    handleIncomingMessage(messageStr);
-                }
-                else
-                {
-                    std::this_thread::sleep_for(timeout);
-                }
-            }
-            catch (const zmq::error_t& e)
-            {
-                if (e.num() == EAGAIN || e.num() == EINTR)
-                {
-                    std::this_thread::sleep_for(timeout);
-                }
-                else if (running)
-                {
-                    std::cerr << "ZeroMQ error: " << e.what() << std::endl;
-                    std::this_thread::sleep_for(timeout);
-                }
-            }
-            catch (const std::exception& e)
-            {
-                if (running)
-                {
-                    std::cerr << "Error in message loop: " << e.what() << std::endl;
-                    std::this_thread::sleep_for(timeout);
-                }
-            }
-        }
-    }
-
-    void NetworkManager::handleIncomingMessage(const std::string& message) const
-    {
-        nlohmann::json response;
-
-        try
-        {
-            auto jsonRequest = nlohmann::json::parse(message);
-
-            if (jsonRequest.contains("graph"))
-            {
-                // pipeline::PipelineExecutor::instance().load_json(jsonRequest);
-                // pipeline::PipelineExecutor::instance().execute();
-                // response = {{"error", false}, {"message", "Graph executed successfully"}};
-            }
-            else
-            {
-                response = messageHandler(message);
-            }
+            OATPP_LOGE("NetworkManager", "GET request failed with status: %d",
+                       response->getStatusCode());
+            return nullptr;
         }
         catch (const std::exception& e)
         {
-            response = {{"error", true}, {"message", "Error: " + std::string(e.what())}};
-        }
-
-        try
-        {
-            zmqSocket->send(zmq::buffer(response.dump()), zmq::send_flags::none);
-        }
-        catch (const zmq::error_t& e)
-        {
-            std::cerr << "Failed to send response: " << e.what() << std::endl;
+            OATPP_LOGE("NetworkManager", "GET request exception: %s", e.what());
+            return nullptr;
         }
     }
 
+    oatpp::String NetworkManager::post(const oatpp::String& path, const oatpp::String& body)
+    {
+        try
+        {
+            auto response = client_->post(path, body);
+
+            if (response->getStatusCode() == 200 || response->getStatusCode() == 201)
+            {
+                return response->readBodyToString();
+            }
+
+            OATPP_LOGE("NetworkManager", "POST request failed with status: %d",
+                       response->getStatusCode());
+            return nullptr;
+        }
+        catch (const std::exception& e)
+        {
+            OATPP_LOGE("NetworkManager", "POST request exception: %s", e.what());
+            return nullptr;
+        }
+    }
+
+    oatpp::String NetworkManager::put(const oatpp::String& path, const oatpp::String& body)
+    {
+        try
+        {
+            auto response = client_->put(path, body);
+
+            if (response->getStatusCode() == 200)
+            {
+                return response->readBodyToString();
+            }
+
+            OATPP_LOGE("NetworkManager", "PUT request failed with status: %d",
+                       response->getStatusCode());
+            return nullptr;
+        }
+        catch (const std::exception& e)
+        {
+            OATPP_LOGE("NetworkManager", "PUT request exception: %s", e.what());
+            return nullptr;
+        }
+    }
+
+    oatpp::String NetworkManager::del(const oatpp::String& path)
+    {
+        try
+        {
+            auto response = client_->del(path);
+
+            if (response->getStatusCode() == 200 || response->getStatusCode() == 204)
+            {
+                return response->readBodyToString();
+            }
+
+            OATPP_LOGE("NetworkManager", "DELETE request failed with status: %d",
+                       response->getStatusCode());
+            return nullptr;
+        }
+        catch (const std::exception& e)
+        {
+            OATPP_LOGE("NetworkManager", "DELETE request exception: %s", e.what());
+            return nullptr;
+        }
+    }
+
+    bool NetworkManager::is_connected()
+    {
+        try
+        {
+            auto response = client_->get("get");
+            return response->getStatusCode() == 200;
+        }
+        catch (const std::exception& e)
+        {
+            return false;
+        }
+    }
+
+    void NetworkManager::set_base_url(const oatpp::String& base_url)
+    {
+        OATPP_LOGI("NetworkManager", "Base URL set to: %s", base_url->c_str());
+    }
 } // namespace engine::network

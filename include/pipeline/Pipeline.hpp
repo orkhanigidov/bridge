@@ -1,22 +1,17 @@
 #pragma once
 
 #include "Command.hpp"
+#include "dto/PipelineDTO.hpp"
 #include "pch.hpp"
 
 namespace engine::pipeline
 {
-    class Pipeline final
+    class Pipeline
     {
       public:
-        explicit Pipeline(const nlohmann::json& json);
+        explicit Pipeline(const dto::PipelineDTO& dto);
 
-        void execute();
-        void clear();
-
-        std::string_view name() const noexcept
-        {
-            return name_;
-        }
+        void execute() const;
 
       private:
         std::string name_;

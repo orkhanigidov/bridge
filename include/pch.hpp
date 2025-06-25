@@ -7,15 +7,16 @@
 #include <iostream>
 #include <mutex>
 #include <stdexcept>
-#include <string>
 #include <thread>
-#include <unordered_map>
 #include <unordered_set>
 #include <variant>
+#include <map>
+// --------------
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
-
-// 3rd party includes
-#include <nlohmann/json.hpp>
-#include <rttr/registration>
-#include <rttr/variant.h>
-#include <zmq.hpp>
+// --------------
+#include <sol/sol.hpp>

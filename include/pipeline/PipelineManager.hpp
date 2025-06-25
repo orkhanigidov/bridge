@@ -5,12 +5,12 @@
 
 namespace engine::pipeline
 {
-    class PipelineManager final
+    class PipelineManager
     {
       public:
-        void load_pipeline(std::string_view name, const nlohmann::json& json);
-        void execute(std::string_view name);
-        void clear_all();
+        void load(std::string_view name, const dto::PipelineDTO& dto);
+        void execute(std::string_view name) const;
+        void clear();
 
       private:
         std::unordered_map<std::string, std::unique_ptr<Pipeline>> pipelines_;

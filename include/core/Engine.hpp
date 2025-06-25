@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.hpp"
+#include "network/NetworkManager.hpp"
 
 namespace engine::core
 {
@@ -9,20 +9,23 @@ namespace engine::core
       public:
         ~Engine() = default;
 
-        static Engine& getInstance();
+        static Engine& instance()
+        {
+            static Engine instance;
+            return instance;
+        }
 
-        nlohmann::json executeMethod(const std::string& methodName, const nlohmann::json& params);
-        nlohmann::json getRegisteredMethods();
-
-        Engine(const Engine&)            = delete;
-        Engine& operator=(const Engine&) = delete;
-        Engine(Engine&&)                 = delete;
-        Engine& operator=(Engine&&)      = delete;
+        void initialize(const std::string& host = "localhost", int port = 8080);
+        void start();
+        void shutdown();
 
       private:
-        Engine() = default;
+        std::unique_ptr<network::NetworkManager> network_manager_;
+        std::string host_;
+        int port_;
+        bool initialized_{false};
+        bool running_{false};
 
-        static std::mutex s_instanceMutex;
-        static std::unique_ptr<Engine> s_instancePtr;
+        Engine() = default;
     };
 } // namespace engine::core

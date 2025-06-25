@@ -1,39 +1,42 @@
+#define SOL_ALL_SAFETIES_ON 1
+
 #include "pipeline/Pipeline.hpp"
 
+#include "dto/PipelineDTO.hpp"
 #include "pch.hpp"
+#include "registration/LuaRegistrar.hpp"
 
 namespace engine::pipeline
 {
-    Pipeline::Pipeline(const nlohmann::json& json)
+    Pipeline::Pipeline(const dto::PipelineDTO& dto)
     {
-        if (!json.contains("pipeline"))
+        if (!dto.name)
         {
-            throw std::invalid_argument("JSON must contain 'pipeline' field");
+            throw std::invalid_argument("Pipeline DTO must contain 'pipeline' field");
         }
 
-        name_ = json["pipeline"].get<std::string>();
+        name_ = *dto.name;
 
-        if (json.contains("steps") && json["steps"].is_array())
+        if (dto.steps)
         {
-            commands_.reserve(json["steps"].size());
+            commands_.reserve(dto.steps->size());
 
-            for (const auto& step : json["steps"])
+            for (const auto& step : *dto.steps)
             {
-                commands_.emplace_back(std::make_unique<Command>(step));
+                commands_.emplace_back(std::make_unique<Command>(*step.get()));
             }
         }
     }
 
-    void Pipeline::execute()
+    void Pipeline::execute() const
     {
+        auto& lua = registration::LuaRegistrar::instance().get_lua();
+
+        lua.safe_script(R"(object_pool = object_pool or {})", sol::script_pass_on_error);
+
         for (auto& command : commands_)
         {
             command->execute();
         }
-    }
-
-    void Pipeline::clear()
-    {
-        commands_.clear();
     }
 } // namespace engine::pipeline

@@ -1,70 +1,7 @@
 #include "core/Engine.hpp"
-#include "generated/ReflectionRegistration.cpp"
-#include "network/NetworkManager.hpp"
-#include "pch.hpp"
 #include "pipeline/PipelineManager.hpp"
-#include "reflection/MethodRegistrar.hpp"
-#include "reflection/ReflectionRegistry.hpp"
-#include "serialization/RttrConverter.hpp"
-#include "sol/sol.hpp"
-
-
-nlohmann::json processMessage(const std::string& message)
-{
-    try
-    {
-        nlohmann::json request = nlohmann::json::parse(message);
-
-        if (request.contains("pipelines") && request["pipelines"].is_array())
-        {
-            nlohmann::json results = nlohmann::json::array();
-            for (const auto& pipeline : request["pipelines"])
-            {
-                try
-                {
-                    engine::pipeline::PipelineManager manager;
-                    std::string name = pipeline["pipeline"].get<std::string>();
-                    manager.load_pipeline(name, pipeline);
-                    manager.execute(name);
-
-                    return nlohmann::json{{"status", "success"},
-                                          {"message", "Pipeline executed successfully"},
-                                          {"pipeline", name}};
-                }
-                catch (const std::exception& e)
-                {
-                    return nlohmann::json{
-                        {"status", "error"},
-                        {"message", std::string("Pipeline execution failed: ") + e.what()},
-                        {"pipeline", request.value("pipeline", "unknown")}};
-                }
-            }
-        }
-
-        if (!request.contains("method") || !request["method"].is_string())
-        {
-            throw std::invalid_argument("Missing or invalid 'method' field");
-        }
-
-        std::string methodName = request["method"];
-        if (methodName == "getRegisteredMethods")
-        {
-            return engine::core::Engine::getInstance().getRegisteredMethods();
-        }
-
-        nlohmann::json params = request.value("params", nlohmann::json::object());
-
-        return engine::core::Engine::getInstance().executeMethod(methodName, params);
-    }
-    catch (const nlohmann::json::exception& e)
-    {
-        throw std::invalid_argument("Invalid JSON format: " + std::string(e.what()));
-    }
-    catch (const std::exception& e)
-    {
-        throw std::runtime_error("Error processing message: " + std::string(e.what()));
-    }
-}
+#include "registration/LuaRegistrar.hpp"
+#include "serialization/PipelineSerializer.hpp"
 
 std::atomic_bool running{true};
 void signalHandler(int signal)
@@ -80,63 +17,71 @@ int main(int argc, char* argv[])
         std::signal(SIGINT, signalHandler);
         std::signal(SIGTERM, signalHandler);
 
-        sol::state lua;
-        lua.open_libraries(sol::lib::base, sol::lib::string, sol::lib::table);
+        std::string host = "localhost";
+        int port         = 8080;
 
-        register_with_sol2(lua);
-
-        std::string script = R"(
-            local graph = ogdf.Graph()
-            local ga = ogdf.GraphAttributes(graph)
-            ogdf.read(ga, graph, "build/unix-history.gml")
-
-            local sugiyama = ogdf.SugiyamaLayout()
-            local optimalHierarchy = ogdf.OptimalHierarchyLayout()
-            optimalHierarchy:layerDistance(50)
-            optimalHierarchy:nodeDistance(20)
-            optimalHierarchy:weightBalancing(0.5)
-
-            sugiyama:setLayout(optimalHierarchy)
-            sugiyama:call(ga)
-
-            ogdf.write(ga, "build/output.gml")
-            ogdf.write(ga, "build/output.svg")
-        )";
-
-        try
-        {
-            lua.script(script);
-        }
-        catch (const sol::error& e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
-
-
-        std::string endpoint = "tcp://*:5555";
         if (argc > 1)
         {
-            endpoint = argv[1];
+            host = argv[1];
+        }
+        if (argc > 2)
+        {
+            port = std::stoi(argv[2]);
         }
 
         std::cout << "Starting engine service..." << std::endl;
 
-        engine::reflection::ReflectionRegistry::instance().register_all_from_rttr();
+        engine::registration::LuaRegistrar::instance().register_all();
 
-        engine::network::NetworkManager networkManager(processMessage);
-        networkManager.initialize(endpoint);
-        networkManager.startMessageLoop();
+        std::string json_str = R"({
+          "pipelines": [
+            {
+              "pipeline": "graph_pipeline",
+              "steps": [
+                {"new": "Graph", "as": "G"},
+                {"new": "GraphAttributes", "as": "GA", "with": ["$G"]},
+                {"call": "read", "with": ["$GA", "$G", "unix-history.gml"]},
+                {"new": "SugiyamaLayout", "as": "SL"},
+                {"new": "OptimalHierarchyLayout", "as": "OHL"},
+                {"call": "$OHL.layerDistance", "with": [30.0]},
+                {"call": "$OHL.nodeDistance", "with": [25.0]},
+                {"call": "$OHL.weightBalancing", "with": [0.8]},
+                {"call": "$SL.setLayout", "with": ["$OHL"]},
+                {"call": "$SL.call", "with": ["$GA"]},
+                {"call": "write", "with": ["$GA", "output-unix-history-hierarchical.gml"]},
+                {"call": "write", "with": ["$GA", "output-unix-history-hierarchical.svg"]}
+              ]
+            }
+          ]
+        })";
 
-        std::cout << "Engine service running on " << endpoint << std::endl;
-        std::cout << "Press Ctrl+C to exit" << std::endl;
+        auto request = engine::serialization::PipelineSerializer::from_json(json_str);
 
-        while (running)
+        engine::pipeline::PipelineManager pipeline_manager;
+        for (const auto& pipeline : *request->pipelines)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            pipeline_manager.load(*pipeline->name, *pipeline.get());
         }
 
-        std::cout << "Shutting down engine service..." << std::endl;
-        networkManager.shutdown();
+        for (const auto& pipeline : *request->pipelines)
+        {
+            pipeline_manager.execute(*pipeline->name);
+        }
+
+        // auto& engine = engine::core::Engine::instance();
+        // engine.initialize(host, port);
+        // engine.start();
+        //
+        // std::cout << "Engine service running on http:// " << host << ":" << port << std::endl;
+        // std::cout << "Press Ctrl+C to exit" << std::endl;
+        //
+        // while (running)
+        // {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // }
+        //
+        // std::cout << "Shutting down engine service..." << std::endl;
+        // engine.shutdown();
 
         return 0;
     }

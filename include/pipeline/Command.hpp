@@ -1,40 +1,31 @@
 #pragma once
 
+#include "dto/StepDTO.hpp"
+#include "oatpp/core/Types.hpp"
 #include "pch.hpp"
+#include "serialization/Converter.hpp"
 
 namespace engine::pipeline
 {
-    class Command final
+    class Command
     {
       public:
-        explicit Command(const nlohmann::json& json);
-        ~Command() = default;
+        explicit Command(const dto::StepDTO& dto);
 
-        std::string_view name() const noexcept
-        {
-            return name_;
-        }
-
-        std::optional<std::string_view> alias() const noexcept
-        {
-            return alias_;
-        }
-
-        void execute();
+        void execute() const;
 
       private:
         std::string name_;
         std::optional<std::string> alias_;
-        std::unordered_map<std::string, nlohmann::json> parameters_;
+        std::vector<serialization::Value> parameters_;
 
-        void execute_constructor();
-        void execute_method();
-        void execute_global_method();
+        void execute_constructor() const;
+        void execute_member_function() const;
+        void execute_global_function() const;
+
+        std::vector<sol::object> resolve_params(sol::state& lua) const;
 
         bool is_constructor() const noexcept;
-        bool is_method_call() const noexcept;
-
-        std::vector<rttr::variant> resolve_arguments(const rttr::method& method);
-        std::vector<rttr::variant> resolve_arguments_for_constructor(const rttr::constructor& ctor);
+        bool is_member_function() const noexcept;
     };
 } // namespace engine::pipeline

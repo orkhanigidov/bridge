@@ -1,37 +1,46 @@
 #pragma once
 
+#include "oatpp/core/Types.hpp"
+#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/web/client/ApiClient.hpp"
+#include "oatpp/web/client/HttpRequestExecutor.hpp"
 #include "pch.hpp"
 
 namespace engine::network
 {
+#include OATPP_CODEGEN_BEGIN(ApiClient)
+
+    class NetworkManagerApiClient final : public oatpp::web::client::ApiClient
+    {
+      public:
+        API_CLIENT_INIT(NetworkManagerApiClient)
+
+        API_CALL("GET", "/{path}", get, PATH(String, path))
+
+        API_CALL("POST", "/{path}", post, PATH(String, path), BODY_STRING(String, body))
+
+        API_CALL("PUT)", "/{path}", put, PATH(String, path), BODY_STRING(String, body))
+
+        API_CALL("DELETE", "/{path}", del, PATH(String, path))
+    };
+
+#include OATPP_CODEGEN_END(ApiClient)
+
     class NetworkManager
     {
       public:
-        using MessageHandler = std::function<nlohmann::json(const std::string&)>;
+        explicit NetworkManager(const oatpp::String& base_url);
+        ~NetworkManager() = default;
 
-        explicit NetworkManager(MessageHandler handler);
-        ~NetworkManager();
+        oatpp::String get(const oatpp::String& path);
+        oatpp::String post(const oatpp::String& path, const oatpp::String& body);
+        oatpp::String put(const oatpp::String& path, const oatpp::String& body);
+        oatpp::String del(const oatpp::String& path);
 
-        void initialize(const std::string& endpoint = "tcp://*:5555");
-        void shutdown();
-
-        void startMessageLoop();
-        void stopMessageLoop();
-        bool isRunning() const;
-
-        NetworkManager(const NetworkManager&)            = delete;
-        NetworkManager& operator=(const NetworkManager&) = delete;
-        NetworkManager(NetworkManager&&)                 = delete;
-        NetworkManager& operator=(NetworkManager&&)      = delete;
+        bool is_connected();
+        void set_base_url(const oatpp::String& base_url);
 
       private:
-        std::unique_ptr<zmq::context_t> zmqContext;
-        std::unique_ptr<zmq::socket_t> zmqSocket;
-        MessageHandler messageHandler;
-        std::atomic_bool running{false};
-        std::unique_ptr<std::thread> messageThread;
-
-        void messageLoop() const;
-        void handleIncomingMessage(const std::string& message) const;
+        std::shared_ptr<NetworkManagerApiClient> client_;
     };
 } // namespace engine::network
