@@ -5,18 +5,17 @@
 #include <csignal>
 #include <functional>
 #include <iostream>
-#include <mutex>
 #include <stdexcept>
 #include <thread>
-#include <unordered_set>
-#include <variant>
-#include <map>
-// --------------
+
+// Standard library headers
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 #include <vector>
-// --------------
+
+// 3rd party library headers
 #include <sol/sol.hpp>

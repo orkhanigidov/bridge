@@ -1,44 +1,49 @@
 #pragma once
 
-#include "model/ClassInfo.hpp"
 #include "pch.hpp"
 
-namespace engine::reflection
+namespace engine::registration
 {
+    template <typename T>
     class ClassRegistrar
     {
       public:
-        template <typename T, typename... CtorArgs>
-        static std::unique_ptr<model::ClassInfo>
-        register_class(sol::state& lua, const std::string& name, const std::string& alias)
+        ClassRegistrar(sol::state& lua, std::string_view name) : lua_(lua)
         {
-            auto usertype = create_usertype<T, CtorArgs...>(lua, name);
-
-            auto class_info = std::make_unique<model::ClassInfo>(name, alias);
-
-            return class_info;
+            usertype_ = lua_.new_usertype<T>(name, sol::no_constructor);
         }
+
+        template <typename... CtorArgs>
+        ClassRegistrar& ctor()
+        {
+            usertype_.set(sol::meta_function::construct, sol::constructors<T(CtorArgs...)>());
+            return *this;
+        }
+
+        template <typename Fn>
+        ClassRegistrar& func(std::string_view name, Fn&& fn)
+        {
+            usertype_.set_function(name, std::forward<Fn>(fn));
+            return *this;
+        }
+
+        template <typename Base>
+        ClassRegistrar& base()
+        {
+            usertype_.set(sol::base_classes, sol::bases<Base>());
+            return *this;
+        }
+
+        ClassRegistrar& gc()
+        {
+            usertype_.set(sol::meta_function::garbage_collect, [] {});
+            return *this;
+        }
+
+        void register_class() {}
 
       private:
-        template <typename T, typename... CtorArgs>
-        static sol::usertype<sol::table> create_usertype(sol::state& lua, const std::string& name)
-        {
-            if constexpr (sizeof...(CtorArgs) > 0)
-            {
-                return lua.new_usertype<T>(name, sol::constructors<T>());
-            }
-            else
-            {
-                return lua.new_usertype<T>(name, sol::constructors<T(CtorArgs...)>());
-            }
-        }
-
-        // template<typename... CtorArgs>
-        // static void add_constructor_info(model::ClassInfo& class_info)
-        // {
-        //     if constexpr (sizeof...(CtorArgs) > 0)
-        //     {
-        //     }
-        // }
+        sol::state& lua_;
+        sol::usertype<T> usertype_;
     };
-} // namespace engine::reflection
+} // namespace engine::registration

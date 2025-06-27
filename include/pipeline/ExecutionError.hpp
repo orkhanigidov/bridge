@@ -2,7 +2,7 @@
 
 #include "pch.hpp"
 
-namespace engine::operation
+namespace engine::pipeline
 {
     enum class ErrorType
     {
@@ -23,11 +23,17 @@ namespace engine::operation
     class ExecutionError final : public std::runtime_error
     {
       public:
-        ExecutionError(ErrorType type, const std::string& message);
+        ExecutionError(ErrorType type, std::string_view message)
+            : std::runtime_error(std::string(message)), type_(type)
+        {
+        }
 
-        ErrorType getType() const;
+        ErrorType type() const noexcept
+        {
+            return type_;
+        }
 
       private:
-        ErrorType m_type;
+        ErrorType type_;
     };
-} // namespace engine::operation
+} // namespace engine::pipeline
