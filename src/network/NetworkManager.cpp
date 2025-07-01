@@ -1,34 +1,30 @@
 #include "network/NetworkManager.hpp"
 
 #include "oatpp/network/tcp/client/ConnectionProvider.hpp"
-#include "oatpp/parser/json/mapping/Deserializer.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
+#include "oatpp/web/client/HttpRequestExecutor.hpp"
 
 namespace engine::network
 {
-    NetworkManager::NetworkManager(const oatpp::String& base_url)
+    NetworkManager::NetworkManager(const oatpp::String& host, v_uint16 port)
     {
-        auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared(
-            {"localhost", 80, oatpp::network::Address::IP_4});
+        const auto connection_provider =
+            oatpp::network::tcp::client::ConnectionProvider::createShared(
+                {host, port, oatpp::network::Address::IP_4});
 
-        auto request_executor =
+        const auto request_executor =
             oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
 
-        auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+        const auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
 
-        client_ = NetworkManagerApiClient::createShared(request_executor, object_mapper);
-
-        if (base_url && base_url->size() > 0)
-        {
-            set_base_url(base_url);
-        }
+        http_client_ = HttpClient::createShared(request_executor, object_mapper);
     }
 
-    oatpp::String NetworkManager::get(const oatpp::String& path)
+    oatpp::String NetworkManager::get(const oatpp::String& path) const
     {
         try
         {
-            auto response = client_->get(path);
+            const auto response = http_client_->get(path);
 
             if (response->getStatusCode() == 200)
             {
@@ -46,11 +42,11 @@ namespace engine::network
         }
     }
 
-    oatpp::String NetworkManager::post(const oatpp::String& path, const oatpp::String& body)
+    oatpp::String NetworkManager::post(const oatpp::String& path, const oatpp::String& body) const
     {
         try
         {
-            auto response = client_->post(path, body);
+            const auto response = http_client_->post(path, body);
 
             if (response->getStatusCode() == 200 || response->getStatusCode() == 201)
             {
@@ -68,11 +64,11 @@ namespace engine::network
         }
     }
 
-    oatpp::String NetworkManager::put(const oatpp::String& path, const oatpp::String& body)
+    oatpp::String NetworkManager::put(const oatpp::String& path, const oatpp::String& body) const
     {
         try
         {
-            auto response = client_->put(path, body);
+            const auto response = http_client_->put(path, body);
 
             if (response->getStatusCode() == 200)
             {
@@ -90,11 +86,11 @@ namespace engine::network
         }
     }
 
-    oatpp::String NetworkManager::del(const oatpp::String& path)
+    oatpp::String NetworkManager::del(const oatpp::String& path) const
     {
         try
         {
-            auto response = client_->del(path);
+            const auto response = http_client_->del(path);
 
             if (response->getStatusCode() == 200 || response->getStatusCode() == 204)
             {
@@ -112,21 +108,16 @@ namespace engine::network
         }
     }
 
-    bool NetworkManager::is_connected()
+    bool NetworkManager::is_connected() const
     {
         try
         {
-            auto response = client_->get("get");
+            const auto response = http_client_->get("get");
             return response->getStatusCode() == 200;
         }
-        catch (const std::exception& e)
+        catch (const std::exception&)
         {
             return false;
         }
-    }
-
-    void NetworkManager::set_base_url(const oatpp::String& base_url)
-    {
-        OATPP_LOGI("NetworkManager", "Base URL set to: %s", base_url->c_str());
     }
 } // namespace engine::network
