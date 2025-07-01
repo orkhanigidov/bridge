@@ -20,7 +20,7 @@ namespace engine::model
 
     inline std::string to_string(Type type)
     {
-        switch (type)
+        switch (std::move(type))
         {
             case Type::Void:
                 return "void";
@@ -73,24 +73,30 @@ namespace engine::model
     class TypeDesc
     {
       public:
-        explicit TypeDesc(Type type) : base_type_(type) {}
-        explicit TypeDesc(std::string_view custom_name)
-            : base_type_(Type::Custom), custom_type_name_(custom_name)
+        explicit TypeDesc(Type type) : type_(std::move(type)) {}
+
+        explicit TypeDesc(std::string_view custom_type_name)
+            : type_(Type::Custom), custom_type_name_(custom_type_name)
         {
         }
 
         std::string to_string() const
         {
-            if (base_type_ == Type::Custom)
+            if (type_ == Type::Custom)
             {
                 return custom_type_name_;
             }
 
-            return model::to_string(base_type_);
+            return model::to_string(type_);
+        }
+
+        Type type() const
+        {
+            return type_;
         }
 
       private:
-        Type base_type_;
+        Type type_;
         std::string custom_type_name_;
     };
 } // namespace engine::model

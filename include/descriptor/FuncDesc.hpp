@@ -8,10 +8,9 @@ namespace engine::model
     class FuncDesc
     {
       public:
-        FuncDesc(std::string_view name, const TypeDesc& return_type,
-                 std::vector<ParamDesc> parameters, std::string_view category = "",
-                 std::string_view description = "")
-            : name_(name), return_type_(return_type), parameters_(std::move(parameters)),
+        FuncDesc(std::string_view name, TypeDesc return_type, std::vector<ParamDesc> parameters,
+                 std::string_view category = "", std::string_view description = "")
+            : name_(name), return_type_(std::move(return_type)), parameters_(std::move(parameters)),
               category_(category), description_(description)
         {
         }

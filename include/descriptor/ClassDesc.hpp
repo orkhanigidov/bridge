@@ -25,9 +25,9 @@ namespace engine::model
             return functions_;
         }
 
-        void add_function(const FuncDesc& func)
+        void add_function(FuncDesc func)
         {
-            functions_.push_back(func);
+            functions_.push_back(std::move(func));
         }
 
         bool has_functions() const noexcept

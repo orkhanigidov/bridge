@@ -7,9 +7,10 @@ namespace engine::model
     class ParamDesc
     {
       public:
-        ParamDesc(std::string_view name, const TypeDesc& type, bool is_optional = false,
+        ParamDesc(std::string_view name, TypeDesc type, bool is_optional = false,
                   std::string_view default_value = "")
-            : name_(name), type_(type), is_optional_(is_optional), default_value_(default_value)
+            : name_(name), type_(std::move(type)), is_optional_(is_optional),
+              default_value_(default_value)
         {
         }
 
