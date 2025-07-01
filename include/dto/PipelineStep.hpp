@@ -7,15 +7,15 @@ namespace engine::dto
 {
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-    class StepDTO final : public oatpp::DTO
+    class PipelineStep final : public oatpp::DTO
     {
-        DTO_INIT(StepDTO, DTO)
+        DTO_INIT(PipelineStep, DTO)
 
-        DTO_FIELD_INFO(obj)
+        DTO_FIELD_INFO(object_type)
         {
-            info->description = "Create new object instance";
+            info->description = "Type of object to create";
         }
-        DTO_FIELD(String, obj, "new");
+        DTO_FIELD(String, object_type, "new");
 
         DTO_FIELD_INFO(alias)
         {
@@ -23,17 +23,17 @@ namespace engine::dto
         }
         DTO_FIELD(String, alias, "as");
 
-        DTO_FIELD_INFO(func)
+        DTO_FIELD_INFO(function_name)
         {
             info->description = "Function to call";
         }
-        DTO_FIELD(String, func, "call");
+        DTO_FIELD(String, function_name, "call");
 
-        DTO_FIELD_INFO(params)
+        DTO_FIELD_INFO(parameters)
         {
-            info->description = "Parameters for the function and object creation";
+            info->description = "Parameters for function calls and object creation";
         }
-        DTO_FIELD(List<Any>, params, "with");
+        DTO_FIELD(List<Any>, parameters, "with");
     };
 
 #include OATPP_CODEGEN_END(DTO)

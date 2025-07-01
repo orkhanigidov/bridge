@@ -7,10 +7,7 @@ namespace engine::dto
 {
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-    class EngineDTO final : public oatpp::DTO
-    {
-        DTO_INIT(EngineDTO, DTO)
-    };
+    ENUM(ExecutionMode, v_int8, VALUE(Native, 0, "Native"), VALUE(Network, 1, "Network"))
 
 #include OATPP_CODEGEN_END(DTO)
 } // namespace engine::dto
