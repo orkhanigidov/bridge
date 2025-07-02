@@ -1,14 +1,16 @@
 #pragma once
 
-#include "FuncDesc.hpp"
+#include "function_descriptor.hpp"
 #include "pch.hpp"
 
-namespace engine::model
+namespace engine::metadata
 {
-    class ClassDesc
+    class class_descriptor final
     {
       public:
-        ClassDesc(std::string_view name, std::string_view alias) : name_(name), alias_(alias) {}
+        class_descriptor(std::string_view name, std::string_view alias) : name_(name), alias_(alias)
+        {
+        }
 
         std::string_view name() const noexcept
         {
@@ -20,14 +22,14 @@ namespace engine::model
             return alias_;
         }
 
-        const std::vector<FuncDesc>& functions() const noexcept
+        const std::vector<function_descriptor>& functions() const noexcept
         {
             return functions_;
         }
 
-        void add_function(FuncDesc func)
+        void add_function(function_descriptor function)
         {
-            functions_.push_back(std::move(func));
+            functions_.emplace_back(std::move(function));
         }
 
         bool has_functions() const noexcept
@@ -38,6 +40,6 @@ namespace engine::model
       private:
         std::string name_;
         std::string alias_;
-        std::vector<FuncDesc> functions_;
+        std::vector<function_descriptor> functions_;
     };
-} // namespace engine::model
+} // namespace engine::metadata

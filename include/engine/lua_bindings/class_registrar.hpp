@@ -2,48 +2,49 @@
 
 #include "pch.hpp"
 
-namespace engine::registration
+namespace engine::lua_bindings
 {
     template <typename T>
-    class ClassRegistrar
+    class class_registrar final
     {
       public:
-        ClassRegistrar(sol::state& lua, std::string_view name) : lua_(lua)
+        explicit class_registrar(sol::state& lua, std::string_view name) : lua_(lua)
         {
             usertype_ = lua_.new_usertype<T>(name, sol::no_constructor);
         }
 
         template <typename... CtorArgs>
-        ClassRegistrar& ctor()
+        class_registrar& add_constructor()
         {
             usertype_.set(sol::meta_function::construct, sol::constructors<T(CtorArgs...)>());
             return *this;
         }
 
         template <typename Fn>
-        ClassRegistrar& func(std::string_view name, Fn&& fn)
+        class_registrar& add_function(std::string_view name, Fn&& fn)
         {
             usertype_.set_function(name, std::forward<Fn>(fn));
             return *this;
         }
 
         template <typename Base>
-        ClassRegistrar& base()
+        class_registrar& add_base_class()
         {
             usertype_.set(sol::base_classes, sol::bases<Base>());
             return *this;
         }
 
-        ClassRegistrar& gc()
+        class_registrar& enable_garbage_collector()
         {
             usertype_.set(sol::meta_function::garbage_collect, [] {});
             return *this;
         }
 
-        void register_class() {}
+        // TODO
+        void finalize() {}
 
       private:
         sol::state& lua_;
         sol::usertype<T> usertype_;
     };
-} // namespace engine::registration
+} // namespace engine::lua_bindings

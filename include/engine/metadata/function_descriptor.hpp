@@ -1,15 +1,16 @@
 #pragma once
 
-#include "ParamDesc.hpp"
-#include "TypeDesc.hpp"
+#include "parameter_descriptor.hpp"
+#include "type_descriptor.hpp"
 
-namespace engine::model
+namespace engine::metadata
 {
-    class FuncDesc
+    class function_descriptor final
     {
       public:
-        FuncDesc(std::string_view name, TypeDesc return_type, std::vector<ParamDesc> parameters,
-                 std::string_view category = "", std::string_view description = "")
+        function_descriptor(std::string_view name, type_descriptor return_type,
+                            std::vector<parameter_descriptor> parameters,
+                            std::string_view category = "", std::string_view description = "")
             : name_(name), return_type_(std::move(return_type)), parameters_(std::move(parameters)),
               category_(category), description_(description)
         {
@@ -20,12 +21,12 @@ namespace engine::model
             return name_;
         }
 
-        const TypeDesc& return_type() const noexcept
+        const type_descriptor& return_type() const noexcept
         {
             return return_type_;
         }
 
-        const std::vector<ParamDesc>& parameters() const noexcept
+        const std::vector<parameter_descriptor>& parameters() const noexcept
         {
             return parameters_;
         }
@@ -47,9 +48,9 @@ namespace engine::model
 
       private:
         std::string name_;
-        TypeDesc return_type_;
-        std::vector<ParamDesc> parameters_;
+        type_descriptor return_type_;
+        std::vector<parameter_descriptor> parameters_;
         std::string category_;
         std::string description_;
     };
-} // namespace engine::model
+} // namespace engine::metadata

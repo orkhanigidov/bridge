@@ -1,14 +1,7 @@
 #pragma once
 
-#include <atomic>
-#include <chrono>
-#include <csignal>
-#include <functional>
-#include <iostream>
-#include <stdexcept>
-#include <thread>
-
 // Standard library headers
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
