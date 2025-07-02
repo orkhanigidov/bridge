@@ -1,12 +1,13 @@
-#include "serialization/Serializer.hpp"
+#include "engine/serialization/json_serializer.hpp"
 
-#include "oatpp/core/parser/Caret.hpp"
-#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "pch.hpp"
+
+#include <oatpp/core/parser/Caret.hpp>
+#include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 
 namespace engine::serialization
 {
-    Serializer::Serializer()
+    json_serializer::json_serializer()
     {
         const auto serializer_config =
             oatpp::parser::json::mapping::Serializer::Config::createShared();
@@ -20,16 +21,17 @@ namespace engine::serialization
             serializer_config, deserializer_config);
     }
 
-    oatpp::Object<dto::ExecutionRequest> Serializer::from_json(const oatpp::String& json_str) const
+    oatpp::Object<dto::execution_request>
+    json_serializer::from_json(const oatpp::String& json_str) const
     {
-        if (!json_str || json_str->empty())
+        if (json_str->empty())
         {
             return nullptr;
         }
 
         try
         {
-            return object_mapper_->readFromString<oatpp::Object<dto::ExecutionRequest>>(json_str);
+            return object_mapper_->readFromString<oatpp::Object<dto::execution_request>>(json_str);
         }
         catch (const oatpp::parser::ParsingError& e)
         {
@@ -37,7 +39,8 @@ namespace engine::serialization
         }
     }
 
-    oatpp::String Serializer::to_json(const oatpp::Object<dto::ExecutionRequest>& request) const
+    oatpp::String
+    json_serializer::to_json(const oatpp::Object<dto::execution_request>& request) const
     {
         if (!request)
         {
@@ -54,9 +57,9 @@ namespace engine::serialization
         }
     }
 
-    bool Serializer::is_valid(const oatpp::String& json_str) const
+    bool json_serializer::is_valid(const oatpp::String& json_str) const
     {
-        if (!json_str || json_str->empty())
+        if (json_str->empty())
         {
             return false;
         }
@@ -64,10 +67,10 @@ namespace engine::serialization
         try
         {
             oatpp::parser::Caret caret(json_str);
-            object_mapper_->readFromCaret<oatpp::Object<dto::ExecutionRequest>>(caret);
+            object_mapper_->readFromCaret<oatpp::Object<dto::execution_request>>(caret);
             return true;
         }
-        catch (const oatpp::parser::ParsingError&)
+        catch (...)
         {
             return false;
         }
