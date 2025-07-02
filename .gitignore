@@ -7,7 +7,7 @@
 cmake-build-*/
 build/
 # Auto-generated source files
-src/generated/
+src/lua_bindings/generated/
 # Local reflection configuration
 config/reflection_config.yaml
 # Local environment variables
