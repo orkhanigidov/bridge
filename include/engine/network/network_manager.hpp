@@ -1,14 +1,13 @@
 #pragma once
 
-#include "HttpClient.hpp"
+#include "api_client.hpp"
 
 namespace engine::network
 {
-    class NetworkManager
+    class network_manager final
     {
       public:
-        explicit NetworkManager(const oatpp::String& host, v_uint16 port);
-        ~NetworkManager() = default;
+        explicit network_manager(const oatpp::String& host, v_uint16 port);
 
         oatpp::String get(const oatpp::String& path) const;
         oatpp::String post(const oatpp::String& path, const oatpp::String& body) const;
@@ -18,6 +17,6 @@ namespace engine::network
         bool is_connected() const;
 
       private:
-        std::shared_ptr<HttpClient> http_client_;
+        std::shared_ptr<api_client> api_client_;
     };
 } // namespace engine::network
