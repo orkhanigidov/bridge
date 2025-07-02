@@ -1,29 +1,28 @@
 #pragma once
 
-#include "dto/StepDTO.hpp"
-#include "oatpp/core/Types.hpp"
+#include "engine/dto/pipeline_step.hpp"
+#include "engine/serialization/oatpp_type_adapter.hpp"
 #include "pch.hpp"
-#include "serialization/Converter.hpp"
 
 namespace engine::pipeline
 {
-    class Command
+    class pipeline_step final
     {
       public:
-        explicit Command(const dto::StepDTO& dto);
+        explicit pipeline_step(const dto::pipeline_step& dto);
 
         void execute() const;
 
       private:
         std::string name_;
         std::optional<std::string> alias_;
-        std::vector<serialization::Value> parameters_;
+        std::vector<serialization::converted_value> parameters_;
 
         void execute_constructor() const;
         void execute_member_function() const;
         void execute_global_function() const;
 
-        std::vector<sol::object> resolve_params(sol::state& lua) const;
+        std::vector<sol::object> resolve_parameters(sol::state& lua) const;
 
         bool is_constructor() const noexcept;
         bool is_member_function() const noexcept;
