@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCE_DIR ${PROJECT_ROOT}/src)
 set(INCLUDE_DIR ${PROJECT_ROOT}/include)
-set(GENERATED_DIR ${SOURCE_DIR}/generated)
+set(GENERATED_DIR ${SOURCE_DIR}/lua_bindings/generated)
 set(CONFIG ${PROJECT_ROOT}/tools/codegen/config/bindings.yaml)
 set(GENERATED_OUTPUT ${GENERATED_DIR}/generated_bindings.cpp)
 

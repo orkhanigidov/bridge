@@ -1,93 +1,71 @@
-#include "core/Engine.hpp"
-#include "pipeline/PipelineManager.hpp"
-#include "registration/LuaRegistrar.hpp"
-#include "serialization/PipelineSerializer.hpp"
+#include "engine/core/engine.hpp"
+#include "engine/core/engine_mode.hpp"
+#include "engine/lua_bindings/lua_registrar.hpp"
 
-std::atomic_bool running{true};
-void signalHandler(int signal)
+namespace
 {
-    std::cout << "Received signal " << signal << ", shutting down..." << std::endl;
-    running = false;
-}
+    constexpr auto DEFAULT_HOST = "localhost";
+    constexpr int DEFAULT_PORT  = 8080;
+    constexpr auto DEFAULT_MODE = engine::core::engine_mode::Native;
+
+    void print_usage(const char* prog_name)
+    {
+        std::cout << "Usage: " << prog_name << " [mode] [host] [port]\n"
+                  << " mode: native | network (default: native)\n"
+                  << " host: hostname or IP address (default: " << DEFAULT_HOST << ")\n"
+                  << " port: port number (default: " << DEFAULT_PORT << ")\n";
+    }
+
+} // namespace
 
 int main(int argc, char* argv[])
 {
+    std::string host = DEFAULT_HOST;
+    int port         = DEFAULT_PORT;
+    auto mode        = DEFAULT_MODE;
+
     try
     {
-        std::signal(SIGINT, signalHandler);
-        std::signal(SIGTERM, signalHandler);
-
-        std::string host = "localhost";
-        int port         = 8080;
-
-        if (argc > 1)
-        {
-            host = argv[1];
-        }
-        if (argc > 2)
-        {
-            port = std::stoi(argv[2]);
-        }
-
-        std::cout << "Starting engine service..." << std::endl;
-
-        engine::registration::LuaRegistrar::instance().register_all();
-
-        std::string json_str = R"({
-          "pipelines": [
-            {
-              "pipeline": "graph_pipeline",
-              "steps": [
-                {"new": "Graph", "as": "G"},
-                {"new": "GraphAttributes", "as": "GA", "with": ["$G"]},
-                {"call": "read", "with": ["$GA", "$G", "unix-history.gml"]},
-                {"new": "SugiyamaLayout", "as": "SL"},
-                {"new": "OptimalHierarchyLayout", "as": "OHL"},
-                {"call": "$OHL.layerDistance", "with": [30.0]},
-                {"call": "$OHL.nodeDistance", "with": [25.0]},
-                {"call": "$OHL.weightBalancing", "with": [0.8]},
-                {"call": "$SL.setLayout", "with": ["$OHL"]},
-                {"call": "$SL.call", "with": ["$GA"]},
-                {"call": "write", "with": ["$GA", "output-unix-history-hierarchical.gml"]},
-                {"call": "write", "with": ["$GA", "output-unix-history-hierarchical.svg"]}
-              ]
-            }
-          ]
-        })";
-
-        auto request = engine::serialization::PipelineSerializer::from_json(json_str);
-
-        engine::pipeline::PipelineManager pipeline_manager;
-        for (const auto& pipeline : *request->pipelines)
-        {
-            pipeline_manager.load(*pipeline->name, *pipeline.get());
-        }
-
-        for (const auto& pipeline : *request->pipelines)
-        {
-            pipeline_manager.execute(*pipeline->name);
-        }
-
-        // auto& engine = engine::core::Engine::instance();
-        // engine.initialize(host, port);
-        // engine.start();
-        //
-        // std::cout << "Engine service running on http:// " << host << ":" << port << std::endl;
-        // std::cout << "Press Ctrl+C to exit" << std::endl;
-        //
-        // while (running)
+        // if (argc > 1)
         // {
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //     mode = engine::execution::parse(argv[1]);
         // }
         //
-        // std::cout << "Shutting down engine service..." << std::endl;
-        // engine.shutdown();
-
-        return 0;
+        // if (mode == engine::core::engine_mode::Network)
+        // {
+        //     if (argc > 2)
+        //     {
+        //         host = argv[2];
+        //     }
+        //
+        //     if (argc > 3)
+        //     {
+        //         port = std::stoi(argv[3]);
+        //         if (port <= 0 || port > 65535)
+        //         {
+        //             throw std::out_of_range("Port must be between 1 and 65535");
+        //         }
+        //     }
+        // }
+        //
+        // switch (mode)
+        // {
+        //     case engine::core::engine_mode::Native:
+        //         break;
+        //     case engine::core::engine_mode::Network:
+        //         break;
+        //     default:
+        //         std::cerr << "Unknown execution mode\n";
+        //         print_usage(argv[0]);
+        //         return 1;
+        // }
     }
-    catch (const std::exception& e)
+    catch (const std::exception& ex)
     {
-        std::cerr << "Fatal error: " << e.what() << std::endl;
+        std::cerr << "Error: " << ex.what() << std::endl;
+        print_usage(argv[0]);
         return 1;
     }
+
+    return 0;
 }

@@ -58,7 +58,7 @@ namespace engine::execution
     std::filesystem::path script_executor::normalize_path(const std::filesystem::path& path)
     {
         auto normalized_path_str = path.string();
-        std::replace(normalized_path_str.begin(), normalized_path_str.end(), "\\", "/");
+        std::replace(normalized_path_str.begin(), normalized_path_str.end(), '\\', '/');
         return std::filesystem::absolute(normalized_path_str);
     }
 

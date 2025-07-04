@@ -26,7 +26,7 @@ namespace engine::dto
             info->description = "Collection of pipeline definitions to process";
             info->required    = false;
         }
-        DTO_FIELD(List<pipeline>, pipelines);
+        DTO_FIELD(List<Object<pipeline>>, pipelines);
 
         DTO_FIELD_INFO(script_path)
         {

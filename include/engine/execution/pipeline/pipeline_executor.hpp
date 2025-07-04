@@ -10,6 +10,6 @@ namespace engine::pipeline
         void execute(const dto::pipeline& pipeline) const;
 
       private:
-        void execute_pipeline_steps(const std::list<dto::pipeline_step>& steps) const;
+        void execute_pipeline_steps(const std::list<oatpp::data::mapping::type::DTOWrapper<dto::pipeline_step>>& steps) const;
     };
 } // namespace engine::pipeline

@@ -15,11 +15,12 @@ namespace engine::pipeline
         execute_pipeline_steps(*pipeline.steps);
     }
 
-    void pipeline_executor::execute_pipeline_steps(const std::list<dto::pipeline_step>& steps) const
+    void pipeline_executor::execute_pipeline_steps(
+        const std::list<oatpp::data::mapping::type::DTOWrapper<dto::pipeline_step>>& steps) const
     {
         for (const auto& step : steps)
         {
-            pipeline_step pipeline_step{step};
+            pipeline_step pipeline_step{*step.get()};
             pipeline_step.execute();
         }
     }

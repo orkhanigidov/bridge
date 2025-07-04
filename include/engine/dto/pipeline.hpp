@@ -25,7 +25,7 @@ namespace engine::dto
             info->description = "Ordered sequence of steps to execute";
             info->required    = true;
         }
-        DTO_FIELD(List<pipeline_step>, steps);
+        DTO_FIELD(List<Object<pipeline_step>>, steps);
     };
 
 #include OATPP_CODEGEN_END(DTO)
