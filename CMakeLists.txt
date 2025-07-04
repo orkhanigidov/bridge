@@ -12,12 +12,15 @@ set(GENERATED_DIR ${SOURCE_DIR}/lua_bindings/generated)
 set(CONFIG ${PROJECT_ROOT}/tools/codegen/config/bindings.yaml)
 set(GENERATED_OUTPUT ${GENERATED_DIR}/generated_bindings.cpp)
 
+set(LUA_INCLUDE_DIR ${PROJECT_ROOT}/external/lua/include)
+set(LUA_LIBRARY ${PROJECT_ROOT}/external/lua/lua54.lib)
+
 include(cmake/CPM.cmake)
 
 CPMAddPackage(
         NAME sol2
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-        VERSION 3.3.0
+        VERSION 3.5.0
 )
 CPMAddPackage(
         NAME oatpp
@@ -51,18 +54,15 @@ add_custom_command(
         VERBATIM
 )
 
-find_package(Lua REQUIRED)
-
 file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp)
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
         ${HEADERS}
         ${SOURCES}
         ${GENERATED_OUTPUT})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-        ${INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
 )
 
@@ -70,7 +70,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         sol2::sol2
         oatpp
         OGDF
-        ${LUA_LIBRARIES}
+        ${LUA_LIBRARY}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR}/pch.hpp)
