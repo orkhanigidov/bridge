@@ -50,6 +50,16 @@ namespace engine::meta
             is_static_ = is_static;
         }
 
+        bool isConst() const noexcept
+        {
+            return is_const_;
+        }
+
+        void setConst(bool is_const)
+        {
+            is_const_ = is_const;
+        }
+
         const std::string& signature() const noexcept
         {
             return signature_;
@@ -65,6 +75,7 @@ namespace engine::meta
         std::string return_type_;
         std::vector<ParameterDescriptor> parameters_;
         bool is_static_{false};
+        bool is_const_{false};
         std::string signature_;
     };
 } // namespace engine::meta

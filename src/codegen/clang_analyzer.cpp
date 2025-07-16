@@ -12,7 +12,7 @@ namespace codegen
 
         const CXIndex index = clang_createIndex(0, 0);
 
-        const std::vector<std::string> clang_args_str = {"-x", "c++", "-std=c++17", "-DOGDF_EXPORT=", "-Ibuild/_deps/ogdf-src/include/ogdf"};
+        const std::vector<std::string> clang_args_str = {"-x", "c++", "-std=c++17", "-DOGDF_EXPORT=", "-IE:/THESIS/Engine.Cpp/build/_deps/ogdf-src/include"};
         std::vector<const char*> clang_args;
         for (const auto& arg : clang_args_str)
         {
@@ -43,7 +43,7 @@ namespace codegen
         }
         const auto kind = clang_getCursorKind(cursor);
 
-        if ((kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) && clang_isCursorDefinition(cursor))
+        if (kind == CXCursor_ClassDecl && clang_isCursorDefinition(cursor))
         {
             auto class_name = getSpelling(cursor);
 
@@ -110,6 +110,10 @@ namespace codegen
                                 {
                                     method_desc.setStatic(true);
                                 }
+                                if (clang_CXXMethod_isConst(child_cursor))
+                                {
+                                    method_desc.setConst(true);
+                                }
 
                                 std::string overload_signature = "(";
                                 auto params                    = analyzer->getArguments(child_cursor);
@@ -148,6 +152,8 @@ namespace codegen
                         return CXChildVisit_Continue;
                     },
                     client_data);
+
+                analyzer->found_includes_.emplace_back(getIncludePath(cursor));
             }
         }
         else if (kind == CXCursor_FunctionDecl)
@@ -175,6 +181,7 @@ namespace codegen
                 func_desc.setSignature(overload_signature);
 
                 analyzer->found_global_functions_.emplace_back(func_desc);
+                analyzer->found_includes_.emplace_back(getIncludePath(cursor));
             }
         }
         return CXChildVisit_Recurse;
@@ -221,5 +228,17 @@ namespace codegen
             params.push_back(param_desc);
         }
         return params;
+    }
+
+    std::string ClangAnalyzer::getIncludePath(const CXCursor& cursor)
+    {
+        CXSourceLocation location = clang_getCursorLocation(cursor);
+        CXString filename;
+        unsigned line, column;
+        clang_getPresumedLocation(location, &filename, &line, &column);
+        std::string path = clang_getCString(filename);
+        clang_disposeString(filename);
+        std::replace(path.begin(), path.end(), '\\', '/');
+        return path;
     }
 } // namespace codegen

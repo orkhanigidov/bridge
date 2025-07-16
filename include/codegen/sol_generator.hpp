@@ -8,12 +8,12 @@ namespace codegen
       public:
         explicit SolGenerator(const std::string& output_filename);
 
-        void generate(const std::vector<engine::meta::ClassDescriptor>& classes, const std::vector<engine::meta::FunctionDescriptor>& global_functions);
+        void generate(const std::vector<engine::meta::ClassDescriptor>& classes, const std::vector<engine::meta::FunctionDescriptor>& global_functions, const std::vector<std::string>& includes);
 
       private:
         std::string output_filename_;
 
-        void generate_classes(const std::vector<engine::meta::ClassDescriptor>& classes, std::ofstream& out);
-        void generate_global_functions(const std::vector<engine::meta::FunctionDescriptor>& global_functions, std::ofstream& out);
+        static void generate_classes(const std::vector<engine::meta::ClassDescriptor>& classes, std::ofstream& out);
+        static void generate_global_functions(const std::vector<engine::meta::FunctionDescriptor>& global_functions, std::ofstream& out);
     };
 } // namespace codegen

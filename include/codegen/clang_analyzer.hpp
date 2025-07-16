@@ -22,16 +22,23 @@ namespace codegen
             return found_global_functions_;
         }
 
+        const std::vector<std::string>& foundIncludes()
+        {
+            return found_includes_;
+        }
+
       private:
         std::unordered_map<std::string, std::vector<std::string>> target_classes_;
         std::vector<std::string> target_global_functions_;
         std::vector<engine::meta::ClassDescriptor> found_classes_;
         std::vector<engine::meta::FunctionDescriptor> found_global_functions_;
+        std::vector<std::string> found_includes_;
 
         static std::string getSpelling(const CXCursor& cursor);
         static std::string getResultType(const CXCursor& cursor);
         static std::string getType(const CXCursor& cursor);
         static std::vector<engine::meta::ParameterDescriptor> getArguments(const CXCursor& cursor);
+        static std::string getIncludePath(const CXCursor& cursor);
         static CXChildVisitResult visitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
     };
 } // namespace codegen

@@ -20,10 +20,10 @@ namespace engine::lua_bindings
             return *this;
         }
 
-        template <typename Value>
-        class_registrar& add_variable(const std::string& name, Value& value)
+        template <typename Val>
+        class_registrar& add_variable(std::string_view name, Val&& value)
         {
-            usertype_.set(name, sol::var(value));
+            usertype_.set(name, sol::var(std::forward<Val>(value)));
             return *this;
         }
 

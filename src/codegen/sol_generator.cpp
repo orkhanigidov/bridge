@@ -4,7 +4,8 @@ namespace codegen
 {
     SolGenerator::SolGenerator(const std::string& output_filename) : output_filename_(output_filename) {}
 
-    void SolGenerator::generate(const std::vector<engine::meta::ClassDescriptor>& classes, const std::vector<engine::meta::FunctionDescriptor>& global_functions)
+    void SolGenerator::generate(const std::vector<engine::meta::ClassDescriptor>& classes, const std::vector<engine::meta::FunctionDescriptor>& global_functions,
+                                const std::vector<std::string>& includes)
     {
         std::ofstream out(output_filename_);
         if (!out.is_open())
@@ -17,6 +18,12 @@ namespace codegen
         out << "#include \"engine/lua_bindings/class_registrar.hpp\"\n";
         out << "#include \"engine/lua_bindings/function_registrar.hpp\"\n\n";
 
+        for (const auto& include : includes)
+        {
+            out << "#include <" << include << ">\n";
+        }
+
+        out << "\n";
         out << "#include <sol/sol.hpp>\n\n";
 
         out << "using namespace ogdf;\n\n";
@@ -40,6 +47,14 @@ namespace codegen
 
         for (const auto& class_ : classes)
         {
+            for (const auto& base : class_.baseClasses())
+            {
+                out << "    class_registrar<" << base << ">(lua, \"" << base << "\");\n\n";
+            }
+        }
+
+        for (const auto& class_ : classes)
+        {
             out << "    class_registrar<" << class_.name() << ">(lua, \"" << class_.name() << "\")\n";
 
             if (!class_.constructors().empty())
@@ -48,13 +63,47 @@ namespace codegen
                 {
                     out << "    .add_constructor<" << ctor.signature() << ">()\n";
                 }
+
+                out << "    .enable_garbage_collector()\n";
+            }
+
+            if (!class_.baseClasses().empty())
+            {
+                for (const auto& base : class_.baseClasses())
+                {
+                    out << "    .add_base_class<" << base << ">()\n";
+                }
+            }
+
+            if (!class_.variables().empty())
+            {
+                for (const auto& var : class_.variables())
+                {
+                    if (!var.isStatic())
+                    {
+                        out << "    .add_variable(\"" << var.name() << "\", &" << class_.name() << "::" << var.name() << ")\n";
+                    }
+                    else
+                    {
+                        out << "    .add_variable(\"" << var.name() << "\", " << class_.name() << "::" << var.name() << ")\n";
+                    }
+                }
             }
 
             if (!class_.methods().empty())
             {
                 for (const auto& method : class_.methods())
                 {
-                    out << "    .add_method(" << "\"" << method.name() << "\", sol::resolve<" << method.returnType() << method.signature() << ">(&" << class_.name() << "::" << method.name() << "))\n";
+                    if (method.isConst())
+                    {
+                        out << "    .add_method(\"" << method.name() << "\", static_cast<" << method.returnType() << "(" << class_.name() << "::*)" << method.signature() << " const>(&"
+                            << class_.name() << "::" << method.name() << "))\n";
+                    }
+                    else
+                    {
+                        out << "    .add_method(" << "\"" << method.name() << "\", sol::resolve<" << method.returnType() << method.signature() << ">(&" << class_.name() << "::" << method.name()
+                            << "))\n";
+                    }
                 }
             }
 
