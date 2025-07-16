@@ -20,8 +20,15 @@ namespace engine::lua_bindings
             return *this;
         }
 
+        template <typename Value>
+        class_registrar& add_variable(const std::string& name, Value& value)
+        {
+            usertype_.set(name, sol::var(value));
+            return *this;
+        }
+
         template <typename Fn>
-        class_registrar& add_function(std::string_view name, Fn&& fn)
+        class_registrar& add_method(const std::string& name, Fn&& fn)
         {
             usertype_.set_function(name, std::forward<Fn>(fn));
             return *this;
@@ -39,9 +46,6 @@ namespace engine::lua_bindings
             usertype_.set(sol::meta_function::garbage_collect, [] {});
             return *this;
         }
-
-        // TODO
-        void finalize() {}
 
       private:
         sol::state& lua_;

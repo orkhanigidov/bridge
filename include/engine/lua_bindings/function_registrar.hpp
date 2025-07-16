@@ -16,9 +16,6 @@ namespace engine::lua_bindings
             return *this;
         }
 
-        // TODO
-        void finalize() {}
-
       private:
         sol::state& lua_;
     };

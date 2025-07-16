@@ -11,7 +11,7 @@ PointerAlignment: Left
 ReferenceAlignment: Left
 
 # Line length and wrapping
-ColumnLimit: 100
+ColumnLimit: 200
 ReflowComments: true
 
 # Include sorting and grouping

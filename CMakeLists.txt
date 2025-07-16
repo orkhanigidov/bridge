@@ -15,8 +15,16 @@ set(GENERATED_OUTPUT ${GENERATED_DIR}/generated_bindings.cpp)
 set(LUA_INCLUDE_DIR ${PROJECT_ROOT}/external/lua/include)
 set(LUA_LIBRARY ${PROJECT_ROOT}/external/lua/lua54.lib)
 
+set(CLANG_INCLUDE_DIR ${PROJECT_ROOT}/external/clang/include)
+set(CLANG_LIBRARY ${PROJECT_ROOT}/external/clang/libclang.lib)
+
 include(cmake/CPM.cmake)
 
+CPMAddPackage(
+        NAME yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG 0.8.0
+)
 CPMAddPackage(
         NAME sol2
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
@@ -31,46 +39,35 @@ CPMAddPackage(
         NAME ogdf
         GIT_REPOSITORY https://github.com/ogdf/ogdf.git
         GIT_TAG elderberry-202309
-)
-
-find_package(Python REQUIRED)
-
-if (WIN32)
-    set(PYTHON_EXE ${PROJECT_ROOT}/.venv/Scripts/python.exe)
-else ()
-    set(PYTHON_EXE ${PROJECT_ROOT}/.venv/bin/python)
-endif ()
-
-add_custom_command(
-        OUTPUT ${GENERATED_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
-        COMMAND ${CMAKE_COMMAND} -E echo "Generating code..."
-        COMMAND ${PYTHON_EXE} ${PROJECT_ROOT}/tools/codegen/cli.py
-        --config=${CONFIG}
-        --package=ogdf
-        --output=${GENERATED_OUTPUT}
-        --verbose
-        DEPENDS ${PROJECT_ROOT}/tools/codegen/cli.py ${CONFIG}
-        VERBATIM
+        OPTIONS
+        "OGDF_DEBUG ON"
+        "OGDF_USE_ASSERT_EXCEPTIONS ON"
+        "OGDF_USE_ASSERT_EXCEPTIONS_WITH_STACK_TRACE ON"
+        "OGDF_MEMORY_MALLOC_TS ON"
 )
 
 file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE SOURCES ${SOURCE_DIR}/*.cpp)
 
-add_library(${PROJECT_NAME} SHARED
+add_executable(${PROJECT_NAME}
         ${HEADERS}
         ${SOURCES}
-        ${GENERATED_OUTPUT})
+        ${GENERATED_OUTPUT}
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+        ${INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
+        ${CLANG_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+        yaml-cpp::yaml-cpp
         sol2::sol2
         oatpp
         OGDF
         ${LUA_LIBRARY}
+        ${CLANG_LIBRARY}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR}/pch.hpp)
