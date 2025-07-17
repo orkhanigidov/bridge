@@ -4,31 +4,31 @@ namespace engine::meta
 {
     class ParameterDescriptor final
     {
-      public:
+    public:
         ParameterDescriptor() = default;
 
         const std::string& name() const noexcept
         {
-            return name_;
-        }
-
-        void setName(const std::string& name)
-        {
-            name_ = name;
+            return m_name;
         }
 
         const std::string& type() const noexcept
         {
-            return type_;
+            return m_type;
         }
 
-        void setType(const std::string& type)
+        void set_name(const std::string& name) noexcept
         {
-            type_ = type;
+            m_name = name;
         }
 
-      private:
-        std::string name_;
-        std::string type_;
+        void set_type(const std::string& type) noexcept
+        {
+            m_type = type;
+        }
+
+    private:
+        std::string m_name;
+        std::string m_type;
     };
 } // namespace engine::meta

@@ -1,47 +1,56 @@
 #pragma once
 
-#include "pch.hpp"
-
 namespace engine::meta
 {
     class VariableDescriptor final
     {
-      public:
+    public:
         VariableDescriptor() = default;
 
         const std::string& name() const noexcept
         {
-            return name_;
-        }
-
-        void setName(const std::string& name)
-        {
-            name_ = name;
+            return m_name;
         }
 
         const std::string& type() const noexcept
         {
-            return type_;
+            return m_type;
         }
 
-        void setType(const std::string& type)
+        bool is_static() const noexcept
         {
-            type_ = type;
+            return m_is_static;
         }
 
-        bool isStatic() const noexcept
+        bool is_const() const noexcept
         {
-            return is_static_;
+            return m_is_const;
         }
 
-        void setStatic(bool is_static)
+        void set_name(const std::string& name) noexcept
         {
-            is_static_ = is_static;
+            m_name = name;
         }
 
-      private:
-        std::string name_;
-        std::string type_;
-        bool is_static_{false};
+        void set_type(const std::string& type) noexcept
+        {
+            m_type = type;
+        }
+
+        void set_static(bool is_static) noexcept
+        {
+            m_is_static = is_static;
+        }
+
+        void set_const(bool is_const) noexcept
+        {
+            m_is_const = is_const;
+        }
+
+    private:
+        std::string m_name;
+        std::string m_type;
+        bool m_is_static{false};
+        bool m_is_const{false};
     };
 } // namespace engine::meta

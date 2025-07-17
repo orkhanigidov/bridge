@@ -1,71 +1,71 @@
 #pragma once
 
+#include "constructor_descriptor.hpp"
 #include "function_descriptor.hpp"
-#include "pch.hpp"
 #include "variable_descriptor.hpp"
 
 namespace engine::meta
 {
     class ClassDescriptor final
     {
-      public:
+    public:
         ClassDescriptor() = default;
 
         const std::string& name() const noexcept
         {
-            return name_;
+            return m_name;
         }
 
-        void setName(const std::string& name)
+        const std::vector<std::string>& base_class_names() const noexcept
         {
-            name_ = name;
+            return m_base_class_names;
         }
 
-        const std::vector<FunctionDescriptor>& constructors() const noexcept
+        const std::vector<ConstructorDescriptor>& constructors() const noexcept
         {
-            return constructors_;
-        }
-
-        void addConstructor(const FunctionDescriptor& constructor)
-        {
-            constructors_.emplace_back(constructor);
-        }
-
-        const std::vector<std::string>& baseClasses() const noexcept
-        {
-            return base_classes_;
-        }
-
-        void addBaseClass(const std::string& base_class)
-        {
-            base_classes_.emplace_back(base_class);
-        }
-
-        const std::vector<FunctionDescriptor>& methods() const noexcept
-        {
-            return methods_;
-        }
-
-        void addMethod(const FunctionDescriptor& method)
-        {
-            methods_.emplace_back(method);
+            return m_constructors;
         }
 
         const std::vector<VariableDescriptor>& variables() const noexcept
         {
-            return variables_;
+            return m_variables;
         }
 
-        void addVariable(const VariableDescriptor& variable)
+        const std::vector<FunctionDescriptor>& methods() const noexcept
         {
-            variables_.emplace_back(variable);
+            return m_methods;
         }
 
-      private:
-        std::string name_;
-        std::vector<FunctionDescriptor> constructors_;
-        std::vector<std::string> base_classes_;
-        std::vector<FunctionDescriptor> methods_;
-        std::vector<VariableDescriptor> variables_;
+        void set_name(const std::string& name) noexcept
+        {
+            m_name = name;
+        }
+
+        void add_base_class_name(const std::string& base_class) noexcept
+        {
+            m_base_class_names.emplace_back(base_class);
+        }
+
+        void add_constructor(const ConstructorDescriptor& constructor) noexcept
+        {
+            m_constructors.emplace_back(constructor);
+        }
+
+        void add_variable(const VariableDescriptor& variable) noexcept
+        {
+            m_variables.emplace_back(variable);
+        }
+
+        void add_method(const FunctionDescriptor& method) noexcept
+        {
+            m_methods.emplace_back(method);
+        }
+
+    private:
+        std::string m_name;
+        std::vector<std::string> m_base_class_names;
+        std::vector<ConstructorDescriptor> m_constructors;
+        std::vector<FunctionDescriptor> m_methods;
+        std::vector<VariableDescriptor> m_variables;
     };
 } // namespace engine::meta
