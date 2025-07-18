@@ -2,7 +2,7 @@
 
 namespace engine::execution
 {
-    enum class execution_type
+    enum class ExecutionType: uint8_t
     {
         Lua_Script,
         Json_Pipeline

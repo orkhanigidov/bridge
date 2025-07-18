@@ -2,7 +2,7 @@
 
 namespace engine::core
 {
-    enum class engine_mode
+    enum class EngineMode : uint8_t
     {
         Native,
         Network
