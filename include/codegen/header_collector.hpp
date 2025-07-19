@@ -1,7 +1,5 @@
 #pragma once
 
-namespace fs = std::filesystem;
-
 namespace codegen
 {
     class HeaderCollector final
