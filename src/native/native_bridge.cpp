@@ -2,6 +2,7 @@
 
 #include "engine/execution/execution_engine.hpp"
 #include "engine/bindings/lua/registrar.hpp"
+#include "engine/execution/execution_type.hpp"
 
 namespace engine::native
 {
@@ -21,7 +22,7 @@ namespace engine::native
     {
         try
         {
-            execution::ExecutionEngine exec_engine;
+            const execution::ExecutionEngine exec_engine(execution::ExecutionType::Lua_Script);
             exec_engine.execute_script_file(script_path);
             return true;
         }

@@ -1,97 +1,94 @@
 #include "engine/execution/execution_engine.hpp"
 
 #include "engine/execution/script/script_executor.hpp"
-#include "pch.hpp"
 
 namespace engine::execution
 {
-    // void execution_engine::execute_pipeline(std::string_view json)
-    // {
-    //     if (json.empty())
-    //     {
-    //         throw std::invalid_argument("JSON content cannot be empty");
-    //     }
-    //
-    //     if (!pipeline_executor_)
-    //     {
-    //         pipeline_executor_ = std::make_unique<pipeline::pipeline_executor>();
-    //     }
-    //
-    //     try
-    //     {
-    //         pipeline_executor_->execute(json);
-    //     }
-    //     catch (const std::exception& e)
-    //     {
-    //         throw std::runtime_error("Pipeline execution failed: " + std::string(e.what()));
-    //     }
-    // }
-
-    // void execution_engine::execute_pipeline_file(const std::filesystem::path& path)
-    // {
-    //     validate_path(path);
-    //
-    //     try
-    //     {
-    //         execute_pipeline(content);
-    //     }
-    //     catch (const std::exception& e)
-    //     {
-    //         throw std::runtime_error("Pipeline file execution failed: " + std::string(e.what()));
-    //     }
-    // }
-
-    void execution_engine::execute_script(std::string_view script)
+    ExecutionEngine::ExecutionEngine(ExecutionType exec_type)
     {
+        if (exec_type == ExecutionType::Json_Pipeline)
+        {
+            m_pipeline_executor = std::make_unique<pipeline::PipelineExecutor>();
+        }
+        else
+        {
+            m_script_executor = std::make_unique<script::ScriptExecutor>();
+        }
+    }
+
+    void ExecutionEngine::execute_script(const std::string& script) const
+    {
+        if (!m_script_executor)
+        {
+            throw std::runtime_error("Script executor is not initialized");
+        }
+
         if (script.empty())
         {
             throw std::invalid_argument("Script content cannot be empty");
         }
 
-        if (!script_executor_)
-        {
-            script_executor_ = std::make_unique<script_executor>();
-        }
-
-        try
-        {
-            script_executor_->execute_from_string(script);
-        }
-        catch (const std::exception& e)
-        {
-            throw std::runtime_error("Script execution failed: " + std::string(e.what()));
-        }
+        m_script_executor->execute_from_string(script);
     }
 
-    void execution_engine::execute_script_file(const std::filesystem::path& path)
+    void ExecutionEngine::execute_script_file(const std::filesystem::path& path) const
     {
-        validate_path(path);
-
-        if (!script_executor_)
+        if (!m_script_executor)
         {
-            script_executor_ = std::make_unique<script_executor>();
+            throw std::runtime_error("Script executor is not initialized");
         }
 
-        try
+        if (!is_valid_path(path))
         {
-            script_executor_->execute_from_file(path);
+            throw std::invalid_argument("Invalid script file path: " + path.string());
         }
-        catch (const std::exception& e)
-        {
-            throw std::runtime_error("Script file execution failed: " + std::string(e.what()));
-        }
+
+        m_script_executor->execute_from_file(path);
     }
 
-    void execution_engine::validate_path(const std::filesystem::path& path) const
+    void ExecutionEngine::execute_pipeline(const std::string& json) const
     {
-        if (!std::filesystem::exists(path))
+        if (!m_pipeline_executor)
         {
-            throw std::invalid_argument("File does not exist: " + path.string());
+            throw std::runtime_error("Pipeline executor is not initialized");
         }
 
-        if (!std::filesystem::is_regular_file(path))
+        if (json.empty())
         {
-            throw std::invalid_argument("Path is not a regular file: " + path.string());
+            throw std::invalid_argument("JSON content cannot be empty");
         }
+
+        // m_pipeline_executor->execute_from_string(json);
+    }
+
+    void ExecutionEngine::execute_pipeline_file(const fs::path& path) const
+    {
+        if (!m_pipeline_executor)
+        {
+            throw std::runtime_error("Pipeline executor is not initialized");
+        }
+
+        if (!is_valid_path(path))
+        {
+            throw std::invalid_argument("Invalid json pipeline path: " + path.string());
+        }
+
+        // m_pipeline_executor->execute_from_file(path);
+    }
+
+    bool ExecutionEngine::is_valid_path(const fs::path& file_path) const
+    {
+        if (!fs::exists(file_path))
+        {
+            std::cerr << "File does not exist: " << file_path << std::endl;
+            return false;
+        }
+
+        if (!fs::is_regular_file(file_path))
+        {
+            std::cerr << "File is not a regular file: " << file_path << std::endl;
+            return false;
+        }
+        return true;
     }
 } // namespace engine::execution
