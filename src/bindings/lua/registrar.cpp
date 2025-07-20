@@ -16,19 +16,19 @@ namespace engine::bindings::lua
     std::vector<const meta::FunctionDescriptor*> Registrar::registered_functions() const
     {
         size_t total_functions = m_free_functions.size();
-        for (const auto& [_, class_desc] : m_classes)
+        for (const auto& class_desc : m_classes | std::views::values)
         {
             total_functions += class_desc->methods().size();
         }
 
         std::vector<const meta::FunctionDescriptor*> functions;
         functions.reserve(total_functions);
-        for (const auto& [_, function_desc] : m_free_functions)
+        for (const auto& function_desc : m_free_functions | std::views::values)
         {
             functions.emplace_back(function_desc.get());
         }
 
-        for (const auto& [_, class_desc] : m_classes)
+        for (const auto& class_desc : m_classes | std::views::values)
         {
             for (const auto& [_, method] : class_desc->methods)
             {

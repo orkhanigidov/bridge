@@ -3,6 +3,8 @@
 #include "engine/meta/class_descriptor.hpp"
 #include "engine/meta/function_descriptor.hpp"
 
+#include <sol/sol.hpp>
+
 namespace engine::bindings::lua
 {
     class Registrar final

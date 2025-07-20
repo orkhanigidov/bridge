@@ -1,5 +1,6 @@
 #pragma once
-#include "sol/raii.hpp"
+
+#include <sol/sol.hpp>
 
 namespace engine::bindings::lua
 {

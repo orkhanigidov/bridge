@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sol/sol.hpp>
+
 namespace engine::bindings::lua
 {
     class FreeFunctionRegistrar final
