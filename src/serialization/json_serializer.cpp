@@ -1,46 +1,38 @@
 #include "engine/serialization/json_serializer.hpp"
 
-#include "pch.hpp"
-
-#include <oatpp/core/parser/Caret.hpp>
-#include <oatpp/parser/json/mapping/ObjectMapper.hpp>
-
 namespace engine::serialization
 {
-    json_serializer::json_serializer()
+    JsonSerializer::JsonSerializer()
     {
-        const auto serializer_config =
-            oatpp::parser::json::mapping::Serializer::Config::createShared();
-
-        const auto deserializer_config =
-            oatpp::parser::json::mapping::Deserializer::Config::createShared();
+        const auto serializer_config = oatpp::parser::json::mapping::Serializer::Config::createShared();
+        const auto deserializer_config = oatpp::parser::json::mapping::Deserializer::Config::createShared();
 
         serializer_config->useBeautifier = true;
 
-        object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared(
+        m_object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared(
             serializer_config, deserializer_config);
     }
 
-    oatpp::Object<dto::execution_request>
-    json_serializer::from_json(const oatpp::String& json_str) const
+    oatpp::Object<dto::ExecutionRequest> JsonSerializer::from_json(const oatpp::String& json_str) const
     {
-        if (json_str->empty())
+        if (!is_valid_json(json_str))
         {
+            std::cerr << "Invalid JSON string provided" << std::endl;
             return nullptr;
         }
 
         try
         {
-            return object_mapper_->readFromString<oatpp::Object<dto::execution_request>>(json_str);
+            return m_object_mapper->readFromString<oatpp::Object<dto::ExecutionRequest>>(json_str);
         }
         catch (const oatpp::parser::ParsingError& e)
         {
+            std::cerr << "Failed to parse JSON: " << e.what() << std::endl;
             return nullptr;
         }
     }
 
-    oatpp::String
-    json_serializer::to_json(const oatpp::Object<dto::execution_request>& request) const
+    oatpp::String JsonSerializer::to_json(const oatpp::Object<dto::ExecutionRequest>& request) const
     {
         if (!request)
         {
@@ -49,17 +41,18 @@ namespace engine::serialization
 
         try
         {
-            return object_mapper_->writeToString(request);
+            return m_object_mapper->writeToString(request);
         }
         catch (const std::exception& e)
         {
+            std::cerr << "Failed to serialize request to JSON: " << e.what() << std::endl;
             return nullptr;
         }
     }
 
-    bool json_serializer::is_valid(const oatpp::String& json_str) const
+    bool JsonSerializer::is_valid_json(const oatpp::String& json_str) const
     {
-        if (json_str->empty())
+        if (!json_str || json_str->empty())
         {
             return false;
         }
@@ -67,7 +60,7 @@ namespace engine::serialization
         try
         {
             oatpp::parser::Caret caret(json_str);
-            object_mapper_->readFromCaret<oatpp::Object<dto::execution_request>>(caret);
+            m_object_mapper->readFromCaret<oatpp::Object<dto::ExecutionRequest>>(caret);
             return true;
         }
         catch (...)

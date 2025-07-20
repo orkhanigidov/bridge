@@ -2,27 +2,25 @@
 
 #include "engine/dto/execution_request.hpp"
 
-#include <oatpp/parser/json/mapping/ObjectMapper.hpp>
-
 namespace engine::serialization
 {
-    class json_serializer final
+    class JsonSerializer final
     {
-      public:
-        static json_serializer& instance()
+    public:
+        static JsonSerializer& instance()
         {
-            static json_serializer instance;
+            static JsonSerializer instance;
             return instance;
         }
 
-        oatpp::Object<dto::execution_request> from_json(const oatpp::String& json_str) const;
-        oatpp::String to_json(const oatpp::Object<dto::execution_request>& request_dto) const;
+        oatpp::Object<dto::ExecutionRequest> from_json(const oatpp::String& json_str) const;
+        oatpp::String to_json(const oatpp::Object<dto::ExecutionRequest>& request) const;
 
-        bool is_valid(const oatpp::String& json_str) const;
+    private:
+        JsonSerializer();
 
-      private:
-        std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
+        std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> m_object_mapper;
 
-        json_serializer();
+        bool is_valid_json(const oatpp::String& json_str) const;
     };
 } // namespace engine::serialization
