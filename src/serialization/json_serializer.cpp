@@ -1,5 +1,7 @@
 #include "engine/serialization/json_serializer.hpp"
 
+#include <oatpp/core/parser/Caret.hpp>
+
 namespace engine::serialization
 {
     JsonSerializer::JsonSerializer()

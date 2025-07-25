@@ -1,10 +1,8 @@
 #include "engine/serialization/oatpp_type_adapter.hpp"
 
-#include "pch.hpp"
-
 namespace engine::serialization
 {
-    converted_value oatpp_type_adapter::from_oatpp(const oatpp::Any& oatpp_value)
+    ConvertedValue OatppTypeAdapter::from_oatpp(const oatpp::Any& oatpp_value)
     {
         if (!oatpp_value)
         {

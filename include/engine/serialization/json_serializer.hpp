@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/dto/execution_request.hpp"
+#include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 
 namespace engine::serialization
 {
