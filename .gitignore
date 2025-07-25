@@ -1,14 +1,14 @@
-# IDE and Editor specific files
+# IDE/editor directories
 .idea/
 .vscode/
-# Python virtual environment
-.venv/
-# CMake build output directories
-cmake-build-*/
+.vs/
+
+# Build directories
 build/
-# Auto-generated source files
-src/lua_bindings/generated/
-# Local reflection configuration
-config/reflection_config.yaml
-# Local environment variables
-.env
+cmake-build-*/
+
+# Auto-generated files
+src/bindings/lua/generated/
+
+# Local configuration
+config/registry_config.yaml

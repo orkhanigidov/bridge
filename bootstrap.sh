@@ -37,7 +37,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="${PROJECT_ROOT}/.venv"
 CMAKE_DIR="${PROJECT_ROOT}/cmake"
 
 mkdir -p "${CMAKE_DIR}"
@@ -46,21 +45,6 @@ if [[ ! -f "${CMAKE_DIR}/CPM.cmake" ]]; then
     echo "Downloading CPM.cmake..."
     wget -q -O "${CMAKE_DIR}/CPM.cmake" https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
 fi
-
-if [[ ! -d "${VENV_DIR}" ]]; then
-    echo "Setting up Python virtual environment..."
-    python3 -m venv "${VENV_DIR}"
-fi
-
-if [[ "${OSTYPE}" == "msys" || "${OSTYPE}" == "win32" ]]; then
-    source "${VENV_DIR}/Scripts/activate"
-else
-    source "${VENV_DIR}/bin/activate"
-fi
-
-echo "Installing required Python packages..."
-pip install -U pip
-pip install -r "${PROJECT_ROOT}/scripts/codegen/requirements.txt"
 
 echo "Configuring project with CMake..."
 cmake --preset "${BUILD_TYPE}"
