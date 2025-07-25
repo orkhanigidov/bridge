@@ -7,22 +7,22 @@ namespace engine::meta
     public:
         VariableDescriptor() = default;
 
-        const std::string& name() const noexcept
+        [[nodiscard]] const std::string& name() const noexcept
         {
             return m_name;
         }
 
-        const std::string& type() const noexcept
+        [[nodiscard]] const std::string& type() const noexcept
         {
             return m_type;
         }
 
-        bool is_static() const noexcept
+        [[nodiscard]] bool is_static() const noexcept
         {
             return m_is_static;
         }
 
-        bool is_const() const noexcept
+        [[nodiscard]] bool is_const() const noexcept
         {
             return m_is_const;
         }

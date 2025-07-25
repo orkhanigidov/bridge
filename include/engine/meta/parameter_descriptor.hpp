@@ -7,12 +7,12 @@ namespace engine::meta
     public:
         ParameterDescriptor() = default;
 
-        const std::string& name() const noexcept
+        [[nodiscard]] const std::string& name() const noexcept
         {
             return m_name;
         }
 
-        const std::string& type() const noexcept
+        [[nodiscard]] const std::string& type() const noexcept
         {
             return m_type;
         }

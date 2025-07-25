@@ -11,27 +11,27 @@ namespace engine::meta
     public:
         ClassDescriptor() = default;
 
-        const std::string& name() const noexcept
+        [[nodiscard]] const std::string& name() const noexcept
         {
             return m_name;
         }
 
-        const std::vector<std::string>& base_class_names() const noexcept
+        [[nodiscard]] const std::vector<std::string>& base_class_names() const noexcept
         {
             return m_base_class_names;
         }
 
-        const std::vector<ConstructorDescriptor>& constructors() const noexcept
+        [[nodiscard]] const std::vector<ConstructorDescriptor>& constructors() const noexcept
         {
             return m_constructors;
         }
 
-        const std::vector<VariableDescriptor>& variables() const noexcept
+        [[nodiscard]] const std::vector<VariableDescriptor>& variables() const noexcept
         {
             return m_variables;
         }
 
-        const std::vector<FunctionDescriptor>& methods() const noexcept
+        [[nodiscard]] const std::vector<FunctionDescriptor>& methods() const noexcept
         {
             return m_methods;
         }

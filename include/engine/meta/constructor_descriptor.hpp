@@ -9,17 +9,17 @@ namespace engine::meta
     public:
         ConstructorDescriptor() = default;
 
-        const std::string& name() const noexcept
+        [[nodiscard]] const std::string& name() const noexcept
         {
             return m_name;
         }
 
-        const std::vector<ParameterDescriptor>& parameters() const noexcept
+        [[nodiscard]] const std::vector<ParameterDescriptor>& parameters() const noexcept
         {
             return m_parameters;
         }
 
-        const std::string& signature() const noexcept
+        [[nodiscard]] const std::string& signature() const noexcept
         {
             return m_signature;
         }

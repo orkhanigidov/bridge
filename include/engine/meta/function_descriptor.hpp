@@ -9,32 +9,32 @@ namespace engine::meta
     public:
         FunctionDescriptor() = default;
 
-        const std::string& name() const noexcept
+        [[nodiscard]] const std::string& name() const noexcept
         {
             return m_name;
         }
 
-        const std::string& return_type() const noexcept
+        [[nodiscard]] const std::string& return_type() const noexcept
         {
             return m_return_type;
         }
 
-        const std::vector<ParameterDescriptor>& parameters() const noexcept
+        [[nodiscard]] const std::vector<ParameterDescriptor>& parameters() const noexcept
         {
             return m_parameters;
         }
 
-        bool is_static() const noexcept
+        [[nodiscard]] bool is_static() const noexcept
         {
             return m_is_const;
         }
 
-        bool is_const() const noexcept
+        [[nodiscard]] bool is_const() const noexcept
         {
             return m_is_const;
         }
 
-        const std::string& signature() const noexcept
+        [[nodiscard]] const std::string& signature() const noexcept
         {
             return m_signature;
         }
