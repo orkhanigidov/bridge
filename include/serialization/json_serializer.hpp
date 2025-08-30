@@ -1,26 +1,25 @@
 #pragma once
 
-#include "network/dto/execution_request_dto.hpp"
 #include <oatpp/core/data/mapping/ObjectMapper.hpp>
 #include <oatpp/core/macro/component.hpp>
+#include <oatpp/parser/json/mapping/ObjectMapper.hpp>
+
+#include "network/dto/execution/request_dto.hpp"
 
 namespace serialization {
+
     class JsonSerializer final {
     public:
-        explicit JsonSerializer(OATPP_COMPONENT(
-                std::shared_ptr<oatpp::data::mapping::ObjectMapper>,
-                object_mapper))
-            : m_object_mapper(std::move(object_mapper))
-        {}
+        explicit JsonSerializer(OATPP_COMPONENT(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper>, object_mapper))
+            : m_object_mapper(object_mapper) {}
 
-        oatpp::Object<dto::ExecutionRequestDto>
-        from_json(const oatpp::String& json_str) const;
-        oatpp::String
-        to_json(const oatpp::Object<dto::ExecutionRequestDto>& request) const;
+        oatpp::Object<network::dto::execution::RequestDto> from_json(const oatpp::String& json_data) const;
+        oatpp::String to_json(const oatpp::Object<network::dto::execution::RequestDto>& request_dto) const;
 
     private:
-        std::shared_ptr<oatpp::data::mapping::ObjectMapper> m_object_mapper;
+        std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> m_object_mapper;
 
-        bool is_valid_json(const oatpp::String& json_str) const;
+        bool is_valid_json(const oatpp::String& json_data) const;
     };
+
 } // namespace serialization
