@@ -5,15 +5,14 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto {
+namespace network::dto::execution {
 
-    class MessageDto final : public oatpp::DTO {
-        DTO_INIT(MessageDto, DTO)
+    class ErrorDto final : public oatpp::DTO {
+        DTO_INIT(ErrorDto, DTO)
 
-        DTO_FIELD(UInt16, status_code);
         DTO_FIELD(String, message);
     };
 
-} // namespace network::dto
+} // namespace network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)
