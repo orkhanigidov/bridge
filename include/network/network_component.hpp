@@ -27,7 +27,7 @@ namespace network {
         }());
 
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper)([] {
-            auto mapper = oatpp::data::mapping::ObjectMapper::createShared();
+            auto mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
             mapper->getSerializer()->getConfig()->useBeautifier = true;
             return mapper;
         }());
