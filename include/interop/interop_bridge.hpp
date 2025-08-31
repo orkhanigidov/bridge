@@ -1,7 +1,12 @@
 #pragma once
 
+#include "types/execution_request.hpp"
+#include "types/execution_response.hpp"
+
 namespace interop {
-    bool execute_script(const fs::path& script_path,
-                        const fs::path& input_data_path,
-                        const fs::path& output_data_path);
+
+    bool initialize_bindings();
+
+    types::ExecutionResponse execute_script(const types::ExecutionRequest* request);
+
 } // namespace interop
