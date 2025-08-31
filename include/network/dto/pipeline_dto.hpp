@@ -12,7 +12,7 @@ namespace network::dto {
     class PipelineDto final : public oatpp::DTO {
         DTO_INIT(PipelineDto, DTO)
 
-        DTO_FIELD(String, pipeline_name, "name");
+        DTO_FIELD(String, pipeline_task, "task");
         DTO_FIELD(List<Object<PipelineStepDto>>, pipeline_steps, "steps");
     };
 
