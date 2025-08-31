@@ -1,29 +1,21 @@
 #pragma once
 
-#include "pipeline_step_dto.hpp"
 #include <oatpp/core/Types.hpp>
 #include <oatpp/core/macro/codegen.hpp>
 
+#include "execution/pipeline/pipeline_step.hpp"
+
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace dto {
+namespace network::dto {
+
     class PipelineDto final : public oatpp::DTO {
         DTO_INIT(PipelineDto, DTO)
 
-        DTO_FIELD_INFO(id)
-        {
-            info->description = "Unique identifier for the pipeline";
-            info->required = true;
-        }
-        DTO_FIELD(String, id);
-
-        DTO_FIELD_INFO(steps)
-        {
-            info->description = "Ordered list of pipeline steps";
-            info->required = true;
-        }
-        DTO_FIELD(List<Object<PipelineStepDto>>, steps);
+        DTO_FIELD(String, pipeline_name, "name");
+        DTO_FIELD(List<Object<PipelineStepDto>>, pipeline_steps, "steps");
     };
-} // namespace dto
+
+} // namespace network::dto
 
 #include OATPP_CODEGEN_END(DTO)
