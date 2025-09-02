@@ -27,7 +27,7 @@ namespace network {
             m_port = static_cast<v_uint16>(port);
         }
         catch (const std::exception& e) {
-            throw std::invalid_argument(std::format("Invalid port number format:{}, ({})", port_arg, e.what()));
+            throw std::invalid_argument(std::format("Invalid port number format: {}", e.what()));
         }
     }
 
