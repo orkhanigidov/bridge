@@ -1,14 +1,14 @@
-# IDE/editor directories
+# IDE and editor files
 .idea/
-.vscode/
 .vs/
+.vscode/
 
-# Build directories
+# Build artifacts
 build/
 cmake-build-*/
+tools/codegen/build/
+tools/codegen/cmake-build-*/
 
-# Auto-generated files
-src/bindings/lua/generated/
-
-# Local configuration
+# Environment and configuration files
+.env
 config/registry_config.yaml

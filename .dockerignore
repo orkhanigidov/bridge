@@ -1,3 +1,22 @@
-.venv/
-cmake-build-*/
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.idea/
+.vs/
+.vscode/
+
+# Build artifacts
 build/
+cmake-build-*/
+tools/codegen/build/
+tools/codegen/cmake-build-*/
+
+# Testing and coverage
+tests/
+
+# Docker files
+Dockerfile
+.dockerignore
