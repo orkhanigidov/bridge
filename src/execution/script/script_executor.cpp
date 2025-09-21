@@ -1,77 +1,74 @@
-#include "engine/execution/script/script_executor.hpp"
+#include "execution/script/script_executor.hpp"
 
-#include "engine/lua_bindings/lua_registrar.hpp"
-#include "pch.hpp"
+#include <sol/sol.hpp>
 
-namespace engine::execution
-{
-    void script_executor::execute_from_file(const std::filesystem::path& script_path)
+#include "bindings/lua/registry.hpp"
+
+namespace execution::script {
+
+    interop::types::ExecutionResponse ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
     {
         const auto normalized_path = normalize_path(script_path);
-        validate_path(normalized_path);
 
-        auto& lua = lua_bindings::lua_registrar::instance().get_lua();
+        auto& lua = bindings::lua::Registry::instance().lua();
 
-        try
-        {
-            const auto result = lua.safe_script_file(normalized_path);
-            if (!result.valid())
-            {
-                const sol::error error = result;
-                throw std::runtime_error("Lua script execution failed: " +
-                                         std::string(error.what()));
+        interop::types::ExecutionResponse result;
+        auto start = std::chrono::high_resolution_clock::now();
+
+        try {
+            const auto lua_result = lua.safe_script_file(normalized_path.string());
+            if (!lua_result.valid()) {
+                const sol::error error = lua_result;
+                result.status = interop::types::ExecutionStatus::Failure;
+                result.error.message = ("Lua script execution failed: " + std::string(error.what())).c_str();
+            }
+            else {
+                result.status = interop::types::ExecutionStatus::Success;
             }
         }
-        catch (const sol::error& e)
-        {
-            throw std::runtime_error("Error executing script '" + script_path.string() +
-                                     "': " + e.what());
+        catch (const sol::error& e) {
+            result.status = interop::types::ExecutionStatus::Failure;
+            result.error.message = ("Error executing script '" + script_path.string() + "': " + e.what()).c_str();
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        result.metadata.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        return result;
     }
 
-    void script_executor::execute_from_string(std::string_view script_content)
+    interop::types::ExecutionResponse ScriptExecutor::execute_from_string(const std::string& script_content)
     {
-        if (script_content.empty())
-        {
-            throw std::invalid_argument("Script content cannot be empty.");
-        }
+        auto& lua = bindings::lua::Registry::instance().lua();
 
-        auto& lua = lua_bindings::lua_registrar::instance().get_lua();
+        interop::types::ExecutionResponse result;
+        auto start = std::chrono::high_resolution_clock::now();
 
-        try
-        {
-            const auto result = lua.safe_script(script_content);
-            if (!result.valid())
-            {
-                const sol::error error = result;
-                throw std::runtime_error("Lua script execution failed: " +
-                                         std::string(error.what()));
+        try {
+            const auto lua_result = lua.safe_script(script_content);
+            if (!lua_result.valid()) {
+                const sol::error error = lua_result;
+                result.status = interop::types::ExecutionStatus::Failure;
+                result.error.message = ("Lua script execution failed: " + std::string(error.what())).c_str();
+            }
+            else {
+                result.status = interop::types::ExecutionStatus::Success;
             }
         }
-        catch (const sol::error& e)
-        {
-            throw std::runtime_error("Error executing script from string: " +
-                                     std::string(e.what()));
+        catch (const sol::error& e) {
+            result.status = interop::types::ExecutionStatus::Failure;
+            result.error.message = ("Error executing script from string: " + std::string(e.what())).c_str();
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        result.metadata.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        return result;
     }
 
-    std::filesystem::path script_executor::normalize_path(const std::filesystem::path& path)
+    fs::path ScriptExecutor::normalize_path(const fs::path& path)
     {
-        auto normalized_path_str = path.string();
-        std::replace(normalized_path_str.begin(), normalized_path_str.end(), '\\', '/');
-        return std::filesystem::absolute(normalized_path_str);
+        auto normalized = path.string();
+        std::ranges::replace(normalized, '\\', '/');
+        return fs::absolute(normalized);
     }
 
-    void script_executor::validate_path(const std::filesystem::path& path)
-    {
-        if (!std::filesystem::exists(path))
-        {
-            throw std::invalid_argument("Script path does not exist: " + path.string());
-        }
-
-        if (!std::filesystem::is_regular_file(path))
-        {
-            throw std::invalid_argument("Script path is not a regular file: " + path.string());
-        }
-    }
-} // namespace engine::execution
+} // namespace execution::script

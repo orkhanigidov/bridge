@@ -1,94 +1,61 @@
-#include "engine/execution/execution_engine.hpp"
+#include "execution/execution_engine.hpp"
+#include "execution/script/script_executor.hpp"
 
-#include "engine/execution/script/script_executor.hpp"
+namespace execution {
 
-namespace engine::execution
-{
-    ExecutionEngine::ExecutionEngine(ExecutionType exec_type)
+    interop::types::ExecutionResponse ExecutionEngine::execute_script(const std::string& script) const
     {
-        if (exec_type == ExecutionType::Json_Pipeline)
-        {
-            m_pipeline_executor = std::make_unique<pipeline::PipelineExecutor>();
+        if (script.empty()) {
+          return interop::types::ExecutionResponse(
+            interop::types::ExecutionStatus::Failure,
+            nullptr,
+            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Input, "Script content cannot be empty"),
+            {});
         }
-        else
-        {
-            m_script_executor = std::make_unique<script::ScriptExecutor>();
+
+        if (m_execution_type != interop::types::ExecutionType::Lua_Script) {
+          return interop::types::ExecutionResponse(
+            interop::types::ExecutionStatus::Failure,
+            nullptr,
+            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Argument, "Execution engine not configured for script execution"),
+            {});
         }
+
+        return script::ScriptExecutor::execute_from_string(script);
     }
 
-    void ExecutionEngine::execute_script(const std::string& script) const
+    interop::types::ExecutionResponse ExecutionEngine::execute_script_file(const std::filesystem::path& path) const
     {
-        if (!m_script_executor)
-        {
-            throw std::runtime_error("Script executor is not initialized");
+        if (!is_valid_path(path)) {
+          return interop::types::ExecutionResponse(
+            interop::types::ExecutionStatus::Failure,
+            nullptr,
+            interop::types::ExecutionError(interop::types::ExecutionErrorType::File_Not_Found, "Invalid or missing script file"),
+            {});
         }
 
-        if (script.empty())
-        {
-            throw std::invalid_argument("Script content cannot be empty");
+        if (m_execution_type != interop::types::ExecutionType::Lua_Script) {
+          return interop::types::ExecutionResponse(
+            interop::types::ExecutionStatus::Failure,
+            nullptr,
+            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Argument, "Execution engine not configured for script execution"),
+            {});
         }
 
-        m_script_executor->execute_from_string(script);
+        return script::ScriptExecutor::execute_from_file(path);
     }
 
-    void ExecutionEngine::execute_script_file(const std::filesystem::path& path) const
-    {
-        if (!m_script_executor)
-        {
-            throw std::runtime_error("Script executor is not initialized");
-        }
-
-        if (!is_valid_path(path))
-        {
-            throw std::invalid_argument("Invalid script file path: " + path.string());
-        }
-
-        m_script_executor->execute_from_file(path);
-    }
-
-    void ExecutionEngine::execute_pipeline(const std::string& json) const
-    {
-        if (!m_pipeline_executor)
-        {
-            throw std::runtime_error("Pipeline executor is not initialized");
-        }
-
-        if (json.empty())
-        {
-            throw std::invalid_argument("JSON content cannot be empty");
-        }
-
-        // m_pipeline_executor->execute_from_string(json);
-    }
-
-    void ExecutionEngine::execute_pipeline_file(const fs::path& path) const
-    {
-        if (!m_pipeline_executor)
-        {
-            throw std::runtime_error("Pipeline executor is not initialized");
-        }
-
-        if (!is_valid_path(path))
-        {
-            throw std::invalid_argument("Invalid json pipeline path: " + path.string());
-        }
-
-        // m_pipeline_executor->execute_from_file(path);
-    }
-
-    bool ExecutionEngine::is_valid_path(const fs::path& file_path) const
-    {
-        if (!fs::exists(file_path))
-        {
-            std::cerr << "File does not exist: " << file_path << std::endl;
+    bool ExecutionEngine::is_valid_path(const fs::path& path) {
+        if (!fs::exists(path)) {
+            std::cerr << "File does not exist: " << path << std::endl;
             return false;
         }
 
-        if (!fs::is_regular_file(file_path))
-        {
-            std::cerr << "File is not a regular file: " << file_path << std::endl;
+        if (!fs::is_regular_file(path)) {
+            std::cerr << "File is not a regular file: " << path << std::endl;
             return false;
         }
         return true;
     }
-} // namespace engine::execution
+
+} // namespace execution
