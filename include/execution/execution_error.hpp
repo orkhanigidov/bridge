@@ -3,16 +3,18 @@
 #include "execution_error_type.hpp"
 
 namespace execution {
+
     class ExecutionError final : public std::runtime_error {
     public:
-        explicit ExecutionError(ExecutionErrorType error_type,
-                                std::string message)
-            : std::runtime_error(std::move(message)), error_type_(error_type)
-        {}
+        explicit ExecutionError(ExecutionErrorType error_type, const std::string& message)
+            : std::runtime_error(message), m_error_type(error_type) {}
 
-        ExecutionErrorType type() const noexcept { return error_type_; }
+        ExecutionErrorType error_type() const noexcept {
+            return m_error_type;
+        }
 
     private:
-        ExecutionErrorType error_type_;
+        ExecutionErrorType m_error_type;
     };
+
 } // namespace execution
