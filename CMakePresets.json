@@ -1,24 +1,32 @@
 {
-  "version": 3,
+  "version": 9,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 25,
+    "minor": 31,
     "patch": 0
   },
   "configurePresets": [
     {
-      "name": "Debug",
-      "displayName": "Debug Config",
+      "name": "common",
+      "description": "Common settings for all configurations",
+      "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "debug",
+      "inherits": "common",
+      "displayName": "Debug",
+      "description": "Debug configuration",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "Release",
-      "inherits": "Debug",
-      "displayName": "Release Config",
+      "name": "release",
+      "inherits": "common",
+      "displayName": "Release",
+      "description": "Release configuration",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -26,14 +34,25 @@
   ],
   "buildPresets": [
     {
-      "name": "Debug",
-      "configurePreset": "Debug",
-      "configuration": "Debug"
+      "name": "debug",
+      "configurePreset": "debug"
     },
     {
-      "name": "Release",
-      "configurePreset": "Release",
-      "configuration": "Release"
+      "name": "release",
+      "configurePreset": "release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "common",
+      "configurePreset": "common",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
     }
   ]
 }
