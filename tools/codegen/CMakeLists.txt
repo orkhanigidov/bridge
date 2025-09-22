@@ -46,5 +46,7 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC
         ${CODEGEN_INCLUDE_DIR}/pch.hpp
 )
 
-message(STATUS "")
-message(STATUS "")
+message(STATUS "Codegen project configuration completed successfully!")
+message(STATUS " - Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS " - C++ Standard: C++${CMAKE_CXX_STANDARD}")
+message(STATUS " - Build type: ${CMAKE_BUILD_TYPE}")
