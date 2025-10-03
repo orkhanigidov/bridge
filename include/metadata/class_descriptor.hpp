@@ -4,7 +4,7 @@
 #include "function_descriptor.hpp"
 #include "variable_descriptor.hpp"
 
-namespace metadata {
+namespace engine::metadata {
 
     class ClassDescriptor final {
     public:
@@ -76,4 +76,4 @@ namespace metadata {
         std::vector<FunctionDescriptor> m_member_functions;
     };
 
-} // namespace metadata
+} // namespace engine::metadata

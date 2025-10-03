@@ -9,7 +9,7 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto::execution {
+namespace engine::network::dto::execution {
     
     ENUM(ExecutionStatus, v_int8,
         VALUE(SUCCESS, 0, "success"),
@@ -27,6 +27,6 @@ namespace network::dto::execution {
         DTO_FIELD(Object<MetadataDto>, metadata);
     };
 
-} // namespace network::dto::execution
+} // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

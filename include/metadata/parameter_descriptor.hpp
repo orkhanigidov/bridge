@@ -1,6 +1,6 @@
 #pragma once
 
-namespace metadata {
+namespace engine::metadata {
 
     class ParameterDescriptor final {
     public:
@@ -36,4 +36,4 @@ namespace metadata {
         std::string m_type_name;
     };
 
-} // namespace metadata
+} // namespace engine::metadata

@@ -5,7 +5,7 @@
 
 #include <sol/sol.hpp>
 
-namespace bindings::lua {
+namespace engine::bindings::lua {
 
     class Registry final {
     public:
@@ -47,4 +47,4 @@ namespace bindings::lua {
     void register_non_members(sol::state& lua);
     void register_manual_bindings(sol::state& lua);
 
-} // namespace bindings::lua
+} // namespace engine::bindings::lua

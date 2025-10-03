@@ -3,7 +3,7 @@
 #include <oatpp/core/parser/Caret.hpp>
 #include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 
-namespace serialization {
+namespace engine::serialization {
     
     oatpp::Object<network::dto::execution::RequestDto> JsonSerializer::from_json(const oatpp::String& json_data) const
     {
@@ -50,4 +50,4 @@ namespace serialization {
         }
     }
 
-} // namespace serialization
+} // namespace engine::serialization

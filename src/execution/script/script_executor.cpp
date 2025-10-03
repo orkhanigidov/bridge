@@ -4,7 +4,7 @@
 
 #include "bindings/lua/registry.hpp"
 
-namespace execution::script {
+namespace engine::execution::script {
 
     interop::types::ExecutionResponse ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
     {
@@ -71,4 +71,4 @@ namespace execution::script {
         return fs::absolute(normalized);
     }
 
-} // namespace execution::script
+} // namespace engine::execution::script

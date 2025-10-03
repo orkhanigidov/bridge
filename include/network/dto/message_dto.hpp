@@ -5,7 +5,7 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto {
+namespace engine::network::dto {
 
     class MessageDto final : public oatpp::DTO {
         DTO_INIT(MessageDto, DTO)
@@ -14,6 +14,6 @@ namespace network::dto {
         DTO_FIELD(String, message);
     };
 
-} // namespace network::dto
+} // namespace engine::network::dto
 
 #include OATPP_CODEGEN_END(DTO)

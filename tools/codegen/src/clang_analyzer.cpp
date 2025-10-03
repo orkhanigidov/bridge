@@ -47,7 +47,7 @@ namespace codegen {
             auto class_name = get_spelling(cursor);
 
             if (analyzer->m_target_classes.find(class_name) != analyzer->m_target_classes.end()) {
-                metadata::ClassDescriptor class_desc;
+                engine::metadata::ClassDescriptor class_desc;
                 class_desc.set_name(class_name);
                 analyzer->m_found_classes.emplace_back(class_desc);
 
@@ -63,7 +63,7 @@ namespace codegen {
                                 auto ctor_name = get_spelling(child_cursor);
                                 auto class_name = get_spelling(parent_cursor);
 
-                                metadata::ConstructorDescriptor ctor_desc;
+                                engine::metadata::ConstructorDescriptor ctor_desc;
                                 ctor_desc.set_class_name(ctor_name);
 
                                 std::string overload_signature;
@@ -91,7 +91,7 @@ namespace codegen {
                                 const auto& target_methods = analyzer->m_target_classes.at(class_name);
 
                                 if (std::find(target_methods.begin(), target_methods.end(), method_name) != target_methods.end()) {
-                                    metadata::FunctionDescriptor method_desc;
+                                    engine::metadata::FunctionDescriptor method_desc;
                                     method_desc.set_name(method_name);
                                     method_desc.set_return_type_name(get_result_type(child_cursor));
                                     if (clang_CXXMethod_isStatic(child_cursor)) {
@@ -121,7 +121,7 @@ namespace codegen {
                                     std::string var_name = get_spelling(child_cursor);
                                     std::string var_type = get_type(child_cursor);
 
-                                    metadata::VariableDescriptor var_desc;
+                                    engine::metadata::VariableDescriptor var_desc;
                                     var_desc.set_name(var_name);
                                     var_desc.set_type_name(var_type);
                                     if (clang_Cursor_getStorageClass(child_cursor) == CX_SC_Static) {
@@ -140,7 +140,7 @@ namespace codegen {
             auto func_name = get_spelling(cursor);
 
             if (std::find(analyzer->m_target_free_functions.begin(), analyzer->m_target_free_functions.end(), func_name) != analyzer->m_target_free_functions.end()) {
-                metadata::FunctionDescriptor func_desc;
+                engine::metadata::FunctionDescriptor func_desc;
                 func_desc.set_name(func_name);
                 func_desc.set_return_type_name(get_result_type(cursor));
 
@@ -207,15 +207,15 @@ namespace codegen {
         return type_name;
     }
 
-    std::vector<metadata::ParameterDescriptor> ClangAnalyzer::get_arguments(const CXCursor& cursor)
+    std::vector<engine::metadata::ParameterDescriptor> ClangAnalyzer::get_arguments(const CXCursor& cursor)
     {
-        std::vector<metadata::ParameterDescriptor> params;
+        std::vector<engine::metadata::ParameterDescriptor> params;
         const int num_args = clang_Cursor_getNumArguments(cursor);
         for (int i = 0; i < num_args; ++i) {
             CXCursor param_cursor = clang_Cursor_getArgument(cursor, i);
             auto param_name = get_spelling(param_cursor);
             auto param_type = get_qualified_type(param_cursor);
-            metadata::ParameterDescriptor param_desc;
+            engine::metadata::ParameterDescriptor param_desc;
             param_desc.set_name(param_name);
             param_desc.set_type_name(param_type);
             params.push_back(param_desc);
@@ -225,13 +225,13 @@ namespace codegen {
 
     std::string ClangAnalyzer::get_include_path(const CXCursor& cursor)
     {
-        CXSourceLocation location = clang_getCursorLocation(cursor);
+        const CXSourceLocation location = clang_getCursorLocation(cursor);
         CXString filename;
         unsigned line, column;
         clang_getPresumedLocation(location, &filename, &line, &column);
         std::string path = clang_getCString(filename);
         clang_disposeString(filename);
-        std::replace(path.begin(), path.end(), '\\', '/');
+        std::ranges::replace(path, '\\', '/');
         return path;
     }
 

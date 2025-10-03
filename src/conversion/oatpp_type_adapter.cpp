@@ -3,14 +3,14 @@
 namespace {
     
     template<typename OatppType, typename CppType>
-    conversion::NativeVariant extract_or_default(const oatpp::Any& any, const CppType& default_value) {
+    engine::conversion::NativeVariant extract_or_default(const oatpp::Any& any, const CppType& default_value) {
         const auto v = any.retrieve<OatppType>();
-        return v ? v.getValue(default_value) : std::monostate{};
+        return v ? engine::conversion::NativeVariant{v.getValue(default_value)} : std::monostate{};
     }
 
 }
 
-namespace conversion {
+namespace engine::conversion {
 
     NativeVariant OatppTypeAdapter::from_oatpp(const oatpp::Any& any)
     {
@@ -70,4 +70,4 @@ namespace conversion {
         return std::monostate{};
     }
 
-} // namespace conversion
+} // namespace engine::conversion

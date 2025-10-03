@@ -4,7 +4,7 @@
 #include "interop/types/execution_response.hpp"
 #include "interop/types/execution_type.hpp"
 
-namespace execution {
+namespace engine::execution {
 
     class ExecutionEngine final {
     public:
@@ -31,4 +31,4 @@ namespace execution {
         static bool is_valid_path(const fs::path& path);
     };
 
-} // namespace execution
+} // namespace engine::execution

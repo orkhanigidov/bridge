@@ -5,7 +5,7 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto::execution {
+namespace engine::network::dto::execution {
 
     class ErrorDto final : public oatpp::DTO {
         DTO_INIT(ErrorDto, DTO)
@@ -13,6 +13,6 @@ namespace network::dto::execution {
         DTO_FIELD(String, message);
     };
 
-} // namespace network::dto::execution
+} // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

@@ -2,7 +2,7 @@
 
 #include "interop/types/execution_response.hpp"
 
-namespace execution::script {
+namespace engine::execution::script {
 
     class ScriptExecutor final {
     public:
@@ -15,4 +15,4 @@ namespace execution::script {
         static fs::path normalize_path(const fs::path& path);
     };
 
-} // namespace execution::script
+} // namespace engine::execution::script

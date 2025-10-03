@@ -2,7 +2,7 @@
 
 #include <sol/sol.hpp>
 
-namespace bindings::lua {
+namespace engine::bindings::lua {
 
     class NonMemberRegistrar final {
     public:
@@ -21,4 +21,4 @@ namespace bindings::lua {
         sol::state& m_lua;
     };
 
-} // namespace bindings::lua
+} // namespace engine::bindings::lua

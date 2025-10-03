@@ -1,7 +1,7 @@
 #include "execution/execution_engine.hpp"
 #include "execution/script/script_executor.hpp"
 
-namespace execution {
+namespace engine::execution {
 
     interop::types::ExecutionResponse ExecutionEngine::execute_script(const std::string& script) const
     {
@@ -58,4 +58,4 @@ namespace execution {
         return true;
     }
 
-} // namespace execution
+} // namespace engine::execution

@@ -8,7 +8,7 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto::execution {
+namespace engine::network::dto::execution {
 
     ENUM(ExecutionType, v_int8,
         VALUE(LUA_SCRIPT, 0, "lua_script"),
@@ -25,6 +25,6 @@ namespace network::dto::execution {
         DTO_FIELD(Object<OptionsDto>, options);
     };
 
-} // namespace network::dto::execution
+} // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

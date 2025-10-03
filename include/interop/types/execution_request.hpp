@@ -3,7 +3,7 @@
 #include "execution_options.hpp"
 #include "execution_type.hpp"
 
-namespace interop::types {
+namespace engine::interop::types {
 
     struct ExecutionRequest {
         ExecutionType type;
@@ -22,4 +22,4 @@ namespace interop::types {
         options(options_) {}
     };
 
-} // namespace interop::types
+} // namespace engine::interop::types

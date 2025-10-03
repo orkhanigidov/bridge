@@ -3,7 +3,7 @@
 #include "parameter_descriptor.hpp"
 #include "scope.hpp"
 
-namespace metadata {
+namespace engine::metadata {
 
     class FunctionDescriptor final {
     public:
@@ -100,4 +100,4 @@ namespace metadata {
         std::string m_signature;
     };
 
-} // namespace metadata
+} // namespace engine::metadata

@@ -4,7 +4,7 @@
 
 #include "network_component.hpp"
 
-namespace network {
+namespace engine::network {
 
     class ServerManager final {
     public:
@@ -34,4 +34,4 @@ namespace network {
         bool m_is_running{false};
     };
 
-} // namespace network
+} // namespace engine::network

@@ -2,7 +2,7 @@
 
 #include "scope.hpp"
 
-namespace metadata {
+namespace engine::metadata {
 
     class VariableDescriptor final {
     public:
@@ -75,4 +75,4 @@ namespace metadata {
         bool m_is_const{false};
     };
 
-} // namespace metadata
+} // namespace engine::metadata

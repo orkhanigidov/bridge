@@ -2,7 +2,7 @@
 
 #include "parameter_descriptor.hpp"
 
-namespace metadata {
+namespace engine::metadata {
 
     class ConstructorDescriptor final {
     public:
@@ -50,4 +50,4 @@ namespace metadata {
         std::string m_signature;
     };
 
-} // namespace metadata
+} // namespace engine::metadata

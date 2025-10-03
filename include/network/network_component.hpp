@@ -7,7 +7,7 @@
 #include <oatpp/web/server/HttpConnectionHandler.hpp>
 #include <oatpp/web/server/HttpRouter.hpp>
 
-namespace network {
+namespace engine::network {
     
     class NetworkComponent final {
     public:
@@ -38,4 +38,4 @@ namespace network {
         v_uint16 m_port{8000};
     };
 
-} // namespace network
+} // namespace engine::network

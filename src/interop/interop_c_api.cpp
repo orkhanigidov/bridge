@@ -3,13 +3,13 @@
 #include "interop/interop_bridge.hpp"
 
 bool InitializeBindings() {
-    return interop::initialize_bindings();
+    return engine::interop::initialize_bindings();
 }
 
-interop::types::ExecutionResponse ExecuteScript(const interop::types::ExecutionRequest* request) {
+engine::interop::types::ExecutionResponse ExecuteScript(const engine::interop::types::ExecutionRequest* request) {
     if (!request) {
         return {};
     }
     
-    return interop::execute_script(request);
+    return engine::interop::execute_script(request);
 }

@@ -5,7 +5,7 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace network::dto {
+namespace engine::network::dto {
 
     class PipelineStepDto final : public oatpp::DTO {
         DTO_INIT(PipelineStepDto, DTO)
@@ -17,6 +17,6 @@ namespace network::dto {
         DTO_FIELD(List<Any>, function_args, "using");
     };
 
-} // namespace network::dto
+} // namespace engine::network::dto
 
 #include OATPP_CODEGEN_END(DTO)

@@ -11,7 +11,7 @@ int main(int argc, const char* argv[]) {
     oatpp::base::CommandLineArguments cmd_args(argc, argv);
 
     try {
-        network::ServerManager server_manager(cmd_args);
+        engine::network::ServerManager server_manager(cmd_args);
         server_manager.initialize();
         server_manager.start();
     } catch (const std::exception& e) {

@@ -4,7 +4,7 @@
 #include "execution_metadata.hpp"
 #include "execution_status.hpp"
 
-namespace interop::types {
+namespace engine::interop::types {
 
     struct ExecutionResponse {
         ExecutionStatus status;
@@ -23,4 +23,4 @@ namespace interop::types {
         metadata(metadata_) {}
     };
 
-} // namespace interop::types
+} // namespace engine::interop::types

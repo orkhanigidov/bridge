@@ -2,7 +2,7 @@
 
 #include <sol/sol.hpp>
 
-namespace bindings::lua {
+namespace engine::bindings::lua {
 
     template<typename T>
     class MemberRegistrar final {
@@ -51,4 +51,4 @@ namespace bindings::lua {
         sol::usertype<T> m_usertype;
     };
 
-} // namespace bindings::lua
+} // namespace engine::bindings::lua

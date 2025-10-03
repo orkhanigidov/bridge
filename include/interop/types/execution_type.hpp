@@ -1,6 +1,6 @@
 #pragma once
 
-namespace interop::types {
+namespace engine::interop::types {
 
     enum class ExecutionType : uint8_t {
         Lua_Script,
@@ -8,4 +8,4 @@ namespace interop::types {
         Unknown
     };
 
-} // namespace interop::types
+} // namespace engine::interop::types

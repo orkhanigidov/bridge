@@ -3,7 +3,7 @@
 #include "bindings/lua/registry.hpp"
 #include "execution/execution_engine.hpp"
 
-namespace interop
+namespace engine::interop
 {
 
     static std::once_flag lua_bindings_init_flag;
@@ -51,4 +51,4 @@ namespace interop
         }
     }
 
-} // namespace interop
+} // namespace engine::interop

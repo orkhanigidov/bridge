@@ -3,10 +3,10 @@
 #include "types/execution_request.hpp"
 #include "types/execution_response.hpp"
 
-namespace interop {
+namespace engine::interop {
 
     bool initialize_bindings();
 
     types::ExecutionResponse execute_script(const types::ExecutionRequest* request);
 
-} // namespace interop
+} // namespace engine::interop

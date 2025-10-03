@@ -1,6 +1,6 @@
 #include "bindings/lua/registry.hpp"
 
-namespace bindings::lua {
+namespace engine::bindings::lua {
 
     Registry::Registry()
     {
@@ -86,4 +86,4 @@ namespace bindings::lua {
         return nullptr;
     }
 
-} // namespace bindings::lua
+} // namespace engine::bindings::lua

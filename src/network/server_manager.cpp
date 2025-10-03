@@ -2,7 +2,7 @@
 
 #include "network/controller/execution_controller.hpp"
 
-namespace network {
+namespace engine::network {
 
     ServerManager::~ServerManager() noexcept
     {
@@ -79,4 +79,4 @@ namespace network {
         }
     }
 
-} // namespace network
+} // namespace engine::network

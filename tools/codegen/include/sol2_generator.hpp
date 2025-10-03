@@ -4,8 +4,8 @@
 
 namespace codegen {
 
-    using class_descriptor = metadata::ClassDescriptor;
-    using function_descriptor = metadata::FunctionDescriptor;
+    using class_descriptor = engine::metadata::ClassDescriptor;
+    using function_descriptor = engine::metadata::FunctionDescriptor;
 
     class Sol2Generator final {
     public:

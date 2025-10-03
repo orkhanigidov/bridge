@@ -11,7 +11,7 @@ namespace {
 
 }
 
-namespace network {
+namespace engine::network {
 
     NetworkComponent::NetworkComponent(const oatpp::base::CommandLineArguments& cmd_args): m_cmd_args(cmd_args)
     {
@@ -31,4 +31,4 @@ namespace network {
         }
     }
 
-} // namespace network
+} // namespace engine::network

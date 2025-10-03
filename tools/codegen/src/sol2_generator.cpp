@@ -13,9 +13,9 @@ namespace codegen {
         }
 
         write_line(out, 0, "// Auto-generated file. Do not edit manually!", 2);
-        write_line(out, 0, "#include \"engine/bindings/lua/class_registrar.hpp\"");
-        write_line(out, 0, "#include \"engine/bindings/lua/function_registrar.hpp\"");
-        write_line(out, 0, "#include \"engine/bindings/lua/registrar.hpp\"", 2);
+        write_line(out, 0, "#include \"bindings/lua/member_registrar.hpp\"");
+        write_line(out, 0, "#include \"bindings/lua/non_member_registrar.hpp\"");
+        write_line(out, 0, "#include \"bindings/lua/registry.hpp\"", 2);
 
         for (const auto& include: includes) {
             write_line(out, 0, std::format("#include <{}>", include));
@@ -39,14 +39,14 @@ namespace codegen {
 
     void Sol2Generator::write_class_registrations(const std::vector<class_descriptor>& classes, std::ofstream& out)
     {
-        write_line(out, 1, "void Registrar::register_classes(sol::state& lua)");
+        write_line(out, 1, "void register_members(sol::state& lua)");
         write_line(out, 1, "{");
 
         std::unordered_set<std::string> registered_bases;
         for (const auto& class_: classes) {
             for (const auto& base: class_.base_class_names()) {
                 if (registered_bases.find(base) == registered_bases.end()) {
-                    write_line(out, 2, std::format("ClassRegistrar<{}>(lua, \"{}\");", base, base));
+                    write_line(out, 2, std::format("MemberRegistrar<{}>(lua, \"{}\");", base, base));
                 }
                 registered_bases.insert(base);
             }
@@ -54,18 +54,18 @@ namespace codegen {
         write_line(out, 0, "");
 
         for (const auto& class_: classes) {
-            write_line(out, 2, std::format("ClassRegistrar<{}>(lua, \"{}\")", class_.name(), class_.name()));
+            write_line(out, 2, std::format("MemberRegistrar<{}>(lua, \"{}\")", class_.name(), class_.name()));
 
             if (!class_.constructors().empty()) {
                 for (const auto& ctor: class_.constructors()) {
                     write_line(out, 3, std::format(".constructor<{}>()", ctor.signature()));
                 }
-                write_line(out, 3, ".enable_gc()");
+                write_line(out, 3, ".enable_garbage_collection()");
             }
 
             if (!class_.base_class_names().empty()) {
                 for (const auto& base: class_.base_class_names()) {
-                    write_line(out, 3, std::format(".base_classes<{}>()", base));
+                    write_line(out, 3, std::format(".bases<{}>()", base));
                 }
             }
 
@@ -83,13 +83,13 @@ namespace codegen {
             if (!class_.member_functions().empty()) {
                 for (const auto& method: class_.member_functions()) {
                     if (method.is_const()) {
-                        write_line(out, 3, std::format(".method(\"{}\", sol::resolve<{}{} const>(&{}::{}))",
+                        write_line(out, 3, std::format(".function(\"{}\", sol::resolve<{}{} const>(&{}::{}))",
                                    method.name(), method.return_type_name(),
                                    method.signature(), class_.name(),
                                    method.name()));
                     }
                     else {
-                        write_line(out, 3, std::format(".method(\"{}\", sol::resolve<{}{}>(&{}::{}))",
+                        write_line(out, 3, std::format(".function(\"{}\", sol::resolve<{}{}>(&{}::{}))",
                                    method.name(),
                                    method.return_type_name(),
                                    method.signature(),
@@ -104,11 +104,11 @@ namespace codegen {
 
     void Sol2Generator::write_free_function_registrations(const std::vector<function_descriptor>& free_functions, std::ofstream& out)
     {
-        write_line(out, 1, "void Registrar::register_free_functions(sol::state& lua)");
+        write_line(out, 1, "void register_non_members(sol::state& lua)");
         write_line(out, 1, "{");
 
         if (!free_functions.empty()) {
-            write_line(out, 2, "FreeFunctionRegistrar registrar(lua);");
+            write_line(out, 2, "NonMemberRegistrar registrar(lua);");
             for (const auto& func: free_functions) {
                 auto line = std::format("registrar.function(\"{}\", sol::resolve<{}{}>(&{}));",
                                         func.name(), func.return_type_name(), func.signature(), func.name());

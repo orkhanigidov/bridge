@@ -2,7 +2,7 @@
 
 #include "interop/types/execution_error_type.hpp"
 
-namespace execution {
+namespace engine::execution {
 
     class ExecutionError final : public std::runtime_error {
     public:
@@ -17,4 +17,4 @@ namespace execution {
         interop::types::ExecutionErrorType m_error_type;
     };
 
-} // namespace execution
+} // namespace engine::execution

@@ -6,7 +6,7 @@
 
 #include "network/dto/execution/request_dto.hpp"
 
-namespace serialization {
+namespace engine::serialization {
 
     class JsonSerializer final {
     public:
@@ -22,4 +22,4 @@ namespace serialization {
         bool is_valid_json(const oatpp::String& json_data) const;
     };
 
-} // namespace serialization
+} // namespace engine::serialization

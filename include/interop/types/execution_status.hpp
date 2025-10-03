@@ -1,6 +1,6 @@
 #pragma once
 
-namespace interop::types {
+namespace engine::interop::types {
 
     enum class ExecutionStatus : uint8_t {
         Success,
@@ -9,4 +9,4 @@ namespace interop::types {
         Unknown
     };
 
-} // namespace interop::types
+} // namespace engine::interop::types

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace interop::types {
+namespace engine::interop::types {
 
     enum class ExecutionErrorType : uint8_t {
         Invalid_Argument,
@@ -13,4 +13,4 @@ namespace interop::types {
         File_Not_Found
     };
 
-} // namespace interop::types
+} // namespace engine::interop::types
