@@ -13,7 +13,9 @@ namespace network::dto::execution {
     
     ENUM(ExecutionStatus, v_int8,
         VALUE(SUCCESS, 0, "success"),
-        VALUE(FAILURE, 1, "failure")
+        VALUE(FAILURE, 1, "failure"),
+        VALUE(TIMEOUT, 2, "timeout"),
+        VALUE(UNKNOWN, 99, "unknown")
     )
 
     class ResponseDto final : public oatpp::DTO {
