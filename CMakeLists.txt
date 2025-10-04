@@ -36,7 +36,7 @@ CPMAddPackage(
 CPMAddPackage(
         NAME sol2
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-        VERSION 3.5.0
+        GIT_TAG develop
 )
 
 CPMAddPackage(

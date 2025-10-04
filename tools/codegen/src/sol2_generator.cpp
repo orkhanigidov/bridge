@@ -71,11 +71,11 @@ namespace codegen {
 
             if (!class_.member_variables().empty()) {
                 for (const auto& var: class_.member_variables()) {
-                    if (!var.is_static()) {
-                        write_line(out, 3, std::format(".variable(\"{}\", &{}::{})", var.name(), class_.name(), var.name()));
+                    if (var.is_static()) {
+                        write_line(out, 3, std::format(".variable(\"{}\", {}::{})", var.name(), class_.name(), var.name()));
                     }
                     else {
-                        write_line(out, 3, std::format(".variable(\"{}\", {}::{})", var.name(), class_.name(), var.name()));
+                        write_line(out, 3, std::format(".variable(\"{}\", &{}::{})", var.name(), class_.name(), var.name()));
                     }
                 }
             }

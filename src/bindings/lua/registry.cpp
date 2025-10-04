@@ -14,7 +14,7 @@ namespace engine::bindings::lua {
 
             register_members(m_lua);
             register_non_members(m_lua);
-            register_manual_bindings(m_lua);
+            // register_manual_bindings(m_lua);
 
             const auto end_time = std::chrono::high_resolution_clock::now();
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);

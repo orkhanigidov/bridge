@@ -31,13 +31,13 @@ namespace engine::interop
         }
     }
 
-    types::ExecutionResponse execute_script(const types::ExecutionRequest& request)
+    types::ExecutionResponse execute_script(const types::ExecutionRequest* request)
     {
         try
         {
             auto& engine = execution::ExecutionEngine::instance();
-            engine.set_execution_type(request.type);
-            return engine.execute_script(request.script_path);
+            engine.set_execution_type(request->type);
+            return engine.execute_script(request->script_path);
         }
         catch (const std::exception& e)
         {

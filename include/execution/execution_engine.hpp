@@ -24,7 +24,7 @@ namespace engine::execution {
         }
 
     private:
-        ExecutionEngine();
+        ExecutionEngine() {}
 
         interop::types::ExecutionType m_execution_type{interop::types::ExecutionType::Lua_Script};
 

@@ -23,7 +23,7 @@ namespace codegen {
 
             if (const auto& file_path = entry.path(); is_header_file(file_path)) {
                 const auto relative_path = fs::relative(file_path, include_dir);
-                out << "#include " << relative_path << "\n";
+                out << "#include \"" << relative_path.generic_string() << "\"\n";
             }
         }
 

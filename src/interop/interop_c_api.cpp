@@ -1,4 +1,4 @@
-#pragma once
+#include "interop/interop_c_api.hpp"
 
 #include "interop/interop_bridge.hpp"
 
