@@ -7,7 +7,7 @@
 namespace engine::interop::types {
 
     struct ExecutionError {
-        ExecutionErrorType error_type;
+        ExecutionErrorType type;
         char* message;
     };
 

@@ -8,8 +8,8 @@ namespace engine::execution::script {
     public:
         ScriptExecutor() = default;
 
-        static interop::types::ExecutionResponse execute_from_file(const fs::path& script_path);
-        static interop::types::ExecutionResponse execute_from_string(const std::string& script_content);
+        static std::unique_ptr<interop::types::ExecutionResponse> execute_from_file(const fs::path& script_path);
+        static std::unique_ptr<interop::types::ExecutionResponse> execute_from_string(const std::string& script_content);
 
     private:
         static fs::path normalize_path(const fs::path& path);

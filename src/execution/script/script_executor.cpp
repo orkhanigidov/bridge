@@ -1,68 +1,65 @@
 #include "execution/script/script_executor.hpp"
 
 #define SOL_ALL_SAFETIES_ON 1
-#include <sol/sol.hpp>
 
 #include "bindings/lua/registry.hpp"
+#include "utils/response_factory.hpp"
+
+#include <sol/sol.hpp>
 
 namespace engine::execution::script {
 
-    interop::types::ExecutionResponse ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
+    std::unique_ptr<interop::types::ExecutionResponse> ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
     {
         const auto normalized_path = normalize_path(script_path);
 
-        auto& lua = bindings::lua::Registry::instance().lua();
+        auto& lua        = bindings::lua::Registry::instance().lua();
+        const auto start = std::chrono::high_resolution_clock::now();
 
-        interop::types::ExecutionResponse result;
-        auto start = std::chrono::high_resolution_clock::now();
-
-        try {
+        try
+        {
             const auto lua_result = lua.safe_script_file(normalized_path.string());
-            if (!lua_result.valid()) {
+            if (!lua_result.valid())
+            {
                 const sol::error error = lua_result;
-                result.status = interop::types::ExecutionStatus::Failure;
-                result.error.message = ("Lua script execution failed: " + std::string(error.what())).c_str();
-            }
-            else {
-                result.status = interop::types::ExecutionStatus::Success;
+                return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Execution_Failed, error.what());
             }
         }
-        catch (const sol::error& e) {
-            result.status = interop::types::ExecutionStatus::Failure;
-            result.error.message = ("Error executing script '" + script_path.string() + "': " + e.what()).c_str();
+        catch (const sol::error& e)
+        {
+            utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Execution_Failed, e.what());
         }
 
-        auto end = std::chrono::high_resolution_clock::now();
-        result.metadata.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        return result;
+        const auto end                         = std::chrono::high_resolution_clock::now();
+        const auto duration_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        return utils::ResponseFactory::create_success(duration_milliseconds);
     }
 
-    interop::types::ExecutionResponse ScriptExecutor::execute_from_string(const std::string& script_content)
+    std::unique_ptr<interop::types::ExecutionResponse> ScriptExecutor::execute_from_string(const std::string& script_content)
     {
         auto& lua = bindings::lua::Registry::instance().lua();
+        const auto start = std::chrono::high_resolution_clock::now();
 
-        interop::types::ExecutionResponse result;
-        auto start = std::chrono::high_resolution_clock::now();
-
-        try {
+        try
+        {
             const auto lua_result = lua.safe_script(script_content);
-            if (!lua_result.valid()) {
+            if (!lua_result.valid())
+            {
                 const sol::error error = lua_result;
-                result.status = interop::types::ExecutionStatus::Failure;
-                result.error.message = ("Lua script execution failed: " + std::string(error.what())).c_str();
-            }
-            else {
-                result.status = interop::types::ExecutionStatus::Success;
+                return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
+                                                            interop::types::ExecutionErrorType::Execution_Failed,
+                                                            error.what());
             }
         }
-        catch (const sol::error& e) {
-            result.status = interop::types::ExecutionStatus::Failure;
-            result.error.message = ("Error executing script from string: " + std::string(e.what())).c_str();
+        catch (const sol::error& e)
+        {
+            utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
+                                                 interop::types::ExecutionErrorType::Execution_Failed, e.what());
         }
 
-        auto end = std::chrono::high_resolution_clock::now();
-        result.metadata.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        return result;
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto duration_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        return utils::ResponseFactory::create_success(duration_milliseconds);
     }
 
     fs::path ScriptExecutor::normalize_path(const fs::path& path)

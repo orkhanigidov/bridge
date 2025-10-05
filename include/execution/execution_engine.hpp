@@ -14,8 +14,8 @@ namespace engine::execution {
             return instance;
         }
 
-        interop::types::ExecutionResponse execute_script(const std::string &script) const;
-        interop::types::ExecutionResponse execute_script_file(const fs::path& path) const;
+        std::unique_ptr<interop::types::ExecutionResponse> execute_script(const std::string &script) const;
+        std::unique_ptr<interop::types::ExecutionResponse> execute_script_file(const fs::path& path) const;
         interop::types::ExecutionResponse execute_pipeline(const std::string& json) const;
         interop::types::ExecutionResponse execute_pipeline_file(const fs::path& path) const;
 
@@ -24,7 +24,7 @@ namespace engine::execution {
         }
 
     private:
-        ExecutionEngine() {}
+        ExecutionEngine() = default;
 
         interop::types::ExecutionType m_execution_type{interop::types::ExecutionType::Lua_Script};
 

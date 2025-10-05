@@ -1,45 +1,31 @@
 #include "execution/execution_engine.hpp"
+
 #include "execution/script/script_executor.hpp"
+#include "utils/response_factory.hpp"
 
 namespace engine::execution {
 
-    interop::types::ExecutionResponse ExecutionEngine::execute_script(const std::string& script) const
+    std::unique_ptr<interop::types::ExecutionResponse> ExecutionEngine::execute_script(const std::string& script) const
     {
         if (script.empty()) {
-          return interop::types::ExecutionResponse(
-            interop::types::ExecutionStatus::Failure,
-            nullptr,
-            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Input, "Script content cannot be empty"),
-            {});
+          return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Invalid_Argument, "Script is empty");
         }
 
         if (m_execution_type != interop::types::ExecutionType::Lua_Script) {
-          return interop::types::ExecutionResponse(
-            interop::types::ExecutionStatus::Failure,
-            nullptr,
-            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Argument, "Execution engine not configured for script execution"),
-            {});
+          return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Invalid_Argument, "Invalid execution type");
         }
 
         return script::ScriptExecutor::execute_from_string(script);
     }
 
-    interop::types::ExecutionResponse ExecutionEngine::execute_script_file(const std::filesystem::path& path) const
+    std::unique_ptr<interop::types::ExecutionResponse> ExecutionEngine::execute_script_file(const std::filesystem::path& path) const
     {
         if (!is_valid_path(path)) {
-          return interop::types::ExecutionResponse(
-            interop::types::ExecutionStatus::Failure,
-            nullptr,
-            interop::types::ExecutionError(interop::types::ExecutionErrorType::File_Not_Found, "Invalid or missing script file"),
-            {});
+          return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Invalid_Argument, "Invalid file path");
         }
 
         if (m_execution_type != interop::types::ExecutionType::Lua_Script) {
-          return interop::types::ExecutionResponse(
-            interop::types::ExecutionStatus::Failure,
-            nullptr,
-            interop::types::ExecutionError(interop::types::ExecutionErrorType::Invalid_Argument, "Execution engine not configured for script execution"),
-            {});
+          return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure, interop::types::ExecutionErrorType::Invalid_Argument, "Invalid execution type");
         }
 
         return script::ScriptExecutor::execute_from_file(path);

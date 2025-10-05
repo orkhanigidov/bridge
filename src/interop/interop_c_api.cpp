@@ -6,10 +6,23 @@ bool InitializeBindings() {
     return engine::interop::initialize_bindings();
 }
 
-engine::interop::types::ExecutionResponse ExecuteScript(const engine::interop::types::ExecutionRequest* request) {
+engine::interop::types::ExecutionResponse* ExecuteScript(const engine::interop::types::ExecutionRequest* request) {
     if (!request) {
-        return {};
+        return new engine::interop::types::ExecutionResponse(engine::interop::types::ExecutionStatus::Failure);
     }
     
-    return engine::interop::execute_script(request);
+    return engine::interop::execute_script(request).release();
+}
+
+void FreeExecutionResponse(engine::interop::types::ExecutionResponse* response) {
+    if (!response) {
+        return;
+    }
+
+    if (response->error.message)
+    {
+        free(response->error.message);
+    }
+
+    free(response);
 }

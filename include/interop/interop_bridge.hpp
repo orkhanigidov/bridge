@@ -7,6 +7,6 @@ namespace engine::interop {
 
     bool initialize_bindings();
 
-    types::ExecutionResponse execute_script(const types::ExecutionRequest* request);
+    std::unique_ptr<types::ExecutionResponse> execute_script(const types::ExecutionRequest* request);
 
 } // namespace engine::interop
