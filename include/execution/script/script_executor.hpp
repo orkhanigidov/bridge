@@ -1,17 +1,19 @@
 #pragma once
 
-#include "interop/types/execution_response.hpp"
+#include "utils/response_factory.hpp"
 
-namespace engine::execution::script {
+namespace engine::execution::script
+{
 
-    class ScriptExecutor final {
-    public:
-        ScriptExecutor() = default;
+    class ScriptExecutor final
+    {
+      public:
+        ScriptExecutor() = delete;
 
-        static std::unique_ptr<interop::types::ExecutionResponse> execute_from_file(const fs::path& script_path);
-        static std::unique_ptr<interop::types::ExecutionResponse> execute_from_string(const std::string& script_content);
+        static utils::ExecutionResponsePtr execute_from_file(const fs::path& script_path);
+        static utils::ExecutionResponsePtr execute_from_string(const std::string& script_content);
 
-    private:
+      private:
         static fs::path normalize_path(const fs::path& path);
     };
 

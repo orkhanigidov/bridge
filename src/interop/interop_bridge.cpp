@@ -29,31 +29,20 @@ namespace engine::interop
         }
     }
 
-    std::unique_ptr<types::ExecutionResponse> execute_script(const types::ExecutionRequest* request)
+    utils::ExecutionResponsePtr execute(const types::ExecutionRequest* request)
     {
         try
         {
             auto& engine = execution::ExecutionEngine::instance();
-
-            if (request->type == types::ExecutionType::Lua_Script)
-            {
-                engine.set_execution_type(request->type);
-                return engine.execute_script(request->script_path);
-            }
-
-            return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
-                                                        types::ExecutionErrorType::Invalid_Argument,
-                                                        "Unsupported execution type");
+            return engine.execute_lua(types::Lua_Script, request->script_or_path);
         }
         catch (const std::exception& e)
         {
-            std::cerr << "Failed to execute script: " << e.what() << std::endl;
             return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
                                                         types::ExecutionErrorType::Execution_Failed, e.what());
         }
         catch (...)
         {
-            std::cerr << "Failed to execute script: unknown exception" << std::endl;
             return utils::ResponseFactory::create_error(
                 types::ExecutionStatus::Failure, types::ExecutionErrorType::Execution_Failed, "Unknown error occurred");
         }

@@ -2,11 +2,13 @@
 
 #pragma pack(push, 8)
 
-namespace engine::interop::types {
+namespace engine::interop::types
+{
 
-    struct ExecutionMetadata {
+    typedef struct ExecutionMetadata
+    {
         uint64_t duration_milliseconds;
-    };
+    } ExecutionMetadata;
 
 } // namespace engine::interop::types
 

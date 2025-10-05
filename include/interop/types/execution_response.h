@@ -1,18 +1,20 @@
 #pragma once
 
-#include "execution_error.hpp"
-#include "execution_metadata.hpp"
-#include "execution_status.hpp"
+#include "execution_error.h"
+#include "execution_metadata.h"
+#include "execution_status.h"
 
 #pragma pack(push, 8)
 
-namespace engine::interop::types {
+namespace engine::interop::types
+{
 
-    struct ExecutionResponse {
+    typedef struct ExecutionResponse
+    {
         ExecutionStatus status;
         ExecutionError error;
         ExecutionMetadata metadata;
-    };
+    } ExecutionResponse;
 
 } // namespace engine::interop::types
 

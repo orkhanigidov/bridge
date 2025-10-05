@@ -1,15 +1,17 @@
 #pragma once
 
-#include "execution_error_type.hpp"
+#include "execution_error_type.h"
 
 #pragma pack(push, 8)
 
-namespace engine::interop::types {
+namespace engine::interop::types
+{
 
-    struct ExecutionError {
+    typedef struct ExecutionError
+    {
         ExecutionErrorType type;
         char* message;
-    };
+    } ExecutionError;
 
 } // namespace engine::interop::types
 

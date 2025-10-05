@@ -1,12 +1,13 @@
 #pragma once
 
-#include "types/execution_request.hpp"
-#include "types/execution_response.hpp"
+#include "types/execution_request.h"
+#include "utils/response_factory.hpp"
 
-namespace engine::interop {
+namespace engine::interop
+{
 
     bool initialize_bindings();
 
-    std::unique_ptr<types::ExecutionResponse> execute_script(const types::ExecutionRequest* request);
+    utils::ExecutionResponsePtr execute(const types::ExecutionRequest* request);
 
 } // namespace engine::interop

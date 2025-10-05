@@ -1,5 +1,7 @@
-#include "interop/types/execution_error_type.hpp"
-#include "interop/types/execution_response.hpp"
+#include "utils/response_factory.hpp"
+
+#include "interop/types/execution_error_type.h"
+#include "interop/types/execution_response.h"
 
 #if defined(_WIN32) && !defined(__clang__)
     #define strdup _strdup
@@ -7,39 +9,42 @@
 
 namespace engine::utils
 {
-
-    namespace ResponseFactory
+    void ExecutionResponseDeleter::operator()(interop::types::ExecutionResponse* ptr) const
     {
-
-        std::unique_ptr<interop::types::ExecutionResponse> create_error(interop::types::ExecutionStatus status, interop::types::ExecutionErrorType type, const char* message)
+        if (!ptr)
         {
-            auto response = std::make_unique<interop::types::ExecutionResponse>();
-
-            response->status = status;
-            response->error.type = type;
-
-            if (message)
-            {
-                response->error.message = strdup(message);
-            }
-            else
-            {
-                response->error.message = nullptr;
-            }
-
-            return response;
+            return;
         }
 
-        std::unique_ptr<interop::types::ExecutionResponse> create_success(uint64_t duration_milliseconds)
+        if (ptr->error.message)
         {
-            auto response = std::make_unique<interop::types::ExecutionResponse>();
-
-            response->status = interop::types::ExecutionStatus::Success;
-            response->metadata.duration_milliseconds = duration_milliseconds;
-
-            return response;
+            free(ptr->error.message);
         }
 
+        delete ptr;
+    }
+
+    ExecutionResponsePtr ResponseFactory::create_error(interop::types::ExecutionStatus status,
+                                                       interop::types::ExecutionErrorType type, const char* message)
+    {
+        ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
+
+        response->status        = status;
+        response->error.type    = type;
+        response->error.message = message ? strdup(message) : nullptr;
+
+        return response;
+    }
+
+    ExecutionResponsePtr ResponseFactory::create_success(uint64_t duration_milliseconds)
+    {
+        ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
+
+        response->status                         = interop::types::ExecutionStatus::Success;
+        response->error.message                  = nullptr;
+        response->metadata.duration_milliseconds = duration_milliseconds;
+
+        return response;
     }
 
 } // namespace engine::utils

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "engine_export.hpp"
-#include "types/execution_request.hpp"
-#include "types/execution_response.hpp"
+#include "types/execution_request.h"
+#include "types/execution_response.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
     ENGINE_API bool InitializeBindings();
