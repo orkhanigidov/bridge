@@ -3,10 +3,10 @@
 namespace engine::interop::types {
 
     enum class ExecutionStatus : uint8_t {
+        Unknown,
         Success,
         Failure,
-        Timeout,
-        Unknown
+        Timeout
     };
 
 } // namespace engine::interop::types
