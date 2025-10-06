@@ -18,6 +18,15 @@ namespace engine::bindings::lua {
             return *this;
         }
 
+        MemberRegistrar& factories()
+        {
+            m_usertype.set(sol::call_constructor, sol::factories([]
+            {
+                return std::make_unique<T>();
+            }));
+            return *this;
+        }
+
         template<typename... Bases>
         MemberRegistrar& bases()
         {
@@ -28,7 +37,7 @@ namespace engine::bindings::lua {
         template<typename V>
         MemberRegistrar& variable(std::string name, V&& v)
         {
-            m_usertype.set(std::move(name), std::forward<V>(v));
+            m_usertype.set(std::move(name), sol::var(std::forward<V>(v)));
             return *this;
         }
 
