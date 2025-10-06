@@ -1,19 +1,14 @@
-#include "bindings/lua/registry.hpp"
+#include "bindings/lua/lua_binder.hpp"
 
 namespace engine::bindings::lua {
 
-    Registry::Registry()
-    {
-        m_lua.open_libraries(sol::lib::base);
-    }
-
-    void Registry::register_bindings()
+    void LuaBinder::register_bindings(sol::state& lua)
     {
         try {
             const auto start_time = std::chrono::high_resolution_clock::now();
 
-            register_members(m_lua);
-            register_non_members(m_lua);
+            register_members(lua);
+            register_non_members(lua);
             // register_manual_bindings(m_lua);
 
             const auto end_time = std::chrono::high_resolution_clock::now();
@@ -38,7 +33,7 @@ namespace engine::bindings::lua {
         }
     }
 
-    std::vector<const metadata::FunctionDescriptor*> Registry::registered_functions() const
+    std::vector<const metadata::FunctionDescriptor*> LuaBinder::registered_functions() const
     {
         size_t total_functions = m_free_functions.size();
         for (const auto& [_, class_desc]: m_classes) {
@@ -60,12 +55,12 @@ namespace engine::bindings::lua {
         return functions;
     }
 
-    bool Registry::contains_class(const std::string& class_name) const noexcept
+    bool LuaBinder::contains_class(const std::string& class_name) const noexcept
     {
         return m_classes.contains(class_name);
     }
 
-    const metadata::ClassDescriptor* Registry::get_class(const std::string& class_name) const noexcept
+    const metadata::ClassDescriptor* LuaBinder::get_class(const std::string& class_name) const noexcept
     {
         if (const auto it = m_classes.find(class_name); it != m_classes.end()) {
             return it->second.get();
@@ -73,12 +68,12 @@ namespace engine::bindings::lua {
         return nullptr;
     }
 
-    bool Registry::contains_free_function(const std::string& function_name) const noexcept
+    bool LuaBinder::contains_free_function(const std::string& function_name) const noexcept
     {
         return m_free_functions.contains(function_name);
     }
 
-    const metadata::FunctionDescriptor* Registry::get_free_function(const std::string& function_name) const noexcept
+    const metadata::FunctionDescriptor* LuaBinder::get_free_function(const std::string& function_name) const noexcept
     {
         if (const auto it = m_free_functions.find(function_name); it != m_free_functions.end()) {
             return it->second.get();

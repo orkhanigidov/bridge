@@ -16,10 +16,12 @@ namespace engine::execution
                                                         "Script is empty");
         }
 
+        script::ScriptExecutor executor;
+
         switch (type)
         {
             case interop::types::ExecutionType::Lua_Script:
-                return script::ScriptExecutor::execute_from_string(script_or_path);
+                return executor.execute_from_string(script_or_path);
             case interop::types::ExecutionType::Lua_Script_File:
             {
                 if (!fs::exists(script_or_path))
@@ -36,7 +38,7 @@ namespace engine::execution
                                                                 "Path is not a regular file");
                 }
 
-                return script::ScriptExecutor::execute_from_file(script_or_path);
+                return executor.execute_from_file(script_or_path);
             }
             default:
                 return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,

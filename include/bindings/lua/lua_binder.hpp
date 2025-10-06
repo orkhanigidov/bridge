@@ -7,15 +7,11 @@
 
 namespace engine::bindings::lua {
 
-    class Registry final {
+    class LuaBinder final {
     public:
-        static Registry& instance()
-        {
-            static Registry registry;
-            return registry;
-        }
+        LuaBinder() = default;
 
-        void register_bindings();
+        void register_bindings(sol::state& lua);
 
         std::vector<const metadata::FunctionDescriptor*> registered_functions() const;
         
@@ -25,20 +21,7 @@ namespace engine::bindings::lua {
         bool contains_free_function(const std::string& function_name) const noexcept;
         const metadata::FunctionDescriptor* get_free_function(const std::string& function_name) const noexcept;
 
-        sol::state& lua()
-        {
-            return m_lua;
-        }
-
-        const sol::state& lua() const
-        {
-            return m_lua;
-        }
-
     private:
-        Registry();
-
-        sol::state m_lua;
         std::unordered_map<std::string, std::unique_ptr<metadata::ClassDescriptor>> m_classes;
         std::unordered_map<std::string, std::unique_ptr<metadata::FunctionDescriptor>> m_free_functions;
     };

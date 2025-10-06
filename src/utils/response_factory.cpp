@@ -3,7 +3,7 @@
 #include "interop/types/execution_error_type.h"
 #include "interop/types/execution_response.h"
 
-#if defined(_WIN32) && !defined(__clang__)
+#if defined(_WIN32)
     #define strdup _strdup
 #endif
 

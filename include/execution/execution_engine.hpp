@@ -10,19 +10,12 @@ namespace engine::execution
     class ExecutionEngine final
     {
       public:
-        static ExecutionEngine& instance()
-        {
-            static ExecutionEngine instance;
-            return instance;
-        }
-
-        static utils::ExecutionResponsePtr execute_lua(interop::types::ExecutionType type,
-                                                       const std::string& script_or_path);
-        static utils::ExecutionResponsePtr execute_pipeline(interop::types::ExecutionType type,
-                                                            const std::string& json_or_path);
-
-      private:
         ExecutionEngine() = default;
+
+        utils::ExecutionResponsePtr execute_lua(interop::types::ExecutionType type,
+                                                       const std::string& script_or_path);
+        utils::ExecutionResponsePtr execute_pipeline(interop::types::ExecutionType type,
+                                                            const std::string& json_or_path);
     };
 
 } // namespace engine::execution

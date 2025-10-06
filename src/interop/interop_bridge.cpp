@@ -1,6 +1,6 @@
 #include "interop/interop_bridge.hpp"
 
-#include "bindings/lua/registry.hpp"
+#include "bindings/lua/lua_binder.hpp"
 #include "execution/execution_engine.hpp"
 #include "utils/response_factory.hpp"
 
@@ -33,8 +33,8 @@ namespace engine::interop
     {
         try
         {
-            auto& engine = execution::ExecutionEngine::instance();
-            return engine.execute_lua(types::Lua_Script, request->script_or_path);
+            execution::ExecutionEngine execution;
+            return execution.execute_lua(types::Lua_Script, request->script_or_path);
         }
         catch (const std::exception& e)
         {
