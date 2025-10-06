@@ -2,14 +2,16 @@
 
 #include <sol/sol.hpp>
 
-namespace engine::bindings::lua {
-
-    class NonMemberRegistrar final {
+namespace engine::bindings::lua
+{
+    class NonMemberRegistrar final
+    {
     public:
-        explicit NonMemberRegistrar(sol::state& lua):
-            m_lua(lua) {}
+        explicit NonMemberRegistrar(sol::state& lua) : m_lua(lua)
+        {
+        }
 
-        template<std::invocable F>
+        template <typename F>
             requires !std::is_member_function_pointer_v<std::remove_cvref_t<F>>
         NonMemberRegistrar& function(std::string name, F&& f)
         {
@@ -20,5 +22,4 @@ namespace engine::bindings::lua {
     private:
         sol::state& m_lua;
     };
-
 } // namespace engine::bindings::lua
