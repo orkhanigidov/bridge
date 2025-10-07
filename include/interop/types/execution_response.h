@@ -8,14 +8,12 @@
 
 namespace engine::interop::types
 {
-
     typedef struct ExecutionResponse
     {
         ExecutionStatus status;
         ExecutionError error;
         ExecutionMetadata metadata;
     } ExecutionResponse;
-
 } // namespace engine::interop::types
 
 #pragma pack(pop)

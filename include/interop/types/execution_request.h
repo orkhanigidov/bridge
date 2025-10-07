@@ -7,14 +7,12 @@
 
 namespace engine::interop::types
 {
-
     typedef struct ExecutionRequest
     {
         ExecutionType type;
-        const char* script_or_path;
+        const char* script;
         ExecutionOptions options;
     } ExecutionRequest;
-
 } // namespace engine::interop::types
 
 #pragma pack(pop)
