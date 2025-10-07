@@ -7,6 +7,7 @@
 #include <format>
 #include <fstream>
 #include <iosfwd>
+#include <csignal>
 #include <iostream>
 #include <memory>
 #include <optional>
