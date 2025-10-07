@@ -14,7 +14,7 @@ namespace engine::network::dto::execution
          VALUE(INVALID_CONVERSION, 3, "invalid_conversion"),
          VALUE(EXECUTION_FAILED, 4, "execution_failed"),
          VALUE(CONVERSION_FAILED, 5, "conversion_failed"),
-         VALUE(VALİDATİON_FAILED, 6, "validation_failed"),
+         VALUE(VALIDATION_FAILED, 6, "validation_failed"),
          VALUE(FILE_NOT_FOUND, 7, "file_not_found")
     )
 
