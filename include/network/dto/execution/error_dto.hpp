@@ -7,7 +7,7 @@
 
 namespace engine::network::dto::execution
 {
-    ENUM(ExecutionErrorType, v_int8,
+    ENUM(ExecutionErrorTypeDto, v_int8,
          VALUE(INVALID_ARGUMENT, 0, "invalid_argument"),
          VALUE(INVALID_INPUT, 1, "invalid_input"),
          VALUE(INVALID_FORMAT, 2, "invalid_format"),
@@ -22,7 +22,7 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(ErrorDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionErrorType>::AsString, type);
+        DTO_FIELD(Enum<ExecutionErrorTypeDto>::AsString, type);
         DTO_FIELD(String, message);
     };
 } // namespace engine::network::dto::execution

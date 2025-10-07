@@ -11,7 +11,7 @@
 
 namespace engine::network::dto::execution
 {
-    ENUM(ExecutionStatus, v_int8,
+    ENUM(ExecutionStatusDto, v_int8,
          VALUE(SUCCESS, 0, "success"),
          VALUE(FAILURE, 1, "failure"),
          VALUE(TIMEOUT, 2, "timeout")
@@ -21,7 +21,7 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(ResponseDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionStatus>::AsString, status);
+        DTO_FIELD(Enum<ExecutionStatusDto>::AsString, status);
         DTO_FIELD(Object<FileDto>, output_data);
         DTO_FIELD(Object<ErrorDto>, error);
         DTO_FIELD(Object<MetadataDto>, metadata);

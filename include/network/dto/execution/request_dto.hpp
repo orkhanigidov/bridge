@@ -10,7 +10,7 @@
 
 namespace engine::network::dto::execution
 {
-    ENUM(ExecutionType, v_int8,
+    ENUM(ExecutionTypeDto, v_int8,
          VALUE(LUA_SCRIPT, 0, "lua_script"),
          VALUE(JSON_PIPELINE, 1, "json_pipeline")
     )
@@ -19,7 +19,7 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(RequestDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionType>::AsString, type);
+        DTO_FIELD(Enum<ExecutionTypeDto>::AsString, type);
         DTO_FIELD(String, script);
         DTO_FIELD(Object<FileDto>, input_data);
         DTO_FIELD(Object<OptionsDto>, options);
