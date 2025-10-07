@@ -5,14 +5,14 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace engine::network::dto::execution {
-
-    class MetadataDto final : public oatpp::DTO {
+namespace engine::network::dto::execution
+{
+    class MetadataDto final : public oatpp::DTO
+    {
         DTO_INIT(MetadataDto, DTO)
 
-        DTO_FIELD(UInt64, duration_ms);
+        DTO_FIELD(UInt64, duration_milliseconds);
     };
-
 } // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

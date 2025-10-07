@@ -8,15 +8,15 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace engine::network::dto::execution {
-
+namespace engine::network::dto::execution
+{
     ENUM(ExecutionType, v_int8,
-        VALUE(LUA_SCRIPT, 0, "lua_script"),
-        VALUE(JSON_PIPELINE, 1, "json_pipeline"),
-        VALUE(UNKNOWN, 99, "unknown")
+         VALUE(LUA_SCRIPT, 0, "lua_script"),
+         VALUE(JSON_PIPELINE, 1, "json_pipeline")
     )
 
-    class RequestDto final : public oatpp::DTO {
+    class RequestDto final : public oatpp::DTO
+    {
         DTO_INIT(RequestDto, DTO)
 
         DTO_FIELD(Enum<ExecutionType>::AsString, type);
@@ -24,7 +24,6 @@ namespace engine::network::dto::execution {
         DTO_FIELD(Object<FileDto>, input_data);
         DTO_FIELD(Object<OptionsDto>, options);
     };
-
 } // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

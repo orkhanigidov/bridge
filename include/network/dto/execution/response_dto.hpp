@@ -9,16 +9,16 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace engine::network::dto::execution {
-    
+namespace engine::network::dto::execution
+{
     ENUM(ExecutionStatus, v_int8,
-        VALUE(SUCCESS, 0, "success"),
-        VALUE(FAILURE, 1, "failure"),
-        VALUE(TIMEOUT, 2, "timeout"),
-        VALUE(UNKNOWN, 99, "unknown")
+         VALUE(SUCCESS, 0, "success"),
+         VALUE(FAILURE, 1, "failure"),
+         VALUE(TIMEOUT, 2, "timeout")
     )
 
-    class ResponseDto final : public oatpp::DTO {
+    class ResponseDto final : public oatpp::DTO
+    {
         DTO_INIT(ResponseDto, DTO)
 
         DTO_FIELD(Enum<ExecutionStatus>::AsString, status);
@@ -26,7 +26,6 @@ namespace engine::network::dto::execution {
         DTO_FIELD(Object<ErrorDto>, error);
         DTO_FIELD(Object<MetadataDto>, metadata);
     };
-
 } // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

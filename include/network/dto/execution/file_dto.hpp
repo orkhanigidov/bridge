@@ -5,9 +5,10 @@
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace engine::network::dto::execution {
-
-    class FileDto final : public oatpp::DTO {
+namespace engine::network::dto::execution
+{
+    class FileDto final : public oatpp::DTO
+    {
         DTO_INIT(FileDto, DTO)
 
         DTO_FIELD(String, id);
@@ -15,7 +16,6 @@ namespace engine::network::dto::execution {
         DTO_FIELD(UInt16, total_chunks);
         DTO_FIELD(String, chunk_data);
     };
-
 } // namespace engine::network::dto::execution
 
 #include OATPP_CODEGEN_END(DTO)

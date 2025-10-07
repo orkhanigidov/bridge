@@ -4,12 +4,15 @@
 
 #include "network_component.hpp"
 
-namespace engine::network {
-
-    class ServerManager final {
+namespace engine::network
+{
+    class ServerManager final
+    {
     public:
         explicit ServerManager(const oatpp::base::CommandLineArguments& cmd_args):
-            m_cmd_args(cmd_args) {}
+            m_cmd_args(cmd_args)
+        {
+        }
 
         ~ServerManager() noexcept;
 
@@ -33,5 +36,4 @@ namespace engine::network {
         bool m_is_initialized{false};
         bool m_is_running{false};
     };
-
 } // namespace engine::network
