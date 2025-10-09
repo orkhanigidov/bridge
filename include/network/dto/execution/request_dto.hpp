@@ -11,8 +11,8 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionTypeDto, v_int8,
-         VALUE(LUA_SCRIPT, 0, "lua_script"),
-         VALUE(JSON_PIPELINE, 1, "json_pipeline")
+         VALUE(LUA_SCRIPT, 0, "LuaScript"),
+         VALUE(JSON_PIPELINE, 1, "JsonPipeline")
     )
 
     class RequestDto final : public oatpp::DTO

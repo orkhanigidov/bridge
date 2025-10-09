@@ -8,14 +8,14 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionErrorTypeDto, v_int8,
-         VALUE(INVALID_ARGUMENT, 0, "invalid_argument"),
-         VALUE(INVALID_INPUT, 1, "invalid_input"),
-         VALUE(INVALID_FORMAT, 2, "invalid_format"),
-         VALUE(INVALID_CONVERSION, 3, "invalid_conversion"),
-         VALUE(EXECUTION_FAILED, 4, "execution_failed"),
-         VALUE(CONVERSION_FAILED, 5, "conversion_failed"),
-         VALUE(VALIDATION_FAILED, 6, "validation_failed"),
-         VALUE(FILE_NOT_FOUND, 7, "file_not_found")
+         VALUE(INVALID_ARGUMENT, 0, "InvalidArgument"),
+         VALUE(INVALID_INPUT, 1, "InvalidInput"),
+         VALUE(INVALID_FORMAT, 2, "InvalidFormat"),
+         VALUE(INVALID_CONVERSION, 3, "InvalidConversion"),
+         VALUE(EXECUTION_FAILED, 4, "ExecutionFailed"),
+         VALUE(CONVERSION_FAILED, 5, "ConversionFailed"),
+         VALUE(VALIDATION_FAILED, 6, "ValidationFailed"),
+         VALUE(FILE_NOT_FOUND, 7, "FileNotFound")
     )
 
     class ErrorDto final : public oatpp::DTO

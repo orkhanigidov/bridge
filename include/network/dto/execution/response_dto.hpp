@@ -12,9 +12,9 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionStatusDto, v_int8,
-         VALUE(SUCCESS, 0, "success"),
-         VALUE(FAILURE, 1, "failure"),
-         VALUE(TIMEOUT, 2, "timeout")
+         VALUE(SUCCESS, 0, "Success"),
+         VALUE(FAILURE, 1, "Failure"),
+         VALUE(TIMEOUT, 2, "Timeout")
     )
 
     class ResponseDto final : public oatpp::DTO
