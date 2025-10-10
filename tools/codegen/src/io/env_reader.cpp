@@ -1,7 +1,7 @@
-#include "env_reader.hpp"
+#include "io/env_reader.hpp"
 
-namespace codegen {
-
+namespace codegen::io
+{
     EnvReader::EnvReader(const std::string& filename)
     {
         if (!filename.empty()) { load_file(filename); }
@@ -10,12 +10,14 @@ namespace codegen {
     bool EnvReader::load_file(const std::string& filename)
     {
         std::ifstream file(filename);
-        if (!file.is_open()) {
+        if (!file.is_open())
+        {
             throw std::runtime_error("Could not open .env file: " + filename);
         }
 
         std::string line;
-        while (std::getline(file, line)) {
+        while (std::getline(file, line))
+        {
             auto comment_pos = line.find('#');
             if (comment_pos != std::string::npos)
             {
@@ -38,15 +40,15 @@ namespace codegen {
             std::string value = trim(line.substr(equal_pos + 1));
 
             value = strip_quotes(value);
-            m_env_vars.emplace(std::move(key), std::move(value));
+            env_vars_.emplace(std::move(key), std::move(value));
         }
     }
 
     const std::string& EnvReader::get(const std::string& key) const
     {
-        if (m_env_vars.contains(key))
+        if (env_vars_.contains(key))
         {
-            return m_env_vars.at(key);
+            return env_vars_.at(key);
         }
     }
 
@@ -59,12 +61,13 @@ namespace codegen {
 
     std::string EnvReader::strip_quotes(const std::string& str)
     {
-        if (str.size() >= 2) {
-            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\'')) {
+        if (str.size() >= 2)
+        {
+            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\''))
+            {
                 return str.substr(1, str.size() - 2);
             }
         }
         return str;
     }
-
-} // namespace codegen
+} // namespace codegen::io

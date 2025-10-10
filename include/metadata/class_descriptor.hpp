@@ -11,69 +11,69 @@ namespace engine::metadata {
         ClassDescriptor() = default;
         
         explicit ClassDescriptor(std::string name):
-            m_name(std::move(name)) {}
+            name_(std::move(name)) {}
 
         const std::string& name() const noexcept
         {
-            return m_name;
+            return name_;
         }
 
         const std::vector<std::string>& base_class_names() const noexcept
         {
-            return m_base_class_names;
+            return base_class_names_;
         }
 
         const std::vector<ConstructorDescriptor>& constructors() const noexcept
         {
-            return m_constructors;
+            return constructors_;
         }
 
         const std::vector<VariableDescriptor>& member_variables() const noexcept
         {
-            return m_member_variables;
+            return member_variables_;
         }
 
         const std::vector<FunctionDescriptor>& member_functions() const noexcept
         {
-            return m_member_functions;
+            return member_functions_;
         }
 
         ClassDescriptor& set_name(std::string name)
         {
-            m_name = std::move(name);
+            name_ = std::move(name);
             return *this;
         }
 
         ClassDescriptor& add_base_class_name(std::string base_class)
         {
-            m_base_class_names.emplace_back(std::move(base_class));
+            base_class_names_.emplace_back(std::move(base_class));
             return *this;
         }
 
         ClassDescriptor& add_constructor(ConstructorDescriptor constructor)
         {
-            m_constructors.emplace_back(std::move(constructor));
+            constructors_.emplace_back(std::move(constructor));
             return *this;
         }
 
         ClassDescriptor &add_member_variable(VariableDescriptor member_variable)
         {
-            m_member_variables.emplace_back(std::move(member_variable));
+            member_variables_.emplace_back(std::move(member_variable));
             return *this;
         }
 
         ClassDescriptor& add_member_function(FunctionDescriptor member_function)
         {
-            m_member_functions.emplace_back(std::move(member_function));
+            member_functions_.emplace_back(std::move(member_function));
             return *this;
         }
 
     private:
-        std::string m_name;
-        std::vector<std::string> m_base_class_names;
-        std::vector<ConstructorDescriptor> m_constructors;
-        std::vector<VariableDescriptor> m_member_variables;
-        std::vector<FunctionDescriptor> m_member_functions;
+        std::string name_;
+        std::vector<std::string> base_class_names_;
+        std::vector<ConstructorDescriptor> constructors_;
+        std::vector<VariableDescriptor> member_variables_;
+        std::vector<FunctionDescriptor> member_functions_;
     };
 
 } // namespace engine::metadata

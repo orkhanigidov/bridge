@@ -34,7 +34,7 @@ namespace engine::interop
         try
         {
             execution::ExecutionEngine execution;
-            return execution.execute_lua(types::Lua_Script, request->script_or_path);
+            return execution.execute_lua(types::Lua_Script, request->script);
         }
         catch (const std::exception& e)
         {

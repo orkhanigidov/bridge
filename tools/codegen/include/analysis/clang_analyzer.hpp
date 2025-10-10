@@ -3,7 +3,7 @@
 #include <clang-c/Index.h>
 #include <metadata/class_descriptor.hpp>
 
-namespace codegen {
+namespace codegen::analysis {
 
     class ClangAnalyzer final {
     public:
@@ -13,25 +13,25 @@ namespace codegen {
 
         const std::vector<engine::metadata::ClassDescriptor>& found_classes()
         {
-            return m_found_classes;
+            return found_classes_;
         }
 
         const std::vector<engine::metadata::FunctionDescriptor>& found_free_functions()
         {
-            return m_found_free_functions;
+            return found_free_functions_;
         }
 
         const std::vector<std::string>& found_includes()
         {
-            return m_found_includes;
+            return found_includes_;
         }
 
     private:
-        std::unordered_map<std::string, std::vector<std::string>> m_target_classes;
-        std::vector<std::string> m_target_free_functions;
-        std::vector<engine::metadata::ClassDescriptor> m_found_classes;
-        std::vector<engine::metadata::FunctionDescriptor> m_found_free_functions;
-        std::vector<std::string> m_found_includes;
+        std::unordered_map<std::string, std::vector<std::string>> target_classes_;
+        std::vector<std::string> target_free_functions_;
+        std::vector<engine::metadata::ClassDescriptor> found_classes_;
+        std::vector<engine::metadata::FunctionDescriptor> found_free_functions_;
+        std::vector<std::string> found_includes_;
 
         static std::string get_spelling(const CXCursor& cursor);
         static std::string get_result_type(const CXCursor& cursor);
@@ -42,4 +42,4 @@ namespace codegen {
         static CXChildVisitResult visitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
     };
 
-} // namespace codegen
+} // namespace codegen::analysis

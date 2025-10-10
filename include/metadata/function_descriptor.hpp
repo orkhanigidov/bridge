@@ -10,94 +10,94 @@ namespace engine::metadata {
         FunctionDescriptor() = default;
         
         explicit FunctionDescriptor(Scope scope, std::string name):
-            m_scope(scope),
-            m_name(std::move(name)) {}
+            scope_(scope),
+            name_(std::move(name)) {}
 
         Scope scope() const noexcept
         {
-            return m_scope;
+            return scope_;
         }
 
         const std::string& name() const noexcept
         {
-            return m_name;
+            return name_;
         }
 
         const std::string& return_type_name() const noexcept
         {
-            return m_return_type_name;
+            return return_type_name_;
         }
 
         const std::vector<ParameterDescriptor>& parameters() const noexcept
         {
-            return m_parameters;
+            return parameters_;
         }
 
         bool is_static() const noexcept
         {
-            return m_is_static;
+            return is_static_;
         }
 
         bool is_const() const noexcept
         {
-            return m_is_const;
+            return is_const_;
         }
 
         const std::string& signature() const noexcept
         {
-            return m_signature;
+            return signature_;
         }
 
         FunctionDescriptor& set_scope(Scope scope) noexcept
         {
-            m_scope = scope;
+            scope_ = scope;
             return *this;
         }
 
         FunctionDescriptor& set_name(std::string name)
         {
-            m_name = std::move(name);
+            name_ = std::move(name);
             return *this;
         }
 
         FunctionDescriptor& set_return_type_name(std::string type)
         {
-            m_return_type_name = std::move(type);
+            return_type_name_ = std::move(type);
             return *this;
         }
 
         FunctionDescriptor& add_parameter(ParameterDescriptor parameter)
         {
-            m_parameters.emplace_back(std::move(parameter));
+            parameters_.emplace_back(std::move(parameter));
             return *this;
         }
 
         FunctionDescriptor& set_static(bool value) noexcept
         {
-            m_is_static = value;
+            is_static_ = value;
             return *this;
         }
 
         FunctionDescriptor& set_const(bool value) noexcept
         {
-            m_is_const = value;
+            is_const_ = value;
             return *this;
         }
 
         FunctionDescriptor& set_signature(std::string signature)
         {
-            m_signature = std::move(signature);
+            signature_ = std::move(signature);
             return *this;
         }
 
     private:
-        Scope m_scope{Scope::Global};
-        std::string m_name;
-        std::string m_return_type_name;
-        std::vector<ParameterDescriptor> m_parameters;
-        bool m_is_static{false};
-        bool m_is_const{false};
-        std::string m_signature;
+        Scope scope_{Scope::Global};
+        std::string name_;
+        std::string return_type_name_;
+        std::vector<ParameterDescriptor> parameters_;
+        bool is_static_{false};
+        bool is_const_{false};
+        std::string signature_;
     };
 
 } // namespace engine::metadata

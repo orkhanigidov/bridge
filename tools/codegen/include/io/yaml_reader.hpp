@@ -2,7 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace codegen {
+namespace codegen::io {
 
     class YamlReader final {
     public:
@@ -12,12 +12,12 @@ namespace codegen {
 
         const std::unordered_map<std::string, std::vector<std::string>>& classes() const noexcept
         {
-            return m_classes;
+            return classes_;
         }
 
         const std::vector<std::string>& free_functions() const noexcept
         {
-            return m_free_functions;
+            return free_functions_;
         }
 
     private:
@@ -26,12 +26,12 @@ namespace codegen {
         static constexpr auto k_methods = "methods";
         static constexpr auto k_free_functions = "free_functions";
 
-        std::unordered_map<std::string, std::vector<std::string>> m_classes;
-        std::vector<std::string> m_free_functions;
+        std::unordered_map<std::string, std::vector<std::string>> classes_;
+        std::vector<std::string> free_functions_;
 
         bool extract_classes(const YAML::Node& root);
         std::vector<std::string> extract_methods(const YAML::Node& node);
         bool extract_free_functions(const YAML::Node& root);
     };
 
-} // namespace codegen
+} // namespace codegen::io

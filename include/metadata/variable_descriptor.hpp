@@ -9,70 +9,70 @@ namespace engine::metadata {
         VariableDescriptor() = default;
         
         explicit VariableDescriptor(Scope scope, std::string name):
-            m_scope(scope),
-            m_name(std::move(name)) {}
+            scope_(scope),
+            name_(std::move(name)) {}
 
         Scope scope() const noexcept
         {
-            return m_scope;
+            return scope_;
         }
 
         const std::string& name() const noexcept
         {
-            return m_name;
+            return name_;
         }
 
         const std::string& type_name() const noexcept
         {
-            return m_type_name;
+            return type_name_;
         }
 
         bool is_static() const noexcept
         {
-            return m_is_static;
+            return is_static_;
         }
 
         bool is_const() const noexcept
         {
-            return m_is_const;
+            return is_const_;
         }
 
         VariableDescriptor& set_scope(Scope scope) noexcept
         {
-            m_scope = scope;
+            scope_ = scope;
             return *this;
         }
 
         VariableDescriptor& set_name(std::string name)
         {
-            m_name = std::move(name);
+            name_ = std::move(name);
             return *this;
         }
 
         VariableDescriptor& set_type_name(std::string type)
         {
-            m_type_name = std::move(type);
+            type_name_ = std::move(type);
             return *this;
         }
 
         VariableDescriptor& set_static(bool value) noexcept
         {
-            m_is_static = value;
+            is_static_ = value;
             return *this;
         }
 
         VariableDescriptor& set_const(bool value) noexcept
         {
-            m_is_const = value;
+            is_const_ = value;
             return *this;
         }
 
     private:
-        Scope m_scope{Scope::Global};
-        std::string m_name;
-        std::string m_type_name;
-        bool m_is_static{false};
-        bool m_is_const{false};
+        Scope scope_{Scope::Global};
+        std::string name_;
+        std::string type_name_;
+        bool is_static_{false};
+        bool is_const_{false};
     };
 
 } // namespace engine::metadata

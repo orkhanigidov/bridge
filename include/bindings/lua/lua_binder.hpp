@@ -22,8 +22,8 @@ namespace engine::bindings::lua {
         const metadata::FunctionDescriptor* get_free_function(const std::string& function_name) const noexcept;
 
     private:
-        std::unordered_map<std::string, std::unique_ptr<metadata::ClassDescriptor>> m_classes;
-        std::unordered_map<std::string, std::unique_ptr<metadata::FunctionDescriptor>> m_free_functions;
+        std::unordered_map<std::string, std::unique_ptr<metadata::ClassDescriptor>> classes_;
+        std::unordered_map<std::string, std::unique_ptr<metadata::FunctionDescriptor>> free_functions_;
     };
 
     void register_members(sol::state& lua);

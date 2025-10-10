@@ -1,6 +1,6 @@
 #pragma once
 
-namespace codegen {
+namespace codegen::analysis {
 
     class HeaderCollector final {
     public:
@@ -12,4 +12,4 @@ namespace codegen {
         static bool is_header_file(const fs::path& path);
     };
 
-} // namespace codegen
+} // namespace codegen::analysis

@@ -1,6 +1,6 @@
-#include "header_collector.hpp"
+#include "analysis/header_collector.hpp"
 
-namespace codegen {
+namespace codegen::analysis {
 
     bool HeaderCollector::collect_headers(const fs::path& include_dir, const fs::path& output_file)
     {
@@ -36,4 +36,4 @@ namespace codegen {
         return path.extension() == ".h" || path.extension() == ".hpp";
     }
 
-} // namespace codegen
+} // namespace codegen::analysis

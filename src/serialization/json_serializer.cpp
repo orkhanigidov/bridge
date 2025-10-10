@@ -13,7 +13,7 @@ namespace engine::serialization {
         }
 
         try {
-            return m_object_mapper->readFromString<oatpp::Object<network::dto::execution::RequestDto>>(json_data);
+            return object_mapper_->readFromString<oatpp::Object<network::dto::execution::RequestDto>>(json_data);
         } catch (const oatpp::parser::ParsingError& e) {
             std::cerr << "JSON deserialization error: " << e.what() << std::endl;
             return nullptr;
@@ -28,7 +28,7 @@ namespace engine::serialization {
         }
 
         try {
-            return m_object_mapper->writeToString(request_dto);
+            return object_mapper_->writeToString(request_dto);
         } catch (const std::exception& e) {
             std::cerr << "JSON serialization error: " << e.what() << std::endl;
             return nullptr;
@@ -43,7 +43,7 @@ namespace engine::serialization {
 
         try {
             oatpp::parser::Caret caret(json_data);
-            m_object_mapper->getDeserializer()->deserialize(caret, nullptr);
+            object_mapper_->getDeserializer()->deserialize(caret, nullptr);
             return !caret.hasError();
         } catch (...) {
             return false;
