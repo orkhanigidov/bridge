@@ -2,15 +2,16 @@
 
 #include "scope.hpp"
 
-namespace engine::metadata {
-
-    class VariableDescriptor final {
+namespace engine::metadata
+{
+    class VariableDescriptor final
+    {
     public:
         VariableDescriptor() = default;
-        
-        explicit VariableDescriptor(Scope scope, std::string name):
-            scope_(scope),
-            name_(std::move(name)) {}
+
+        explicit VariableDescriptor(Scope scope, std::string name): scope_(scope), name_(std::move(name))
+        {
+        }
 
         Scope scope() const noexcept
         {
@@ -74,5 +75,4 @@ namespace engine::metadata {
         bool is_static_{false};
         bool is_const_{false};
     };
-
 } // namespace engine::metadata

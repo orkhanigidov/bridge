@@ -2,14 +2,16 @@
 
 #include "parameter_descriptor.hpp"
 
-namespace engine::metadata {
-
-    class ConstructorDescriptor final {
+namespace engine::metadata
+{
+    class ConstructorDescriptor final
+    {
     public:
         ConstructorDescriptor() = default;
-        
-        explicit ConstructorDescriptor(std::string class_name):
-            class_name_(std::move(class_name)) {}
+
+        explicit ConstructorDescriptor(std::string class_name): class_name_(std::move(class_name))
+        {
+        }
 
         const std::string& class_name() const noexcept
         {
@@ -49,5 +51,4 @@ namespace engine::metadata {
         std::vector<ParameterDescriptor> parameters_;
         std::string signature_;
     };
-
 } // namespace engine::metadata

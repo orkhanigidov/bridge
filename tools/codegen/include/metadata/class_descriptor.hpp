@@ -4,14 +4,16 @@
 #include "function_descriptor.hpp"
 #include "variable_descriptor.hpp"
 
-namespace engine::metadata {
-
-    class ClassDescriptor final {
+namespace engine::metadata
+{
+    class ClassDescriptor final
+    {
     public:
         ClassDescriptor() = default;
-        
-        explicit ClassDescriptor(std::string name):
-            name_(std::move(name)) {}
+
+        explicit ClassDescriptor(std::string name): name_(std::move(name))
+        {
+        }
 
         const std::string& name() const noexcept
         {
@@ -56,7 +58,7 @@ namespace engine::metadata {
             return *this;
         }
 
-        ClassDescriptor &add_member_variable(VariableDescriptor member_variable)
+        ClassDescriptor& add_member_variable(VariableDescriptor member_variable)
         {
             member_variables_.emplace_back(std::move(member_variable));
             return *this;
@@ -75,5 +77,4 @@ namespace engine::metadata {
         std::vector<VariableDescriptor> member_variables_;
         std::vector<FunctionDescriptor> member_functions_;
     };
-
 } // namespace engine::metadata

@@ -3,15 +3,16 @@
 #include "parameter_descriptor.hpp"
 #include "scope.hpp"
 
-namespace engine::metadata {
-
-    class FunctionDescriptor final {
+namespace engine::metadata
+{
+    class FunctionDescriptor final
+    {
     public:
         FunctionDescriptor() = default;
-        
-        explicit FunctionDescriptor(Scope scope, std::string name):
-            scope_(scope),
-            name_(std::move(name)) {}
+
+        explicit FunctionDescriptor(Scope scope, std::string name): scope_(scope), name_(std::move(name))
+        {
+        }
 
         Scope scope() const noexcept
         {
@@ -99,5 +100,4 @@ namespace engine::metadata {
         bool is_const_{false};
         std::string signature_;
     };
-
 } // namespace engine::metadata

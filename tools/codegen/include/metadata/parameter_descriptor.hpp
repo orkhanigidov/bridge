@@ -1,13 +1,15 @@
 #pragma once
 
-namespace engine::metadata {
-
-    class ParameterDescriptor final {
+namespace engine::metadata
+{
+    class ParameterDescriptor final
+    {
     public:
         ParameterDescriptor() = default;
-        
-        explicit ParameterDescriptor(std::string name):
-            name_(std::move(name)) {}
+
+        explicit ParameterDescriptor(std::string name): name_(std::move(name))
+        {
+        }
 
         const std::string& name() const noexcept
         {
@@ -35,5 +37,4 @@ namespace engine::metadata {
         std::string name_;
         std::string type_name_;
     };
-
 } // namespace engine::metadata
