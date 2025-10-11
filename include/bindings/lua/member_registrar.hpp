@@ -1,78 +1,103 @@
 #pragma once
 
 #include "memory_ownership.hpp"
+
 #include <sol/sol.hpp>
 
 namespace engine::bindings::lua
 {
-    template <typename T>
+    template <typename T, MemoryOwnership Ownership>
     class MemberRegistrar final
     {
     public:
-        explicit MemberRegistrar(sol::state& lua, std::string name)
-            : m_lua(lua), m_usertype(m_lua.new_usertype<T>(std::move(name), sol::no_constructor))
+        explicit MemberRegistrar(sol::state& lua, const std::string& name)
         {
-        }
-
-        template <typename... Args>
-        MemberRegistrar& constructor()
-        {
-            m_usertype.set(sol::call_constructor, sol::constructors<T(Args...)>());
-            return *this;
-        }
-
-        template <typename... Args>
-        MemberRegistrar& shared_constructor()
-        {
-            m_usertype.set(sol::call_constructor, sol::factories([](Args... args)
+            if constexpr (Ownership == MemoryOwnership::Lua)
             {
-                return std::make_shared<T>(args...);
-            }));
+                usertype_ = lua.new_usertype<T>(name);
+            }
+            else
+            {
+                usertype_ = lua.new_usertype<T>(name, sol::no_constructor);
+                usertype_[sol::meta_function::garbage_collect] = [](T&)
+                {
+                };
+            }
+        }
+
+        template <typename... TSignatures>
+        MemberRegistrar& add_constructors()
+        {
+            if constexpr (Ownership == MemoryOwnership::Lua)
+            {
+                usertype_.set(sol::call_constructor, sol::constructors<TSignatures...>());
+            }
             return *this;
         }
 
-        template <typename... Fs>
-        MemberRegistrar& factories(Fs&&... fs)
+        template <typename... TSignatures>
+        MemberRegistrar& set_call_constructor()
         {
-            m_usertype.set(sol::meta_function::construct, sol::factories(std::forward<Fs>(fs)...));
+            if constexpr (Ownership == MemoryOwnership::Lua)
+            {
+                usertype_.set(sol::call_constructor, sol::factories(create_call_factory(TSignatures{})...));
+            }
             return *this;
         }
 
         template <typename... Bases>
-        MemberRegistrar& bases()
+        MemberRegistrar& add_bases()
         {
-            m_usertype.set(sol::base_classes, sol::bases<Bases...>());
+            usertype_.set(sol::base_classes, sol::bases<Bases...>());
             return *this;
         }
 
         template <typename V>
-        MemberRegistrar& variable(std::string name, V&& v)
+        MemberRegistrar& add_variable(const std::string& name, V T::* v, bool is_readonly = false)
         {
-            m_usertype.set(std::move(name), sol::var(std::forward<V>(v)));
-            return *this;
-        }
-
-        template <typename F>
-            requires std::is_member_function_pointer_v<std::remove_cvref_t<F>>
-        MemberRegistrar& function(std::string name, F&& f)
-        {
-            m_usertype.set_function(std::move(name), std::forward<F>(f));
-            return *this;
-        }
-
-        MemberRegistrar& set_ownership(MemoryOwnership ownership)
-        {
-            if (ownership == MemoryOwnership::Cpp)
+            if (is_readonly)
             {
-                m_usertype.set(sol::meta_function::garbage_collect, sol::destructor([](T&)
-                {
-                }));
+                usertype_.set(name, sol::readonly(v));
+            }
+            else
+            {
+                usertype_.set(name, v);
+            }
+            return *this;
+        }
+
+        template <typename V>
+        MemberRegistrar& add_static_variable(const std::string& name, V&& v)
+        {
+            usertype_.set(name, sol::var(std::forward<V>(v)));
+            return *this;
+        }
+
+        template <typename... Fs>
+            requires std::conjunction_v<std::is_member_function_pointer<std::remove_cvref_t<Fs>>...>
+        MemberRegistrar& add_functions(const std::string& name, Fs&&... fs)
+        {
+            if constexpr (sizeof...(Fs) == 1)
+            {
+                usertype_.set_function(name, std::forward<Fs>(fs)...);
+            }
+            else
+            {
+                usertype_.set_function(name, sol::overload(std::forward<Fs>(fs)...));
             }
             return *this;
         }
 
     private:
-        sol::state& m_lua;
-        sol::usertype<T> m_usertype;
+        sol::usertype<T> usertype_;
+
+        template <typename... Args>
+        static auto create_call_factory(sol::types<Args...>)
+        {
+            return [](Args... args)
+            {
+                return std::make_shared<T>(args...);
+            };
+        }
     };
 } // namespace engine::bindings::lua
