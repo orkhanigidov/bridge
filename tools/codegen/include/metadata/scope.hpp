@@ -1,10 +1,10 @@
 #pragma once
 
-namespace engine::metadata
+namespace codegen::metadata
 {
     enum class Scope
     {
         Global,
         Member
     };
-} // namespace engine::metadata
+} // namespace codegen::metadata

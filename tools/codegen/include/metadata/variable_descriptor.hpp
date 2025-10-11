@@ -2,7 +2,7 @@
 
 #include "scope.hpp"
 
-namespace engine::metadata
+namespace codegen::metadata
 {
     class VariableDescriptor final
     {
@@ -75,4 +75,4 @@ namespace engine::metadata
         bool is_static_{false};
         bool is_const_{false};
     };
-} // namespace engine::metadata
+} // namespace codegen::metadata

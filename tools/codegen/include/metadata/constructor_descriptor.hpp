@@ -2,7 +2,7 @@
 
 #include "parameter_descriptor.hpp"
 
-namespace engine::metadata
+namespace codegen::metadata
 {
     class ConstructorDescriptor final
     {
@@ -51,4 +51,4 @@ namespace engine::metadata
         std::vector<ParameterDescriptor> parameters_;
         std::string signature_;
     };
-} // namespace engine::metadata
+} // namespace codegen::metadata

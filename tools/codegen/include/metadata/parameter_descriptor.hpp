@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine::metadata
+namespace codegen::metadata
 {
     class ParameterDescriptor final
     {
@@ -37,4 +37,4 @@ namespace engine::metadata
         std::string name_;
         std::string type_name_;
     };
-} // namespace engine::metadata
+} // namespace codegen::metadata

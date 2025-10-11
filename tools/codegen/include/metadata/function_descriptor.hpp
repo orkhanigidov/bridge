@@ -3,7 +3,7 @@
 #include "parameter_descriptor.hpp"
 #include "scope.hpp"
 
-namespace engine::metadata
+namespace codegen::metadata
 {
     class FunctionDescriptor final
     {
@@ -100,4 +100,4 @@ namespace engine::metadata
         bool is_const_{false};
         std::string signature_;
     };
-} // namespace engine::metadata
+} // namespace codegen::metadata
