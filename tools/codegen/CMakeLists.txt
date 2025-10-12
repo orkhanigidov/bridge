@@ -20,9 +20,9 @@ set(SOURCES
         ${CODEGEN_SRC_DIR}/analysis/clang_analyzer.cpp
         ${CODEGEN_SRC_DIR}/engine.cpp
         ${CODEGEN_SRC_DIR}/io/env_reader.cpp
-        ${CODEGEN_SRC_DIR}/analysis/header_collector.cpp
-        ${CODEGEN_SRC_DIR}/generation/sol2_generator.cpp
+        ${CODEGEN_SRC_DIR}/io/header_collector.cpp
         ${CODEGEN_SRC_DIR}/io/yaml_reader.cpp
+        ${CODEGEN_SRC_DIR}/generation/sol2_generator.cpp
         ${CODEGEN_SRC_DIR}/main.cpp
 )
 
