@@ -1,21 +1,29 @@
 #pragma once
 
-namespace codegen {
-
-    class Engine final {
+namespace codegen
+{
+    class EngineException final : public std::runtime_error
+    {
     public:
-        explicit Engine(const std::string& include_dir, const std::string& config_yaml)
-            : include_dir_(include_dir), config_yaml_(config_yaml) {}
+        using std::runtime_error::runtime_error;
+    };
+
+    class Engine final
+    {
+    public:
+        explicit
+        Engine(fs::path include_dir, fs::path config_yaml): include_dir_(std::move(include_dir)),
+                                                            config_yaml_(std::move(config_yaml))
+        {
+        }
 
         void generate_lua_bindings() const;
 
     private:
-        static constexpr auto k_dummy_cpp = "dummy.cpp";
-        static constexpr auto k_generated_lua_bindings = "generated_bindings.cpp";
+        static constexpr auto DUMMY_CPP = "dummy.cpp";
+        static constexpr auto GENERATED_LUA_BINDINGS = "generated_bindings.cpp";
 
-        std::string include_dir_;
-        std::string config_yaml_;
-        static std::once_flag flag_;
+        fs::path include_dir_;
+        fs::path config_yaml_;
     };
-
 } // namespace codegen

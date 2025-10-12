@@ -1,6 +1,6 @@
 #pragma once
 
-namespace codegen::analysis
+namespace codegen::io
 {
     class HeaderCollectorException final : public std::runtime_error
     {
@@ -18,4 +18,4 @@ namespace codegen::analysis
     private:
         HeaderCollector() = default;
     };
-} // namespace codegen::analysis
+} // namespace codegen::io

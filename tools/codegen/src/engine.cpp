@@ -1,27 +1,38 @@
 #include "engine.hpp"
+
 #include "analysis/clang_analyzer.hpp"
-#include "analysis/header_collector.hpp"
-#include "generation/sol2_generator.hpp"
+#include "io/header_collector.hpp"
 #include "io/yaml_reader.hpp"
+#include "generation/sol2_generator.hpp"
 
 namespace codegen
 {
-    std::once_flag Engine::flag_;
-
-    void Engine::generate_lua_bindings() const
+    void
+    Engine::generate_lua_bindings() const
     {
-        std::call_once(flag_, [this]
+        try
         {
-            analysis::HeaderCollector collector;
-            collector.collect_headers(include_dir_, k_dummy_cpp);
+            std::cout << "Stage 1: Collecting headers..." << std::endl;
+            io::HeaderCollector::collect_headers_to_file(include_dir_, DUMMY_CPP);
 
-            io::YamlReader reader;
-            reader.load_file(config_yaml_);
+            std::cout << "Stage 2: Reading YAML configuration..." << std::endl;
+            const auto reader = io::YamlReader::from_file(config_yaml_.string());
 
-            analysis::ClangAnalyzer analyzer(k_dummy_cpp, reader.classes(), reader.free_functions());
+            std::cout << "Stage 3: Analyzing code with Clang..." << std::endl;
+            analysis::ClangAnalyzer analyzer(DUMMY_CPP,
+                                             include_dir_.string(),
+                                             reader.classes(),
+                                             reader.free_functions());
 
-            generation::Sol2Generator generator(k_generated_lua_bindings);
+            std::cout << "Stage 4: Generating Lua bindings..." << std::endl;
+            generation::Sol2Generator generator(GENERATED_LUA_BINDINGS);
             generator.generate(analyzer.found_includes(), analyzer.found_classes(), analyzer.found_free_functions());
-        });
+
+            std::cout << "Lua bindings generated successfully!" << std::endl;
+        }
+        catch (const std::exception& e)
+        {
+            throw EngineException("Code generation failed: " + std::string(e.what()));
+        }
     }
 } // namespace codegen

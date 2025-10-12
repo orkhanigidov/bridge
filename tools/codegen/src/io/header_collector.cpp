@@ -1,6 +1,6 @@
-#include "../../include/io/header_collector.hpp"
+#include "io/header_collector.hpp"
 
-namespace codegen::analysis
+namespace codegen::io
 {
     void HeaderCollector::collect_headers_to_file(const fs::path& include_dir,
                                                   const fs::path& output_file,
@@ -46,4 +46,4 @@ namespace codegen::analysis
 
         std::cout << "Header files collected successfully into: " << output_file << std::endl;
     }
-} // namespace codegen::analysis
+} // namespace codegen::io
