@@ -1,7 +1,6 @@
 namespace engine::utils::string
 {
-    void
-    replace_all(std::string& str, const std::string& from, const std::string& to)
+    void replace_all(std::string& str, const std::string& from, const std::string& to)
     {
         if (from.empty())
         {
@@ -15,4 +14,4 @@ namespace engine::utils::string
             start_pos += to.length();
         }
     }
-} //
+} // engine::utils::string
