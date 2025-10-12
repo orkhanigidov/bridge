@@ -1,25 +1,50 @@
 #include "io/env_reader.hpp"
 
+namespace
+{
+    const std::string& trim(const std::string& sv)
+    {
+        const auto start = sv.find_first_not_of(" \t\r\n");
+        if (start == std::string::npos)
+        {
+            return {};
+        }
+        const auto end = sv.find_last_not_of(" \t\r\n");
+        return sv.substr(start, end - start + 1);
+    }
+
+    const std::string& strip_quotes(const std::string& sv)
+    {
+        if (sv.length() >= 2)
+        {
+            if ((sv.front() == '"' && sv.back() == '"') || (sv.front() == '\'' && sv.back() == '\''))
+            {
+                return sv.substr(1, sv.length() - 2);
+            }
+        }
+        return sv;
+    }
+}
+
 namespace codegen::io
 {
     EnvReader::EnvReader(const std::string& filename)
     {
-        if (!filename.empty()) { load_file(filename); }
+        load_file(filename);
     }
 
-    bool EnvReader::load_file(const std::string& filename)
+    void EnvReader::load_file(const std::string& filename)
     {
         std::ifstream file(filename);
         if (!file.is_open())
         {
-            throw std::runtime_error("Could not open .env file: " + filename);
+            throw std::runtime_error("Could not open .env file: " + std::string(filename));
         }
 
         std::string line;
         while (std::getline(file, line))
         {
-            auto comment_pos = line.find('#');
-            if (comment_pos != std::string::npos)
+            if (const auto comment_pos = line.find('#'); comment_pos != std::string::npos)
             {
                 line.erase(comment_pos);
             }
@@ -30,44 +55,29 @@ namespace codegen::io
                 continue;
             }
 
-            auto equal_pos = line.find('=');
+            const auto equal_pos = line.find('=');
             if (equal_pos == std::string::npos)
             {
                 continue;
             }
 
-            std::string key = trim(line.substr(0, equal_pos));
-            std::string value = trim(line.substr(equal_pos + 1));
-
+            auto key = trim(line.substr(0, equal_pos));
+            auto value = trim(line.substr(equal_pos + 1));
             value = strip_quotes(value);
-            env_vars_.emplace(std::move(key), std::move(value));
-        }
-    }
 
-    const std::string& EnvReader::get(const std::string& key) const
-    {
-        if (env_vars_.contains(key))
-        {
-            return env_vars_.at(key);
-        }
-    }
-
-    std::string EnvReader::trim(const std::string& str)
-    {
-        auto start = str.find_first_not_of(" \t\r\n");
-        auto end = str.find_last_not_of(" \t\r\n");
-        return start == std::string::npos ? "" : str.substr(start, end - start + 1);
-    }
-
-    std::string EnvReader::strip_quotes(const std::string& str)
-    {
-        if (str.size() >= 2)
-        {
-            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\''))
+            if (!key.empty())
             {
-                return str.substr(1, str.size() - 2);
+                env_vars_.emplace(key, value);
             }
         }
-        return str;
+    }
+
+    std::optional<const std::string&> EnvReader::get(const std::string& key) const
+    {
+        if (const auto it = env_vars_.find(key); it != env_vars_.end())
+        {
+            return it->second;
+        }
+        return std::nullopt;
     }
 } // namespace codegen::io
