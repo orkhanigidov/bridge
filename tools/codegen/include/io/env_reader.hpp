@@ -7,7 +7,7 @@ namespace codegen::io
     public:
         explicit EnvReader(const std::string& filename = ".env");
 
-        std::optional<const std::string&> get(const std::string& key) const;
+        std::optional<std::string> get(const std::string& key) const;
 
     private:
         std::unordered_map<std::string, std::string> env_vars_;

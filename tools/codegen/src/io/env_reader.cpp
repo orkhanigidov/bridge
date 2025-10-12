@@ -2,27 +2,27 @@
 
 namespace
 {
-    const std::string& trim(const std::string& sv)
+    std::string trim(const std::string& str)
     {
-        const auto start = sv.find_first_not_of(" \t\r\n");
+        const auto start = str.find_first_not_of(" \t\r\n");
         if (start == std::string::npos)
         {
-            return {};
+            return "";
         }
-        const auto end = sv.find_last_not_of(" \t\r\n");
-        return sv.substr(start, end - start + 1);
+        const auto end = str.find_last_not_of(" \t\r\n");
+        return str.substr(start, end - start + 1);
     }
 
-    const std::string& strip_quotes(const std::string& sv)
+    std::string strip_quotes(const std::string& str)
     {
-        if (sv.length() >= 2)
+        if (str.length() >= 2)
         {
-            if ((sv.front() == '"' && sv.back() == '"') || (sv.front() == '\'' && sv.back() == '\''))
+            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\''))
             {
-                return sv.substr(1, sv.length() - 2);
+                return str.substr(1, str.length() - 2);
             }
         }
-        return sv;
+        return str;
     }
 }
 
@@ -30,7 +30,14 @@ namespace codegen::io
 {
     EnvReader::EnvReader(const std::string& filename)
     {
-        load_file(filename);
+#ifdef PROJECT_ROOT
+        const fs::path& env_path = fs::path(PROJECT_ROOT) / filename;
+#else
+        throw std::runtime_error("PROJECT_ROOT environment variable is not defined.");
+#endif
+
+        std::cout << "Loading .env file: " << env_path.string() << std::endl;
+        load_file(env_path.string());
     }
 
     void EnvReader::load_file(const std::string& filename)
@@ -72,7 +79,7 @@ namespace codegen::io
         }
     }
 
-    std::optional<const std::string&> EnvReader::get(const std::string& key) const
+    std::optional<std::string> EnvReader::get(const std::string& key) const
     {
         if (const auto it = env_vars_.find(key); it != env_vars_.end())
         {
