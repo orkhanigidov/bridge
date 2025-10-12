@@ -1,26 +1,27 @@
 #pragma once
 
+#include "interop/types/execution_metadata.h"
 #include "network/dto/execution/metadata_dto.hpp"
 
 namespace engine::mapper
 {
-    using namespace engine::network::dto::execution;
-    using namespace engine::interop::types;
-
     class MetadataMapper final
     {
     public:
-        static oatpp::Object<MetadataDto> to_dto(const ExecutionMetadata& metadata)
+        static oatpp::Object<network::dto::execution::MetadataDto>to_dto(const interop::types::ExecutionMetadata& metadata)
         {
-            auto dto = MetadataDto::createShared();
+            auto dto = network::dto::execution::MetadataDto::createShared();
             dto->duration_milliseconds = metadata.duration_milliseconds;
             return dto;
         }
 
-        static ExecutionMetadata from_dto(const oatpp::Object<MetadataDto>& dto)
+        static interop::types::ExecutionMetadata from_dto(const oatpp::Object<network::dto::execution::MetadataDto>& dto)
         {
-            ExecutionMetadata metadata;
-            metadata.duration_milliseconds = dto->duration_milliseconds;
+            interop::types::ExecutionMetadata metadata{};
+            if (dto)
+            {
+                metadata.duration_milliseconds = dto->duration_milliseconds;
+            }
             return metadata;
         }
     };

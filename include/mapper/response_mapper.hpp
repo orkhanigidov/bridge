@@ -1,25 +1,25 @@
 #pragma once
 
 #include "error_mapper.hpp"
+#include "interop/types/execution_response.h"
+#include "interop/types/execution_status.h"
 #include "metadata_mapper.hpp"
 #include "network/dto/execution/response_dto.hpp"
 
 namespace engine::mapper
 {
-    using namespace engine::network::dto::execution;
-    using namespace engine::interop::types;
-
-    class RequestMapper final
+    class ResponseMapper final
     {
     public:
-        static oatpp::Enum<ExecutionStatusDto> to_dto(const ExecutionStatus& status)
+        static oatpp::Enum<network::dto::execution::ExecutionStatusDto> to_dto(const interop::types::ExecutionStatus& status)
         {
-            return static_cast<ExecutionStatusDto>(status);
+            return static_cast<network::dto::execution::ExecutionStatusDto>(status);
         }
 
-        static oatpp::Object<ResponseDto> to_dto(const ExecutionResponse& response, const oatpp::Object<FileDto>& output_data)
+        static oatpp::Object<network::dto::execution::ResponseDto> to_dto(const interop::types::ExecutionResponse& response,
+                                                                          const oatpp::Object<network::dto::execution::FileDto>& output_data)
         {
-            auto dto = ResponseDto::createShared();
+            auto dto = network::dto::execution::ResponseDto::createShared();
             dto->status = to_dto(response.status);
             dto->output_data = output_data;
             dto->error = ErrorMapper::to_dto(response.error);

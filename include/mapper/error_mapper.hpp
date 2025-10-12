@@ -1,29 +1,27 @@
 #pragma once
 
-#include "interop/interop_bridge.hpp"
+#include "interop/types/execution_error.h"
+#include "interop/types/execution_error_type.h"
 #include "network/dto/execution/error_dto.hpp"
 
 namespace engine::mapper
 {
-    using namespace engine::network::dto::execution;
-    using namespace engine::interop::types;
-
     class ErrorMapper final
     {
     public:
-        static oatpp::Enum<ExecutionErrorTypeDto> to_dto(const ExecutionErrorType& type)
+        static oatpp::Enum<network::dto::execution::ExecutionErrorTypeDto> to_dto(const interop::types::ExecutionErrorType& type)
         {
-            return static_cast<ExecutionErrorTypeDto>(type);
+            return static_cast<network::dto::execution::ExecutionErrorTypeDto>(type);
         }
 
-        static oatpp::Object<ErrorDto> to_dto(const ExecutionError& error)
+        static oatpp::Object<network::dto::execution::ErrorDto> to_dto(const interop::types::ExecutionError& error)
         {
             if (error.message == nullptr)
             {
                 return nullptr;
             }
 
-            auto dto = ErrorDto::createShared();
+            auto dto = network::dto::execution::ErrorDto::createShared();
             dto->type = to_dto(error.type);
             dto->message = error.message;
             return dto;

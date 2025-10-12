@@ -5,25 +5,25 @@
 
 namespace engine::mapper
 {
-    using namespace engine::network::dto::execution;
-    using namespace engine::interop::types;
-
     class OptionsMapper final
     {
     public:
-        static oatpp::Object<OptionsDto> to_dto(const ExecutionOptions& options)
+        static oatpp::Object<network::dto::execution::OptionsDto> to_dto(const interop::types::ExecutionOptions& options)
         {
-            auto dto = OptionsDto::createShared();
+            auto dto = network::dto::execution::OptionsDto::createShared();
             dto->timeout_milliseconds = options.timeout_milliseconds;
             dto->output_data_format = options.output_data_format;
             return dto;
         }
 
-        static ExecutionOptions from_dto(const oatpp::Object<OptionsDto>& dto)
+        static interop::types::ExecutionOptions from_dto(const oatpp::Object<network::dto::execution::OptionsDto>& dto)
         {
-            ExecutionOptions options;
-            options.timeout_milliseconds = dto->timeout_milliseconds;
-            options.output_data_format = dto->output_data_format->c_str();
+            interop::types::ExecutionOptions options{};
+            if (dto)
+            {
+                options.timeout_milliseconds = dto->timeout_milliseconds;
+                options.output_data_format = dto->output_data_format->c_str();
+            }
             return options;
         }
     };
