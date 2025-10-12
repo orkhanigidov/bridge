@@ -8,20 +8,19 @@ bool InitializeBindings()
     return engine::interop::initialize_bindings();
 }
 
-engine::interop::types::ExecutionResponse* ExecuteScript(const engine::interop::types::ExecutionRequest* request)
+ExecutionResponse* ExecuteScript(const ExecutionRequest* request)
 {
     if (!request)
     {
-        return engine::utils::ResponseFactory::create_error(
-                   engine::interop::types::ExecutionStatus::Failure,
-                   engine::interop::types::ExecutionErrorType::Invalid_Argument, "The provided request is null.")
-            .release();
+        return engine::utils::ResponseFactory::create_error(engine::interop::types::ExecutionStatus::Failure,
+                                                            engine::interop::types::ExecutionErrorType::Invalid_Argument,
+                                                            "The provided request is null.").release();
     }
 
     return engine::interop::execute(request).release();
 }
 
-void FreeExecutionResponse(engine::interop::types::ExecutionResponse* response)
+void FreeExecutionResponse(ExecutionResponse* response)
 {
     if (!response)
     {

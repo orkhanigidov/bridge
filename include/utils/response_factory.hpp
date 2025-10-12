@@ -13,10 +13,10 @@ namespace engine::utils
 
     class ResponseFactory final
     {
-      public:
+    public:
         static ExecutionResponsePtr create_error(interop::types::ExecutionStatus status,
-                                                 interop::types::ExecutionErrorType type, const char* message);
+                                                 interop::types::ExecutionErrorType type,
+                                                 const char* message);
         static ExecutionResponsePtr create_success(uint64_t duration_milliseconds);
     };
-
 } // namespace engine::utils

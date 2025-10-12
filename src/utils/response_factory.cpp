@@ -25,7 +25,8 @@ namespace engine::utils
     }
 
     ExecutionResponsePtr ResponseFactory::create_error(interop::types::ExecutionStatus status,
-                                  interop::types::ExecutionErrorType type, const char* message)
+                                                       interop::types::ExecutionErrorType type,
+                                                       const char* message)
     {
         ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
 
@@ -41,7 +42,6 @@ namespace engine::utils
         ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
 
         response->status = interop::types::ExecutionStatus::Success;
-        response->error.message = nullptr;
         response->metadata.duration_milliseconds = duration_milliseconds;
 
         return response;
