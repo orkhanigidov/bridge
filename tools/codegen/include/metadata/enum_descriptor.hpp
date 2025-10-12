@@ -27,7 +27,7 @@ namespace codegen::metadata
             return enumerators_;
         }
 
-        EnumDescriptor& set_name(std::string& name)
+        EnumDescriptor& set_name(std::string name)
         {
             name_ = std::move(name);
             return *this;

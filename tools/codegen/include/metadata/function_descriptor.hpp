@@ -61,9 +61,9 @@ namespace codegen::metadata
             return *this;
         }
 
-        FunctionDescriptor& set_return_type_name(std::string type)
+        FunctionDescriptor& set_return_type_name(std::string return_type_name)
         {
-            return_type_name_ = std::move(type);
+            return_type_name_ = std::move(return_type_name);
             return *this;
         }
 

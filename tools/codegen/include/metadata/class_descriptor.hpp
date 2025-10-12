@@ -46,9 +46,9 @@ namespace codegen::metadata
             return *this;
         }
 
-        ClassDescriptor& add_base_class_name(std::string base_class)
+        ClassDescriptor& add_base_class_name(std::string base_class_name)
         {
-            base_class_names_.emplace_back(std::move(base_class));
+            base_class_names_.emplace_back(std::move(base_class_name));
             return *this;
         }
 

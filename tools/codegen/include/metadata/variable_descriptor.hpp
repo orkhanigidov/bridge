@@ -50,9 +50,9 @@ namespace codegen::metadata
             return *this;
         }
 
-        VariableDescriptor& set_type_name(std::string type)
+        VariableDescriptor& set_type_name(std::string type_name)
         {
-            type_name_ = std::move(type);
+            type_name_ = std::move(type_name);
             return *this;
         }
 
