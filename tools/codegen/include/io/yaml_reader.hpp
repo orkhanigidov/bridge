@@ -2,13 +2,18 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace codegen::io {
-
-    class YamlReader final {
+namespace codegen::io
+{
+    class YamlReaderException final : public std::runtime_error
+    {
     public:
-        YamlReader() = default;
+        using std::runtime_error::runtime_error;
+    };
 
-        bool load_file(const std::string& filename);
+    class YamlReader final
+    {
+    public:
+        static YamlReader from_file(const std::string& filename);
 
         const std::unordered_map<std::string, std::vector<std::string>>& classes() const noexcept
         {
@@ -21,17 +26,18 @@ namespace codegen::io {
         }
 
     private:
-        static constexpr auto k_name = "name";
-        static constexpr auto k_classes = "classes";
-        static constexpr auto k_methods = "methods";
-        static constexpr auto k_free_functions = "free_functions";
+        explicit YamlReader(const YAML::Node& root);
+
+        static constexpr auto NAME = "name";
+        static constexpr auto CLASSES = "classes";
+        static constexpr auto METHODS = "methods";
+        static constexpr auto FREE_FUNCTIONS = "free_functions";
 
         std::unordered_map<std::string, std::vector<std::string>> classes_;
         std::vector<std::string> free_functions_;
 
-        bool extract_classes(const YAML::Node& root);
-        std::vector<std::string> extract_methods(const YAML::Node& node);
-        bool extract_free_functions(const YAML::Node& root);
+        void extract_classes(const YAML::Node& root);
+        void extract_free_functions(const YAML::Node& root);
+        static std::vector<std::string> extract_methods(const YAML::Node& node);
     };
-
 } // namespace codegen::io
