@@ -2,8 +2,8 @@
 
 #include <oatpp/core/Types.hpp>
 
-namespace engine::conversion {
-    
+namespace engine::conversion
+{
     using NativeVariant = std::variant<
         std::monostate,
         bool,
@@ -16,11 +16,11 @@ namespace engine::conversion {
         std::string
     >;
 
-    class OatppTypeAdapter final {
+    class OatppTypeAdapter final
+    {
     public:
         OatppTypeAdapter() = delete;
 
         static NativeVariant from_oatpp(const oatpp::Any& any);
     };
-
 } // namespace engine::conversion
