@@ -6,20 +6,58 @@
 
 #include "network/dto/execution/request_dto.hpp"
 
-namespace engine::serialization {
-
-    class JsonSerializer final {
+namespace engine::serialization
+{
+    class JsonSerializerException final : public std::runtime_error
+    {
     public:
-        explicit JsonSerializer(OATPP_COMPONENT(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper>, object_mapper))
-            : object_mapper_(object_mapper) {}
+        using std::runtime_error::runtime_error;
+    };
 
-        oatpp::Object<network::dto::execution::RequestDto> from_json(const oatpp::String& json_data) const;
-        oatpp::String to_json(const oatpp::Object<network::dto::execution::RequestDto>& request_dto) const;
+    template <typename DtoType>
+    class JsonSerializer final
+    {
+    public:
+        explicit JsonSerializer(OATPP_COMPONENT(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper>,
+                                                object_mapper)): object_mapper_(object_mapper)
+        {
+        }
+
+        oatpp::Object<DtoType> from_json(const oatpp::String& json_data) const
+        {
+            if (!json_data || json_data->empty())
+            {
+                throw JsonSerializerException("Deserialization failed: input JSON data is empty or null.");
+            }
+
+            try
+            {
+                return object_mapper_->readFromString<oatpp::Object<DtoType>>(json_data);
+            }
+            catch (const oatpp::parser::ParsingError& e)
+            {
+                throw JsonSerializerException("JSON deserialization error: " + std::string(e.what()));
+            }
+        }
+
+        oatpp::String to_json(const oatpp::Object<DtoType>& dto) const
+        {
+            if (!dto)
+            {
+                throw JsonSerializerException("Serialization failed: input DTO object is null.");
+            }
+
+            try
+            {
+                return object_mapper_->writeToString(dto);
+            }
+            catch (const std::exception& e)
+            {
+                throw JsonSerializerException("JSON serialization error: " + std::string(e.what()));
+            }
+        }
 
     private:
         std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
-
-        bool is_valid_json(const oatpp::String& json_data) const;
     };
-
 } // namespace engine::serialization
