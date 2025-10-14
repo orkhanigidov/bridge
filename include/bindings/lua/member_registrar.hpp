@@ -16,7 +16,7 @@ namespace engine::bindings::lua
             {
                 usertype_ = lua.new_usertype<T>(name);
             }
-            else
+            else // if (Ownership == MemoryOwnership::Cpp)
             {
                 usertype_ = lua.new_usertype<T>(name, sol::no_constructor);
                 usertype_[sol::meta_function::garbage_collect] = [](T&)
@@ -36,7 +36,7 @@ namespace engine::bindings::lua
         }
 
         template <typename... TSignatures>
-        MemberRegistrar& set_call_constructor()
+        MemberRegistrar& add_shared_constructors()
         {
             if constexpr (Ownership == MemoryOwnership::Lua)
             {
@@ -52,24 +52,24 @@ namespace engine::bindings::lua
             return *this;
         }
 
-        template <typename V>
-        MemberRegistrar& add_variable(const std::string& name, V T::* v, bool is_readonly = false)
+        template <typename Var>
+        MemberRegistrar& add_variable(const std::string& name, Var T::* var, bool is_readonly = false)
         {
             if (is_readonly)
             {
-                usertype_.set(name, sol::readonly(v));
+                usertype_.set(name, sol::readonly(var));
             }
             else
             {
-                usertype_.set(name, v);
+                usertype_.set(name, var);
             }
             return *this;
         }
 
-        template <typename V>
-        MemberRegistrar& add_static_variable(const std::string& name, V&& v)
+        template <typename Var>
+        MemberRegistrar& add_static_variable(const std::string& name, Var&& var)
         {
-            usertype_.set(name, sol::var(std::forward<V>(v)));
+            usertype_.set(name, sol::var(std::forward<Var>(var)));
             return *this;
         }
 
