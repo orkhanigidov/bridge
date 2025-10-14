@@ -8,6 +8,8 @@ namespace engine::mapper
     class MetadataMapper final
     {
     public:
+        MetadataMapper() = delete;
+
         static oatpp::Object<network::dto::execution::MetadataDto>to_dto(const interop::types::ExecutionMetadata& metadata)
         {
             auto dto = network::dto::execution::MetadataDto::createShared();

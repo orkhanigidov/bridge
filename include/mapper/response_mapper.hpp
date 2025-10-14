@@ -11,6 +11,8 @@ namespace engine::mapper
     class ResponseMapper final
     {
     public:
+        ResponseMapper() = delete;
+
         static oatpp::Enum<network::dto::execution::ExecutionStatusDto> to_dto(const interop::types::ExecutionStatus& status)
         {
             return static_cast<network::dto::execution::ExecutionStatusDto>(status);

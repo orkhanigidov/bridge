@@ -8,6 +8,8 @@ namespace engine::mapper
     class OptionsMapper final
     {
     public:
+        OptionsMapper() = delete;
+
         static oatpp::Object<network::dto::execution::OptionsDto> to_dto(const interop::types::ExecutionOptions& options)
         {
             auto dto = network::dto::execution::OptionsDto::createShared();

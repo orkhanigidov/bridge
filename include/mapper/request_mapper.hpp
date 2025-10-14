@@ -8,6 +8,8 @@ namespace engine::mapper
     class RequestMapper final
     {
     public:
+        RequestMapper() = delete;
+
         static oatpp::Enum<network::dto::execution::ExecutionTypeDto> to_dto(const interop::types::ExecutionType& type)
         {
             return static_cast<network::dto::execution::ExecutionTypeDto>(type);

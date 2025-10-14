@@ -9,6 +9,8 @@ namespace engine::mapper
     class ErrorMapper final
     {
     public:
+        ErrorMapper() = delete;
+
         static oatpp::Enum<network::dto::execution::ExecutionErrorTypeDto> to_dto(const interop::types::ExecutionErrorType& type)
         {
             return static_cast<network::dto::execution::ExecutionErrorTypeDto>(type);
