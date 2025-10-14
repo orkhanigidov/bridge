@@ -10,7 +10,7 @@ namespace
             return CppType{};
         }
 
-        const auto v = any.retrieve<typename OatppType::ObjectType>();
+        const auto v = any.retrieve<OatppType>();
         return engine::conversion::NativeVariant{v.getValue(CppType{})};
     }
 }
