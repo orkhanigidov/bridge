@@ -6,16 +6,11 @@
 
 namespace engine::execution
 {
-
     class ExecutionEngine final
     {
-      public:
+    public:
         ExecutionEngine() = default;
 
-        utils::ExecutionResponsePtr execute_lua(interop::types::ExecutionType type,
-                                                       const std::string& script_or_path);
-        utils::ExecutionResponsePtr execute_pipeline(interop::types::ExecutionType type,
-                                                            const std::string& json_or_path);
+        utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, const std::string& script);
     };
-
 } // namespace engine::execution
