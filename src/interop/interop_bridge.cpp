@@ -36,7 +36,7 @@ namespace engine::interop
             switch (request->type)
             {
             case types::ExecutionType::Lua_Script:
-                return execution.execute_lua(request->type, request->script);
+                return execution.execute(request->type, request->script);
             default:
                 return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
                                                             types::ExecutionErrorType::Invalid_Argument,

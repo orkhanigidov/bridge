@@ -1,6 +1,5 @@
 #include "execution/execution_service.hpp"
 
-#include "execution/execution_error.hpp"
 #include "execution/execution_result.hpp"
 #include "execution/script/script_executor.hpp"
 #include "execution/execution_engine.hpp"

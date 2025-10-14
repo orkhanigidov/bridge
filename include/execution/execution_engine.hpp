@@ -1,6 +1,5 @@
 #pragma once
 
-#include "execution/pipeline/pipeline_executor.hpp"
 #include "interop/types/execution_type.h"
 #include "utils/response_factory.hpp"
 

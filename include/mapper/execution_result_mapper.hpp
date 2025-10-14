@@ -38,6 +38,8 @@ namespace engine::mapper
                 error_dto->message = result.error.message;
                 dto->error = error_dto;
             }
+
+            return dto;
         }
     };
 } // namespace engine::mapper

@@ -19,7 +19,7 @@ namespace engine::network::controller
     class ExecutionController final : public oatpp::web::server::api::ApiController
     {
     public:
-        explicit ExecutionController(OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper),
+        explicit ExecutionController(const std::shared_ptr<oatpp::data::mapping::ObjectMapper>& object_mapper,
                                      std::shared_ptr<execution::ExecutionService> execution_service)
             : ApiController(object_mapper), execution_service_(std::move(execution_service))
         {
