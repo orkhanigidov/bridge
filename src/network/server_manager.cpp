@@ -6,92 +6,109 @@ namespace engine::network
 {
     ServerManager::~ServerManager() noexcept
     {
-        try
+        if (state_ == ServerState::RUNNING || state_ == ServerState::INITIALIZED)
         {
-            if (m_is_running)
-            {
-                shutdown();
-            }
-        }
-        catch (const std::exception& e)
-        {
-            OATPP_LOGE("Server", "Failed to shutdown: %s", e.what());
-        } catch (...)
-        {
-            OATPP_LOGE("Server", "Failed to shutdown: unknown exception");
+            OATPP_LOGW("Server", "Server is still running. Shutting down...");
+            shutdown();
         }
     }
 
     void ServerManager::initialize()
     {
-        if (m_is_initialized)
+        if (state_ != ServerState::STOPPED)
         {
             OATPP_LOGW("Server", "Initialization skipped - already initialized");
             return;
         }
 
-        auto network_component = std::make_unique<NetworkComponent>(m_cmd_args);
+        OATPP_LOGI("Server", "Initializing...");
+
+        OATPP_CREATE_COMPONENT(std::shared_ptr<engine::network::ServerConfig>, config)([this]
+        {
+            return std::make_shared<ServerConfig>(config_);
+        }());
+
+        network_component_ = std::make_unique<NetworkComponent>();
 
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, http_router);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connection_handler);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider);
+        OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper);
 
-        auto execution_controller = std::make_shared<controller::ExecutionController>();
+        auto execution_service = std::make_shared<execution::ExecutionService>();
+        auto execution_controller = std::make_shared<controller::ExecutionController>(object_mapper, execution_service);
+
         http_router->addController(execution_controller);
 
-        m_server = std::make_shared<oatpp::network::Server>(connection_provider, connection_handler);
+        server_ = std::make_shared<oatpp::network::Server>(connection_provider, connection_handler);
 
-        m_is_initialized = true;
-        OATPP_LOGI("Server", "Initialized on %s:%s",
-                   connection_provider->getProperty("host").getData(),
-                   connection_provider->getProperty("port").getData());
+        state_ = ServerState::INITIALIZED;
+        OATPP_LOGI("Server", "Initialized on %s:%s", config_.host, config_.port);
+    }
+
+    void ServerManager::run()
+    {
+        try
+        {
+            initialize();
+
+            if (state_ == ServerState::INITIALIZED)
+            {
+                start();
+            }
+        }
+        catch (const std::exception& e)
+        {
+            OATPP_LOGE("Server", "Error during server startup: %s", e.what());
+            shutdown();
+        }
     }
 
     void ServerManager::start()
     {
-        if (!m_is_initialized)
+        if (state_ != ServerState::INITIALIZED)
         {
             OATPP_LOGE("Server", "Start skipped - not initialized");
             return;
         }
 
-        if (m_is_running)
-        {
-            OATPP_LOGW("Server", "Start skipped - already running");
-            return;
-        }
+        state_ = ServerState::RUNNING;
+        OATPP_LOGI("Server", "Server is running on %s:%s", config_.host, config_.port);
+        OATPP_LOGI("Server", "Press Ctrl+C to stop");
 
-        m_is_running = true;
+        server_->run(); // Blocking call
 
-        OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider);
-        OATPP_LOGI("Server", "Starting on %s:%s",
-                   connection_provider->getProperty("host").getData(),
-                   connection_provider->getProperty("port").getData());
-
-        m_server->run(); // Blocking call
-
-        m_is_running = false;
-        OATPP_LOGI("Server", "Stopped");
+        OATPP_LOGI("Server", "Server has stopped listening");
+        shutdown();
     }
 
     void ServerManager::shutdown()
     {
-        if (!m_is_initialized)
+        if (state_ != ServerState::RUNNING && state_ != ServerState::INITIALIZED)
         {
-            OATPP_LOGW("Server", "Shutdown skipped - not initialized");
+            OATPP_LOGW("Server", "Shutdown skipped - server is not running");
             return;
         }
 
-        if (m_is_running)
+        state_ = ServerState::SHUTTING_DOWN;
+        OATPP_LOGI("Server", "Shutting down...");
+
+        try
         {
-            OATPP_LOGI("Server", "Shutting down...");
-            m_server->stop();
-            m_is_running = false;
-            OATPP_LOGI("Server", "Shutdown complete");
+            if (server_)
+            {
+                server_->stop();
+            }
         }
-        else
+        catch (const std::exception& e)
         {
-            OATPP_LOGW("Server", "Shutdown skipped - not running");
+            OATPP_LOGE("Server", "Error during server shutdown: %s", e.what());
         }
+
+        server_.reset();
+        network_component_.reset();
+
+        state_ = ServerState::STOPPED;
+        OATPP_LOGI("Server", "Shutdown complete");
     }
 } // namespace engine::network

@@ -3,37 +3,29 @@
 #include <oatpp/network/Server.hpp>
 
 #include "network_component.hpp"
+#include "server_state.hpp"
 
 namespace engine::network
 {
     class ServerManager final
     {
     public:
-        explicit ServerManager(const oatpp::base::CommandLineArguments& cmd_args):
-            m_cmd_args(cmd_args)
+        explicit ServerManager(const ServerConfig& config) : config_(config)
         {
         }
 
         ~ServerManager() noexcept;
 
-        void initialize();
-        void start();
+        void run();
         void shutdown();
 
-        bool is_initialized() const noexcept
-        {
-            return m_is_initialized;
-        }
-
-        bool is_running() const noexcept
-        {
-            return m_is_running;
-        }
-
     private:
-        oatpp::base::CommandLineArguments m_cmd_args;
-        std::shared_ptr<oatpp::network::Server> m_server;
-        bool m_is_initialized{false};
-        bool m_is_running{false};
+        void initialize();
+        void start();
+
+        ServerConfig config_;
+        ServerState state_{ServerState::STOPPED};
+        std::unique_ptr<NetworkComponent> network_component_;
+        std::shared_ptr<oatpp::network::Server> server_;
     };
 } // namespace engine::network
