@@ -43,7 +43,7 @@ namespace engine::network
         server_ = std::make_shared<oatpp::network::Server>(connection_provider, connection_handler);
 
         state_ = ServerState::INITIALIZED;
-        OATPP_LOGI("Server", "Initialized on %s:%s", config_.host, config_.port);
+        OATPP_LOGI("Server", "Initialized on %s:%u", config_.host->c_str(), config_.port);
     }
 
     void ServerManager::run()
@@ -66,14 +66,8 @@ namespace engine::network
 
     void ServerManager::start()
     {
-        if (state_ != ServerState::INITIALIZED)
-        {
-            OATPP_LOGE("Server", "Start skipped - not initialized");
-            return;
-        }
-
         state_ = ServerState::RUNNING;
-        OATPP_LOGI("Server", "Server is running on %s:%s", config_.host, config_.port);
+        OATPP_LOGI("Server", "Server is running on %s:%u", config_.host->c_str(), config_.port);
         OATPP_LOGI("Server", "Press Ctrl+C to stop");
 
         server_->run(); // Blocking call
