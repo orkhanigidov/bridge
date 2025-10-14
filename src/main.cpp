@@ -1,4 +1,5 @@
 #include "network/network_component.hpp"
+#include "network/server_config.hpp"
 #include "network/server_manager.hpp"
 
 #include <oatpp/core/base/CommandLineArguments.hpp>
@@ -13,14 +14,7 @@ void handle_signal(int signal)
         if (server_manager)
         {
             OATPP_LOGI("Main", "Signal %d received. Shutting down the server...", signal);
-            try
-            {
-                server_manager->shutdown();
-            }
-            catch (const std::exception& e)
-            {
-                OATPP_LOGE("Main", "Error during server shutdown: %s", e.what());
-            }
+            server_manager->shutdown();
         }
     }
 }
@@ -34,21 +28,17 @@ int main(int argc, const char* argv[])
     std::signal(SIGINT, handle_signal);
     std::signal(SIGTERM, handle_signal);
 
-    oatpp::base::CommandLineArguments cmd_args(argc, argv);
-
     try
     {
-        server_manager = std::make_shared<engine::network::ServerManager>(cmd_args);
-        server_manager->initialize();
-        server_manager->start();
+        const oatpp::base::CommandLineArguments cmd_args(argc, argv);
+        auto server_config = engine::network::parse_server_config(cmd_args);
+
+        server_manager = std::make_shared<engine::network::ServerManager>(server_config);
+        server_manager->run();
     }
     catch (const std::exception& e)
     {
         OATPP_LOGE("Main", "Server startup failed: %s", e.what());
-        exit_code = EXIT_FAILURE;
-    } catch (...)
-    {
-        OATPP_LOGE("Main", "Server startup failed: unknown exception");
         exit_code = EXIT_FAILURE;
     }
 
