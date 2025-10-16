@@ -94,6 +94,12 @@ namespace codegen::analysis
             return;
         }
 
+        if (result_.processed_classes.contains(class_name))
+        {
+            return;
+        }
+        result_.processed_classes.emplace(class_name);
+
         result_.classes.emplace_back(std::move(class_name));
         result_.includes.insert(utils::get_include_path(cursor));
 
@@ -104,6 +110,17 @@ namespace codegen::analysis
         for (const auto base : all_bases)
         {
             clang_visitChildren(base, &AstVisitor::visit_class_member, this);
+        }
+
+        auto& current_class_desc = result_.classes.back();
+        if (current_class_desc.constructors().empty())
+        {
+            if (!clang_CXXConstructor_isDefaultConstructor(cursor))
+            {
+                metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
+                ctor_desc.set_signature("()");
+                current_class_desc.add_constructor(std::move(ctor_desc));
+            }
         }
     }
 
@@ -118,6 +135,11 @@ namespace codegen::analysis
         {
         case CXCursor_Constructor:
             {
+                if (utils::get_spelling(parent) != parent_class_name)
+                {
+                    break;
+                }
+
                 metadata::ConstructorDescriptor ctor_desc(parent_class_name);
                 for (const auto& param : utils::get_parameters(cursor))
                 {

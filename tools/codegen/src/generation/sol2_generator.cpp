@@ -51,11 +51,22 @@ namespace codegen::generation
         write_line(out, 1, "void register_members(sol::state& lua)");
         write_line(out, 1, "{");
 
+        std::unordered_set<std::string> target_class_names;
+        for (const auto& cls : classes)
+        {
+            target_class_names.emplace(cls.name());
+        }
+
         std::unordered_set<std::string> registered_bases;
         for (const auto& cls : classes)
         {
             for (const auto& base_name : cls.base_class_names())
             {
+                if (target_class_names.contains(base_name))
+                {
+                    continue;
+                }
+
                 if (!registered_bases.contains(base_name))
                 {
                     write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, base_name));

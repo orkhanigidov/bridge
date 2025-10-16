@@ -19,5 +19,6 @@ namespace codegen::analysis
         std::vector<metadata::ClassDescriptor> classes;
         std::vector<metadata::FunctionDescriptor> free_functions;
         std::vector<metadata::EnumDescriptor> enums;
+        std::unordered_set<std::string> processed_classes;
     };
 } // namespace codegen::analysis
