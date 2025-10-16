@@ -122,7 +122,22 @@ namespace codegen::generation
                 std::stringstream ss;
                 for (size_t i = 0; i < funcs.size(); ++i)
                 {
-                    ss << "&" << cls.name() << "::" << funcs[i]->name() << (i < funcs.size() - 1 ? ", " : "");
+                    if (funcs.size() == 1)
+                    {
+                        ss << "&" << cls.name() << "::" << funcs[i]->name();
+                    }
+                    else
+                    {
+                        if (funcs[i]->is_const())
+                        {
+                            ss << "sol::resolve<" << funcs[i]->return_type_name() << funcs[i]->signature() << " const>(";
+                        }
+                        else
+                        {
+                            ss << "sol::resolve<" << funcs[i]->return_type_name() << funcs[i]->signature() << ">(";
+                        }
+                        ss << "&" << cls.name() << "::" << funcs[i]->name() << ")" << (i < funcs.size() - 1 ? ", " : "");
+                    }
                 }
                 write_line(out, 3, std::format(".add_functions(\"{}\", {})", name, ss.str()));
             }
@@ -133,12 +148,12 @@ namespace codegen::generation
     }
 
     void Sol2Generator::write_non_member_registrations(std::ofstream& out,
-                                                       const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                                       const std::vector<metadata::EnumDescriptor>& enums)
+                                                  const std::vector<metadata::FunctionDescriptor>& free_functions,
+                                                  const std::vector<metadata::EnumDescriptor>& enums)
     {
         write_line(out, 1, "void register_non_members(sol::state& lua)");
         write_line(out, 1, "{");
-        write_line(out, 2, "NonMemberRegistrar registrar(lua);", 1);
+        write_line(out, 2, "NonMemberRegistrar registrar(lua);", 2);
 
         for (const auto& func : free_functions)
         {
