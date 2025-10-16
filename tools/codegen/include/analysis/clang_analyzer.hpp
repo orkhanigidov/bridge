@@ -1,45 +1,45 @@
 #pragma once
 
+#include "analysis_data.hpp"
+
 #include <clang-c/Index.h>
-#include <metadata/class_descriptor.hpp>
 
-namespace codegen::analysis {
+namespace codegen::analysis
+{
+    using IndexPtr = std::unique_ptr<std::remove_pointer_t<CXIndex>, decltype(&clang_disposeIndex)>;
+    using TranslationUnitPtr = std::unique_ptr<std::remove_pointer_t<CXTranslationUnit>, decltype(&clang_disposeTranslationUnit)>;
 
-    class ClangAnalyzer final {
+    class ClangAnalyzer final
+    {
     public:
-        explicit ClangAnalyzer(const std::string& filename,
-                               const std::unordered_map<std::string, std::vector<std::string>>& target_classes,
-                               const std::vector<std::string>& target_free_functions);
+        explicit ClangAnalyzer(const std::string& filename, const AnalysisConfig& config);
 
-        const std::vector<engine::metadata::ClassDescriptor>& found_classes()
+        const std::unordered_set<std::string>& found_includes() const
         {
-            return found_classes_;
+            return result_.includes;
         }
 
-        const std::vector<engine::metadata::FunctionDescriptor>& found_free_functions()
+        const std::vector<metadata::ClassDescriptor>& found_classes() const
         {
-            return found_free_functions_;
+            return result_.classes;
         }
 
-        const std::vector<std::string>& found_includes()
+        const std::vector<metadata::FunctionDescriptor>& found_free_functions() const
         {
-            return found_includes_;
+            return result_.free_functions;
+        }
+
+        const std::vector<metadata::EnumDescriptor>& found_enums() const
+        {
+            return result_.enums;
+        }
+
+        const AnalysisResult& result() const
+        {
+            return result_;
         }
 
     private:
-        std::unordered_map<std::string, std::vector<std::string>> target_classes_;
-        std::vector<std::string> target_free_functions_;
-        std::vector<engine::metadata::ClassDescriptor> found_classes_;
-        std::vector<engine::metadata::FunctionDescriptor> found_free_functions_;
-        std::vector<std::string> found_includes_;
-
-        static std::string get_spelling(const CXCursor& cursor);
-        static std::string get_result_type(const CXCursor& cursor);
-        static std::string get_type(const CXCursor& cursor);
-        static std::string get_qualified_type(const CXCursor& cursor);
-        static std::vector<engine::metadata::ParameterDescriptor> get_arguments(const CXCursor& cursor);
-        static std::string get_include_path(const CXCursor& cursor);
-        static CXChildVisitResult visitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
+        AnalysisResult result_;
     };
-
 } // namespace codegen::analysis

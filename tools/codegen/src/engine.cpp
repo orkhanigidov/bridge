@@ -19,14 +19,12 @@ namespace codegen
             const auto reader = io::YamlReader::from_file(config_yaml_.string());
 
             std::cout << "Stage 3: Analyzing code with Clang..." << std::endl;
-            analysis::ClangAnalyzer analyzer(DUMMY_CPP,
-                                             include_dir_.string(),
-                                             reader.classes(),
-                                             reader.free_functions());
+            const analysis::AnalysisConfig config = {include_dir_.string(), reader.classes(), reader.free_functions()};
+            analysis::ClangAnalyzer analyzer(DUMMY_CPP, config);
 
             std::cout << "Stage 4: Generating Lua bindings..." << std::endl;
             generation::Sol2Generator generator(GENERATED_LUA_BINDINGS);
-            generator.generate(analyzer.found_includes(), analyzer.found_classes(), analyzer.found_free_functions());
+            generator.generate(analyzer.found_includes(), analyzer.found_classes(), analyzer.found_free_functions(), analyzer.found_enums());
 
             std::cout << "Lua bindings generated successfully!" << std::endl;
         }
