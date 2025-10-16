@@ -2,6 +2,17 @@
 
 #include "analysis/utils/clang_utils.hpp"
 
+namespace
+{
+    struct CursorComparator
+    {
+        bool operator()(const CXCursor& lhs, const CXCursor& rhs) const
+        {
+            return clang_hashCursor(lhs) < clang_hashCursor(rhs);
+        }
+    };
+}
+
 namespace codegen::analysis
 {
     CXChildVisitResult AstVisitor::visit(CXCursor cursor, CXCursor parent)
@@ -36,6 +47,45 @@ namespace codegen::analysis
         return visitor->visit(cursor, parent);
     }
 
+    void AstVisitor::collect_all_base_cursors(CXCursor cursor, std::vector<CXCursor>& bases)
+    {
+        struct VisitorData
+        {
+            std::set<CXCursor, CursorComparator>* visited;
+            std::vector<CXCursor>* stack;
+            std::vector<CXCursor>* bases;
+        };
+
+        std::set<CXCursor, CursorComparator> visited;
+        std::vector<CXCursor> stack;
+
+        visited.emplace(cursor);
+        stack.emplace_back(cursor);
+
+        VisitorData data{&visited, &stack, &bases};
+
+        while (!stack.empty())
+        {
+            CXCursor current = stack.back();
+            stack.pop_back();
+
+            clang_visitChildren(current, [](CXCursor child, CXCursor, CXClientData client_data) -> CXChildVisitResult
+            {
+                auto* visitor = static_cast<VisitorData*>(client_data);
+                if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
+                {
+                    CXCursor base = clang_getCursorReferenced(child);
+                    if (visitor->visited->emplace(base).second)
+                    {
+                        visitor->bases->emplace_back(base);
+                        visitor->stack->emplace_back(base);
+                    }
+                }
+                return CXChildVisit_Continue;
+            }, &data);
+        }
+    }
+
     void AstVisitor::visit_class_decl(CXCursor cursor)
     {
         auto class_name = utils::get_spelling(cursor);
@@ -48,6 +98,13 @@ namespace codegen::analysis
         result_.includes.insert(utils::get_include_path(cursor));
 
         clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
+
+        std::vector<CXCursor> all_bases;
+        collect_all_base_cursors(cursor, all_bases);
+        for (const auto base : all_bases)
+        {
+            clang_visitChildren(base, &AstVisitor::visit_class_member, this);
+        }
     }
 
     CXChildVisitResult AstVisitor::visit_class_member(CXCursor cursor, CXCursor parent, CXClientData client_data)

@@ -59,7 +59,7 @@ namespace codegen::generation
                 if (!registered_bases.contains(base_name))
                 {
                     write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, base_name));
-                    registered_bases.insert(base_name);
+                    registered_bases.emplace(base_name);
                 }
             }
         }
@@ -179,7 +179,7 @@ namespace codegen::generation
 
         for (const auto& func : free_functions)
         {
-            write_line(out, 2, std::format("registrar.add_function(\"{}\", &{});", func.name(), func.name()), 3);
+            write_line(out, 2, std::format("registrar.add_function(\"{}\", &{});", func.name(), func.name()));
         }
 
         for (const auto& enum_ : enums)
