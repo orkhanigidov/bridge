@@ -124,6 +124,11 @@ namespace codegen::analysis
 
     void AstVisitor::visit_enum_decl(CXCursor cursor)
     {
+        if (const auto enum_name = utils::get_spelling(cursor); enum_name.empty() || enum_name.starts_with("(unnamed"))
+        {
+            return;
+        }
+
         metadata::EnumDescriptor enum_desc(utils::get_spelling(cursor));
 
         clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData data)-> CXChildVisitResult
@@ -143,6 +148,7 @@ namespace codegen::analysis
         if (!enum_desc.enumerators().empty())
         {
             result_.enums.emplace_back(std::move(enum_desc));
+            result_.includes.insert(utils::get_include_path(cursor));
         }
     }
 
