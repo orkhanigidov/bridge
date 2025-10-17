@@ -23,11 +23,11 @@ namespace codegen::io
 
     YamlReader::YamlReader(const YAML::Node& root)
     {
-        extract_classes(root);
+        extract_all_classes(root);
         extract_free_functions(root);
     }
 
-    void YamlReader::extract_classes(const YAML::Node& root)
+    void YamlReader::extract_all_classes(const YAML::Node& root)
     {
         const auto& classes_node = root[CLASSES];
         if (!classes_node || !classes_node.IsSequence())
@@ -42,8 +42,11 @@ namespace codegen::io
             {
                 continue;
             }
-            auto method_names = extract_methods(class_node);
-            classes_.emplace(name_node.as<std::string>(), std::move(method_names));
+            auto class_name = name_node.as<std::string>();
+            analysis::ClassConfig config;
+            config.methods = extract_methods(class_node);
+            config.types = extract_types(class_node);
+            classes_.emplace(class_name, std::move(config));
         }
     }
 
@@ -63,6 +66,24 @@ namespace codegen::io
             }
         }
         return method_names;
+    }
+
+    std::vector<std::string> YamlReader::extract_types(const YAML::Node& node)
+    {
+        std::vector<std::string> type_names;
+        const auto& types_node = node[TYPES];
+        if (types_node && types_node.IsSequence())
+        {
+            type_names.reserve(types_node.size());
+            for (const auto& type_node : types_node)
+            {
+                if (type_node.IsScalar())
+                {
+                    type_names.emplace_back(type_node.as<std::string>());
+                }
+            }
+        }
+        return type_names;
     }
 
     void YamlReader::extract_free_functions(const YAML::Node& root)

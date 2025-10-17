@@ -29,6 +29,10 @@ namespace codegen::analysis
         {
             visit_class_decl(cursor);
         }
+        else if (kind == CXCursor_ClassTemplate)
+        {
+            visit_class_template(cursor);
+        }
         else if (kind == CXCursor_EnumDecl && clang_isCursorDefinition(cursor))
         {
             visit_enum_decl(cursor);

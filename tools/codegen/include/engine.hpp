@@ -11,9 +11,8 @@ namespace codegen
     class Engine final
     {
     public:
-        explicit
-        Engine(fs::path include_dir, fs::path config_yaml): include_dir_(std::move(include_dir)),
-                                                            config_yaml_(std::move(config_yaml))
+        explicit Engine(fs::path include_dir, fs::path config_yaml): include_dir_(std::move(include_dir)),
+                                                                     config_yaml_(std::move(config_yaml))
         {
         }
 

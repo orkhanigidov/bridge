@@ -26,6 +26,7 @@ namespace codegen::analysis
         AnalysisResult result_;
 
         void visit_class_decl(CXCursor cursor);
+        void visit_class_template(CXCursor cursor);
         void visit_function_decl(CXCursor cursor);
         void visit_enum_decl(CXCursor cursor);
         static void collect_all_base_cursors(CXCursor cursor, std::vector<CXCursor>& bases);

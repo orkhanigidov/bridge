@@ -1,5 +1,7 @@
 #pragma once
 
+#include "analysis/analysis_data.hpp"
+
 #include <yaml-cpp/yaml.h>
 
 namespace codegen::io
@@ -15,7 +17,7 @@ namespace codegen::io
     public:
         static YamlReader from_file(const std::string& filename);
 
-        const std::unordered_map<std::string, std::vector<std::string>>& classes() const noexcept
+        const std::unordered_map<std::string, analysis::ClassConfig>& classes() const noexcept
         {
             return classes_;
         }
@@ -31,13 +33,15 @@ namespace codegen::io
         static constexpr auto NAME = "name";
         static constexpr auto CLASSES = "classes";
         static constexpr auto METHODS = "methods";
+        static constexpr auto TYPES = "types";
         static constexpr auto FREE_FUNCTIONS = "free_functions";
 
-        std::unordered_map<std::string, std::vector<std::string>> classes_;
+        std::unordered_map<std::string, analysis::ClassConfig> classes_;
         std::vector<std::string> free_functions_;
 
-        void extract_classes(const YAML::Node& root);
+        void extract_all_classes(const YAML::Node& root);
         void extract_free_functions(const YAML::Node& root);
         static std::vector<std::string> extract_methods(const YAML::Node& node);
+        static std::vector<std::string> extract_types(const YAML::Node& node);
     };
 } // namespace codegen::io

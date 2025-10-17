@@ -6,10 +6,16 @@
 
 namespace codegen::analysis
 {
+    struct ClassConfig
+    {
+        std::vector<std::string> methods;
+        std::vector<std::string> types; // For template classes
+    };
+
     struct AnalysisConfig
     {
         std::string target_include_path;
-        std::unordered_map<std::string, std::vector<std::string>> target_classes;
+        std::unordered_map<std::string, ClassConfig> target_classes;
         std::vector<std::string> target_free_functions;
     };
 
