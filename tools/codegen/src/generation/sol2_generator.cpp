@@ -51,6 +51,21 @@ namespace codegen::generation
         write_line(out, 1, "void register_members(sol::state& lua)");
         write_line(out, 1, "{");
 
+        auto lua_name_formatter = [](std::string name)
+        {
+            size_t start_pos = name.find('<');
+            if (start_pos != std::string::npos)
+            {
+                size_t end_pos = name.rfind('>');
+                if (end_pos != std::string::npos)
+                {
+                    name.replace(start_pos, 1, "_");
+                    name.erase(end_pos, 1);
+                }
+            }
+            return name;
+        };
+
         std::unordered_set<std::string> target_class_names;
         for (const auto& cls : classes)
         {
@@ -69,7 +84,8 @@ namespace codegen::generation
 
                 if (!registered_bases.contains(base_name))
                 {
-                    write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, base_name));
+                    std::string lua_base_name = lua_name_formatter(base_name);
+                    write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, lua_base_name));
                     registered_bases.emplace(base_name);
                 }
             }
@@ -82,8 +98,9 @@ namespace codegen::generation
 
         for (const auto& cls : classes)
         {
+            std::string lua_name = lua_name_formatter(cls.name());
             std::string ownership = cls.constructors().empty() ? "Cpp" : "Lua";
-            write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::{}>(lua, \"{}\")", cls.name(), ownership, cls.name()));
+            write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::{}>(lua, \"{}\")", cls.name(), ownership, lua_name));
 
             if (!cls.constructors().empty())
             {

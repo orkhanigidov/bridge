@@ -98,6 +98,12 @@ namespace codegen::analysis
             return;
         }
 
+        const auto& class_config = config_.target_classes.at(class_name);
+        if (!class_config.types.empty())
+        {
+            return;
+        }
+
         if (result_.processed_classes.contains(class_name))
         {
             return;
@@ -105,7 +111,7 @@ namespace codegen::analysis
         result_.processed_classes.emplace(class_name);
 
         result_.classes.emplace_back(std::move(class_name));
-        result_.includes.insert(utils::get_include_path(cursor));
+        result_.includes.emplace(utils::get_include_path(cursor));
 
         clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
 
@@ -164,19 +170,31 @@ namespace codegen::analysis
         case CXCursor_CXXMethod:
             {
                 auto method_name = utils::get_spelling(cursor);
-                const auto& target_methods = visitor->config_.target_classes.at(parent_class_name);
-                if (std::ranges::find(target_methods, method_name) != target_methods.end())
+                std::string class_lookup_name = parent_class_name;
+
+                size_t template_bracket_pos = class_lookup_name.find('<');
+                if (template_bracket_pos != std::string::npos)
                 {
-                    metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name);
-                    method_desc.set_return_type_name(utils::get_cursor_result_type_spelling(cursor));
-                    method_desc.set_static(clang_CXXMethod_isStatic(cursor));
-                    method_desc.set_const(clang_CXXMethod_isConst(cursor));
-                    for (const auto& param : utils::get_parameters(cursor))
+                    class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
+                }
+                if (visitor->config_.target_classes.contains(class_lookup_name))
+                {
+                    const auto& class_config = visitor->config_.target_classes.at(class_lookup_name);
+                    const auto& target_methods = class_config.methods;
+
+                    if (std::ranges::find(target_methods, method_name) != target_methods.end())
                     {
-                        method_desc.add_parameter(param);
+                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name);
+                        method_desc.set_return_type_name(utils::get_cursor_result_type_spelling(cursor));
+                        method_desc.set_static(clang_CXXMethod_isStatic(cursor));
+                        method_desc.set_const(clang_CXXMethod_isConst(cursor));
+                        for (const auto& param : utils::get_parameters(cursor))
+                        {
+                            method_desc.add_parameter(param);
+                        }
+                        method_desc.set_signature(utils::build_signature(method_desc.parameters()));
+                        class_desc.add_member_function(std::move(method_desc));
                     }
-                    method_desc.set_signature(utils::build_signature(method_desc.parameters()));
-                    class_desc.add_member_function(std::move(method_desc));
                 }
                 break;
             }
@@ -205,6 +223,44 @@ namespace codegen::analysis
         return CXChildVisit_Continue;
     }
 
+    void AstVisitor::visit_class_template(CXCursor cursor)
+    {
+        auto template_name = utils::get_spelling(cursor);
+        if (!config_.target_classes.contains(template_name))
+        {
+            return;
+        }
+
+        const auto& template_config = config_.target_classes.at(template_name);
+        const auto& types = template_config.types;
+
+        for (const auto& type : types)
+        {
+            std::string full_name = std::format("{}<{}>", template_name, type);
+            if (result_.processed_classes.contains(full_name))
+            {
+                continue;
+            }
+            result_.processed_classes.emplace(full_name);
+
+            result_.classes.emplace_back(full_name);
+            result_.includes.emplace(utils::get_include_path(cursor));
+
+            clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
+
+            auto& current_class_desc = result_.classes.back();
+            if (current_class_desc.constructors().empty())
+            {
+                if (!clang_CXXConstructor_isDefaultConstructor(cursor))
+                {
+                    metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
+                    ctor_desc.set_signature("()");
+                    current_class_desc.add_constructor(std::move(ctor_desc));
+                }
+            }
+        }
+    }
+
     void AstVisitor::visit_enum_decl(CXCursor cursor)
     {
         if (const auto enum_name = utils::get_spelling(cursor); enum_name.empty() || enum_name.starts_with("(unnamed"))
@@ -231,7 +287,7 @@ namespace codegen::analysis
         if (!enum_desc.enumerators().empty())
         {
             result_.enums.emplace_back(std::move(enum_desc));
-            result_.includes.insert(utils::get_include_path(cursor));
+            result_.includes.emplace(utils::get_include_path(cursor));
         }
     }
 
@@ -248,7 +304,7 @@ namespace codegen::analysis
             }
             func_desc.set_signature(utils::build_signature(func_desc.parameters()));
             result_.free_functions.emplace_back(std::move(func_desc));
-            result_.includes.insert(utils::get_include_path(cursor));
+            result_.includes.emplace(utils::get_include_path(cursor));
         }
     }
 } // namespace codegen::analysis
