@@ -29,7 +29,7 @@ namespace codegen::analysis
             return result_.free_functions;
         }
 
-        const std::vector<metadata::EnumDescriptor>& found_enums() const
+        const std::vector<metadata::EnumeratorDescriptor>& found_enums() const
         {
             return result_.enums;
         }

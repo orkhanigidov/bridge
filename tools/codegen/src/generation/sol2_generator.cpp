@@ -13,7 +13,7 @@ namespace codegen::generation
     void Sol2Generator::generate(const std::unordered_set<std::string>& includes,
                                  const std::vector<metadata::ClassDescriptor>& classes,
                                  const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                 const std::vector<metadata::EnumDescriptor>& enums) const
+                                 const std::vector<metadata::EnumeratorDescriptor>& enums) const
     {
         std::ofstream out(output_file_);
         if (!out.is_open())
@@ -136,6 +136,28 @@ namespace codegen::generation
                 write_line(out, 3, std::format(".add_bases<{}>()", bases_str));
             }
 
+            for (const auto& enum_ : cls.member_enums())
+            {
+                std::string full_enum_name = std::format("{}::{}", cls.name(), enum_.name());
+
+                std::vector<std::string> enumerator_pairs;
+                enumerator_pairs.reserve(enum_.enumerators().size());
+                for (const auto& enumerator : enum_.enumerators())
+                {
+                    enumerator_pairs.emplace_back(std::format("\"{}\", {}::{}", enumerator.name, full_enum_name));
+                }
+                std::string enumerators_str;
+                for (size_t i = 0; i < enumerator_pairs.size(); ++i)
+                {
+                    enumerators_str += enumerator_pairs[i];
+                    if (i < enumerator_pairs.size() - 1)
+                    {
+                        enumerators_str += ", ";
+                    }
+                }
+                write_line(out, 3, std::format(".add_enums<{}>(\"{}\", {});", full_enum_name, enum_.name(), enumerators_str));
+            }
+
             for (const auto& var : cls.member_variables())
             {
                 if (var.is_static())
@@ -181,7 +203,7 @@ namespace codegen::generation
                         }
                     }
 
-                    std::string joiner = ",\n\t\t\t\t";
+                    const std::string joiner = ",\n\t\t\t\t";
                     for (size_t i = 0; i < expressions.size(); ++i)
                     {
                         overload_expressions += expressions[i];
@@ -200,7 +222,7 @@ namespace codegen::generation
 
     void Sol2Generator::write_non_member_registrations(std::ofstream& out,
                                                        const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                                       const std::vector<metadata::EnumDescriptor>& enums)
+                                                       const std::vector<metadata::EnumeratorDescriptor>& enums)
     {
         write_line(out, 1, "void register_non_members(sol::state& lua)");
         write_line(out, 1, "{");
@@ -228,7 +250,7 @@ namespace codegen::generation
                     expressions.emplace_back(std::format("sol::resolve<{}{}>(&{})", func->return_type_name(), func->signature(), name));
                 }
 
-                std::string joiner = ",\n\t\t\t";
+                const std::string joiner = ",\n\t\t\t";
                 for (size_t i = 0; i < expressions.size(); ++i)
                 {
                     overload_expressions += expressions[i];

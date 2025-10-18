@@ -1,7 +1,7 @@
 #pragma once
 
 #include "metadata/class_descriptor.hpp"
-#include "metadata/enum_descriptor.hpp"
+#include "metadata/enumerator_descriptor.hpp"
 
 namespace codegen::generation
 {
@@ -15,7 +15,7 @@ namespace codegen::generation
         void generate(const std::unordered_set<std::string>& includes,
                       const std::vector<metadata::ClassDescriptor>& classes,
                       const std::vector<metadata::FunctionDescriptor>& free_functions,
-                      const std::vector<metadata::EnumDescriptor>& enums) const;
+                      const std::vector<metadata::EnumeratorDescriptor>& enums) const;
 
     private:
         fs::path output_file_;
@@ -24,7 +24,7 @@ namespace codegen::generation
         static void write_member_registrations(std::ofstream& out, const std::vector<metadata::ClassDescriptor>& classes);
         static void write_non_member_registrations(std::ofstream& out,
                                                    const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                                   const std::vector<metadata::EnumDescriptor>& enums);
+                                                   const std::vector<metadata::EnumeratorDescriptor>& enums);
         static void write_footer(std::ofstream& out);
     };
 } // namespace codegen::generation

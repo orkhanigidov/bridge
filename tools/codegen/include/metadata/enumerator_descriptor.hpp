@@ -22,9 +22,9 @@ namespace codegen::metadata
             return name_;
         }
 
-        const std::vector<EnumDescriptor>& enums() const noexcept
+        const std::vector<EnumDescriptor>& enumerators() const noexcept
         {
-            return enums_;
+            return enumerators_;
         }
 
         EnumeratorDescriptor& set_name(std::string name)
@@ -33,14 +33,14 @@ namespace codegen::metadata
             return *this;
         }
 
-        EnumeratorDescriptor& add_enum(EnumDescriptor enum_)
+        EnumeratorDescriptor& add_enumerator(EnumDescriptor enumerator)
         {
-            enums_.emplace_back(std::move(enum_));
+            enumerators_.emplace_back(std::move(enumerator));
             return *this;
         }
 
     private:
         std::string name_;
-        std::vector<EnumDescriptor> enums_;
+        std::vector<EnumDescriptor> enumerators_;
     };
 } // codegen::metadata
