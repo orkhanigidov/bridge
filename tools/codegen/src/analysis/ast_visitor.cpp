@@ -90,6 +90,37 @@ namespace codegen::analysis
         }
     }
 
+    std::optional<metadata::EnumeratorDescriptor> AstVisitor::parse_enumerator_decl(CXCursor cursor)
+    {
+        if (const auto enum_name = utils::get_spelling(cursor); enum_name.empty() || enum_name.starts_with("(unnamed"))
+        {
+            return std::nullopt;
+        }
+
+        metadata::EnumeratorDescriptor enum_desc(utils::get_spelling(cursor));
+
+        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData data)-> CXChildVisitResult
+        {
+            if (clang_getCursorKind(child) == CXCursor_EnumConstantDecl)
+            {
+                auto* current_enum_desc = static_cast<metadata::EnumeratorDescriptor*>(data);
+                metadata::EnumDescriptor enumerator;
+                enumerator.name = utils::get_spelling(child);
+                enumerator.value = clang_getEnumConstantDeclValue(child);
+                current_enum_desc->add_enumerator(std::move(enumerator));
+            }
+
+            return CXChildVisit_Continue;
+        }, &enum_desc);
+
+        if (!enum_desc.enumerators().empty())
+        {
+            return enum_desc;
+        }
+
+        return std::nullopt;
+    }
+
     void AstVisitor::visit_class_decl(CXCursor cursor)
     {
         auto class_name = utils::get_spelling(cursor);
@@ -199,6 +230,19 @@ namespace codegen::analysis
                 break;
             }
 
+        case CXCursor_EnumDecl:
+            {
+                if (clang_isCursorDefinition(cursor))
+                {
+                    if (auto enum_desc_opt = visitor->parse_enumerator_decl(cursor))
+                    {
+                        class_desc.add_member_enumerator(std::move(*enum_desc_opt));
+                        visitor->result_.includes.emplace(utils::get_include_path(cursor));
+                    }
+                }
+                break;
+            }
+
         case CXCursor_FieldDecl:
         case CXCursor_VarDecl:
             {
@@ -263,30 +307,9 @@ namespace codegen::analysis
 
     void AstVisitor::visit_enum_decl(CXCursor cursor)
     {
-        if (const auto enum_name = utils::get_spelling(cursor); enum_name.empty() || enum_name.starts_with("(unnamed"))
+        if (auto enum_desc_opt = parse_enumerator_decl(cursor); !enum_desc_opt)
         {
-            return;
-        }
-
-        metadata::EnumDescriptor enum_desc(utils::get_spelling(cursor));
-
-        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData data)-> CXChildVisitResult
-        {
-            if (clang_getCursorKind(child) == CXCursor_EnumConstantDecl)
-            {
-                auto* current_enum_desc = static_cast<metadata::EnumDescriptor*>(data);
-                metadata::EnumeratorDescriptor enumerator;
-                enumerator.name = utils::get_spelling(child);
-                enumerator.value = clang_getEnumConstantDeclValue(child);
-                current_enum_desc->add_enumerator(std::move(enumerator));
-            }
-
-            return CXChildVisit_Continue;
-        }, &enum_desc);
-
-        if (!enum_desc.enumerators().empty())
-        {
-            result_.enums.emplace_back(std::move(enum_desc));
+            result_.enums.emplace_back(std::move(*enum_desc_opt));
             result_.includes.emplace(utils::get_include_path(cursor));
         }
     }

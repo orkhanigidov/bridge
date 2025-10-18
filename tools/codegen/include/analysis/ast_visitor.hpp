@@ -30,6 +30,7 @@ namespace codegen::analysis
         void visit_function_decl(CXCursor cursor);
         void visit_enum_decl(CXCursor cursor);
         static void collect_all_base_cursors(CXCursor cursor, std::vector<CXCursor>& bases);
+        static std::optional<metadata::EnumeratorDescriptor> parse_enumerator_decl(CXCursor cursor);
         static CXChildVisitResult visit_class_member(CXCursor cursor, CXCursor parent, CXClientData client_data);
     };
 } // namespace codegen::analysis

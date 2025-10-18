@@ -144,18 +144,19 @@ namespace codegen::generation
                 enumerator_pairs.reserve(enum_.enumerators().size());
                 for (const auto& enumerator : enum_.enumerators())
                 {
-                    enumerator_pairs.emplace_back(std::format("\"{}\", {}::{}", enumerator.name, full_enum_name));
+                    enumerator_pairs.emplace_back(std::format("\"{}\", {}::{}", enumerator.name, full_enum_name, enumerator.name));
                 }
                 std::string enumerators_str;
                 for (size_t i = 0; i < enumerator_pairs.size(); ++i)
                 {
+                    const std::string joiner = ",\n\t\t\t\t";
                     enumerators_str += enumerator_pairs[i];
                     if (i < enumerator_pairs.size() - 1)
                     {
-                        enumerators_str += ", ";
+                        enumerators_str += joiner;
                     }
                 }
-                write_line(out, 3, std::format(".add_enums<{}>(\"{}\", {});", full_enum_name, enum_.name(), enumerators_str));
+                write_line(out, 3, std::format(".add_enums<{}>(\"{}\", {})", full_enum_name, enum_.name(), enumerators_str));
             }
 
             for (const auto& var : cls.member_variables())
@@ -275,10 +276,11 @@ namespace codegen::generation
             std::string enumerators_str;
             for (size_t i = 0; i < enumerator_pairs.size(); ++i)
             {
+                const std::string joiner = ",\n\t\t\t";
                 enumerators_str += enumerator_pairs[i];
                 if (i < enumerator_pairs.size() - 1)
                 {
-                    enumerators_str += ", ";
+                    enumerators_str += joiner;
                 }
             }
             write_line(out, 2, std::format("registrar.add_enums<{}>(\"{}\", {});", enum_.name(), enum_.name(), enumerators_str));
