@@ -74,7 +74,7 @@ namespace engine::bindings::lua
         }
 
         template <typename... Fs>
-            requires std::conjunction_v<std::is_member_function_pointer<std::remove_cvref_t<Fs>>...>
+            requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
         MemberRegistrar& add_functions(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)
