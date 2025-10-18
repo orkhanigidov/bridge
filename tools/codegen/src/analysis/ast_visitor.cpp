@@ -11,6 +11,36 @@ namespace
             return clang_hashCursor(lhs) < clang_hashCursor(rhs);
         }
     };
+
+    std::string get_full_namespace(CXCursor cursor)
+    {
+        std::string full_ns;
+        CXCursor parent = clang_getCursorLexicalParent(cursor);
+
+        while (clang_getCursorKind(parent) != CXCursor_TranslationUnit)
+        {
+            if (clang_getCursorKind(parent) == CXCursor_Namespace)
+            {
+                std::string ns_name = codegen::analysis::utils::get_spelling(parent);
+                if (ns_name.empty())
+                {
+                    parent = clang_getCursorLexicalParent(parent);
+                    continue;
+                }
+
+                if (full_ns.empty())
+                {
+                    full_ns = ns_name;
+                }
+                else
+                {
+                    full_ns = std::format("{}::{}", ns_name, full_ns);
+                }
+            }
+            parent = clang_getCursorSemanticParent(parent);
+        }
+        return full_ns;
+    }
 }
 
 namespace codegen::analysis
@@ -195,6 +225,11 @@ namespace codegen::analysis
             {
                 CXCursor base_class = clang_getCursorReferenced(cursor);
                 class_desc.add_base_class_name(utils::get_spelling(base_class));
+                std::string base_ns = get_full_namespace(base_class);
+                if (!base_ns.empty())
+                {
+                    visitor->result_.namespaces.emplace(std::move(base_ns));
+                }
                 break;
             }
 
