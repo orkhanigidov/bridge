@@ -6,14 +6,14 @@ endif ()
 
 project(Engine
         VERSION 1.0.0
-        DESCRIPTION ""
+        DESCRIPTION "C++ Engine with Lua Scripting Support"
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(BUILD_SHARED_LIB "Build as a shared library" ON)
+option(BUILD_SHARED_LIB "Build the engine as a shared library" OFF)
 
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -27,24 +27,9 @@ set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
 
 include(cmake/CPM.cmake)
 
-CPMAddPackage(
-        NAME yaml-cpp
-        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG 0.8.0
-)
-
-CPMAddPackage(
-        NAME sol2
-        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-        GIT_TAG develop
-)
-
-CPMAddPackage(
-        NAME oatpp
-        GIT_REPOSITORY https://github.com/oatpp/oatpp.git
-        GIT_TAG 1.3.1
-)
-
+CPMAddPackage("gh:jbeder/yaml-cpp#0.8.0")
+CPMAddPackage("gh:ThePhD/sol2#develop")
+CPMAddPackage("gh:oatpp/oatpp#1.3.1")
 CPMAddPackage(
         NAME ogdf
         GIT_REPOSITORY https://github.com/ogdf/ogdf.git
@@ -67,15 +52,14 @@ set_target_properties(lua::lua54 PROPERTIES
 add_subdirectory(tools/codegen)
 
 set(SOURCES
-        ${SRC_DIR}/bindings/lua/registry.cpp
+        ${SRC_DIR}/bindings/lua/lua_binder.cpp
         ${SRC_DIR}/conversion/oatpp_type_adapter.cpp
-        ${SRC_DIR}/execution/pipeline/pipeline_executor.cpp
-        ${SRC_DIR}/execution/pipeline/pipeline_step.cpp
         ${SRC_DIR}/execution/script/script_executor.cpp
         ${SRC_DIR}/execution/execution_engine.cpp
+        ${SRC_DIR}/execution/execution_service.cpp
         ${SRC_DIR}/interop/interop_bridge.cpp
         ${SRC_DIR}/interop/interop_c_api.cpp
-        ${SRC_DIR}/network/network_component.cpp
+        ${SRC_DIR}/network/server_config.cpp
         ${SRC_DIR}/network/server_manager.cpp
         ${SRC_DIR}/utils/filesystem_utils.cpp
         ${SRC_DIR}/utils/response_factory.cpp
@@ -106,6 +90,8 @@ else ()
             ${SOURCES}
     )
 endif ()
+
+target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
 
 add_dependencies(${PROJECT_NAME} generate_bindings)
 

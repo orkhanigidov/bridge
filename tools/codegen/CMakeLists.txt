@@ -6,7 +6,7 @@ endif ()
 
 project(Codegen
         VERSION 1.0.0
-        DESCRIPTION ""
+        DESCRIPTION "Code generation tool for binding C++ code to Lua using Sol2"
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -17,12 +17,14 @@ set(CODEGEN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CODEGEN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(SOURCES
+        ${CODEGEN_SRC_DIR}/analysis/utils/clang_utils.cpp
+        ${CODEGEN_SRC_DIR}/analysis/ast_visitor.cpp
         ${CODEGEN_SRC_DIR}/analysis/clang_analyzer.cpp
-        ${CODEGEN_SRC_DIR}/engine.cpp
+        ${CODEGEN_SRC_DIR}/generation/sol2_generator.cpp
         ${CODEGEN_SRC_DIR}/io/env_reader.cpp
         ${CODEGEN_SRC_DIR}/io/header_collector.cpp
         ${CODEGEN_SRC_DIR}/io/yaml_reader.cpp
-        ${CODEGEN_SRC_DIR}/generation/sol2_generator.cpp
+        ${CODEGEN_SRC_DIR}/engine.cpp
         ${CODEGEN_SRC_DIR}/main.cpp
 )
 
@@ -38,6 +40,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
         yaml-cpp::yaml-cpp
         clang::libclang
+        OGDF
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
