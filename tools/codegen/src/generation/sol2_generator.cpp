@@ -41,6 +41,7 @@ namespace codegen::generation
         }
         write_line(out, 0, "");
         write_line(out, 0, "#include <sol/sol.hpp>", 2);
+        write_line(out, 0, "using namespace codegen::wrappers;");
         write_line(out, 0, "using namespace ogdf;", 2);
         write_line(out, 0, "namespace engine::bindings::lua");
         write_line(out, 0, "{");
@@ -205,9 +206,39 @@ namespace codegen::generation
         write_line(out, 1, "{");
         write_line(out, 2, "NonMemberRegistrar registrar(lua);", 2);
 
+        std::map<std::string, std::vector<const metadata::FunctionDescriptor*>> overloads;
         for (const auto& func : free_functions)
         {
-            write_line(out, 2, std::format("registrar.add_function(\"{}\", &{});", func.name(), func.name()));
+            overloads[func.name()].emplace_back(&func);
+        }
+
+        for (const auto& [name, funcs] : overloads)
+        {
+            std::string overload_expressions;
+            if (funcs.size() == 1)
+            {
+                overload_expressions += std::format("{}, &{}", name, name);
+            }
+            else
+            {
+                std::vector<std::string> expressions;
+                expressions.reserve(funcs.size());
+                for (const auto& func : funcs)
+                {
+                    expressions.emplace_back(std::format("sol::resolve<{}{}>(&{})", func->return_type_name(), func->signature(), name));
+                }
+
+                std::string joiner = ",\n\t\t\t\t";
+                for (size_t i = 0; i < expressions.size(); ++i)
+                {
+                    overload_expressions += expressions[i];
+                    if (i < expressions.size() - 1)
+                    {
+                        overload_expressions += joiner;
+                    }
+                }
+            }
+            write_line(out, 3, std::format("registrar.add_functions(\"{}\", {});", name, overload_expressions));
         }
 
         for (const auto& enum_ : enums)

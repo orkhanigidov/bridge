@@ -11,11 +11,18 @@ namespace engine::bindings::lua
         {
         }
 
-        template <typename F>
-            requires !std::is_member_function_pointer_v<std::remove_cvref_t<F>>
-        NonMemberRegistrar& add_function(const std::string& name, F&& f)
+        template <typename... Fs>
+            requires std::conjunction_v<std::is_member_function_pointer<std::remove_cvref_t<Fs>>...>
+        NonMemberRegistrar& add_functions(const std::string& name, Fs&&... fs)
         {
-            lua_.set_function(name, std::forward<F>(f));
+            if constexpr (sizeof...(Fs) == 1)
+            {
+                lua_.set_function(name, std::forward<Fs>(fs)...);
+            }
+            else
+            {
+                lua_.set_function(name, sol::overload(std::forward<Fs>(fs)...));
+            }
             return *this;
         }
 

@@ -18,7 +18,7 @@ namespace codegen::analysis
     CXChildVisitResult AstVisitor::visit(CXCursor cursor, CXCursor parent)
     {
         const auto path = utils::get_include_path(cursor);
-        if (path.empty() || !path.starts_with(config_.target_include_path))
+        if (path.empty() || !path.starts_with(config_.target_include_path) && !path.starts_with(config_.wrapper_include_path))
         {
             return CXChildVisit_Continue;
         }
@@ -293,8 +293,11 @@ namespace codegen::analysis
 
     void AstVisitor::visit_function_decl(CXCursor cursor)
     {
+        const auto path = utils::get_include_path(cursor);
+        const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path);
+
         const auto func_name = utils::get_spelling(cursor);
-        if (std::ranges::find(config_.target_free_functions, func_name) != config_.target_free_functions.end())
+        if (is_wrapper || std::ranges::find(config_.target_free_functions, func_name) != config_.target_free_functions.end())
         {
             metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name);
             func_desc.set_return_type_name(utils::get_cursor_result_type_spelling(cursor));
