@@ -217,7 +217,7 @@ namespace codegen::generation
             std::string overload_expressions;
             if (funcs.size() == 1)
             {
-                overload_expressions += std::format("{}, &{}", name, name);
+                overload_expressions += std::format("&{}", name);
             }
             else
             {
@@ -228,7 +228,7 @@ namespace codegen::generation
                     expressions.emplace_back(std::format("sol::resolve<{}{}>(&{})", func->return_type_name(), func->signature(), name));
                 }
 
-                std::string joiner = ",\n\t\t\t\t";
+                std::string joiner = ",\n\t\t\t";
                 for (size_t i = 0; i < expressions.size(); ++i)
                 {
                     overload_expressions += expressions[i];
@@ -238,7 +238,7 @@ namespace codegen::generation
                     }
                 }
             }
-            write_line(out, 3, std::format("registrar.add_functions(\"{}\", {});", name, overload_expressions));
+            write_line(out, 2, std::format("registrar.add_functions(\"{}\", {});", name, overload_expressions));
         }
 
         for (const auto& enum_ : enums)
