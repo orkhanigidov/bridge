@@ -45,6 +45,16 @@ namespace engine::bindings::lua
             return *this;
         }
 
+        template <typename F>
+        MemberRegistrar& add_destructor(F&& f)
+        {
+            if constexpr (Ownership == MemoryOwnership::Lua)
+            {
+                usertype_[sol::meta_function::garbage_collect] = sol::destructor(std::forward<F>(f));
+            }
+            return *this;
+        }
+
         template <typename... Bases>
         MemberRegistrar& add_bases()
         {
@@ -73,6 +83,20 @@ namespace engine::bindings::lua
             return *this;
         }
 
+        template <typename Getter, typename Setter>
+        MemberRegistrar& add_property(const std::string& name, Getter&& getter, Setter&& setter)
+        {
+            usertype_.set(name, sol::property(std::forward<Getter>(getter), std::forward<Setter>(setter)));
+            return *this;
+        }
+
+        template <typename Getter>
+        MemberRegistrar& add_readonly_property(const std::string& name, Getter&& getter)
+        {
+            usertype_.set(name, sol::readonly_property(std::forward<Getter>(getter)));
+            return *this;
+        }
+
         template <typename... Fs>
             requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
         MemberRegistrar& add_functions(const std::string& name, Fs&&... fs)
@@ -85,6 +109,28 @@ namespace engine::bindings::lua
             {
                 usertype_.set_function(name, sol::overload(std::forward<Fs>(fs)...));
             }
+            return *this;
+        }
+
+        template <typename... Fs>
+            requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
+        MemberRegistrar& add_static_functions(const std::string& name, Fs&&... fs)
+        {
+            if constexpr (sizeof...(Fs) == 1)
+            {
+                usertype_.set_static_function(name, std::forward<Fs>(fs)...);
+            }
+            else
+            {
+                usertype_.set_static_function(name, sol::overload(std::forward<Fs>(fs)...));
+            }
+            return *this;
+        }
+
+        template <typename F>
+        MemberRegistrar& add_meta_function(sol::meta_function key, F&& f)
+        {
+            usertype_[key] = std::forward<F>(f);
             return *this;
         }
 
