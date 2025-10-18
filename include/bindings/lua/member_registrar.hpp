@@ -10,7 +10,7 @@ namespace engine::bindings::lua
     class MemberRegistrar final
     {
     public:
-        explicit MemberRegistrar(sol::state& lua, const std::string& name)
+        explicit MemberRegistrar(sol::state& lua, const std::string& name) : lua_(lua)
         {
             if constexpr (Ownership == MemoryOwnership::Lua)
             {
@@ -83,10 +83,10 @@ namespace engine::bindings::lua
             return *this;
         }
 
-        template <typename E, typename... Args>
+        template <typename... Args>
         MemberRegistrar& add_enums(const std::string& name, Args&&... args)
         {
-            usertype_.template new_enum<E>(name, std::forward<Args>(args)...);
+            lua_.new_enum(name, std::forward<Args>(args)...);
             return *this;
         }
 
@@ -142,6 +142,7 @@ namespace engine::bindings::lua
         }
 
     private:
+        sol::state& lua_;
         sol::usertype<T> usertype_;
 
         template <typename... Args>

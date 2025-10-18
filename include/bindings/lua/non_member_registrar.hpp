@@ -45,10 +45,10 @@ namespace engine::bindings::lua
             return *this;
         }
 
-        template <typename E, typename... Args>
+        template <typename... Args>
         NonMemberRegistrar& add_enums(const std::string& name, Args&&... args)
         {
-            lua_.new_enum<E>(name, std::forward<Args>(args)...);
+            lua_.new_enum(name, std::forward<Args>(args)...);
             return *this;
         }
 

@@ -163,7 +163,7 @@ namespace codegen::generation
                         enumerators_str += joiner;
                     }
                 }
-                write_line(out, 3, std::format(".add_enums<{}>(\"{}\", {})", full_enum_name, enum_.name(), enumerators_str));
+                write_line(out, 3, std::format(".add_enums(\"{}\", {})", enum_.name(), enumerators_str));
             }
 
             for (const auto& var : cls.member_variables())
@@ -290,7 +290,7 @@ namespace codegen::generation
                     enumerators_str += joiner;
                 }
             }
-            write_line(out, 2, std::format("registrar.add_enums<{}>(\"{}\", {});", enum_.name(), enum_.name(), enumerators_str));
+            write_line(out, 2, std::format("registrar.add_enums(\"{}\", {});", enum_.name(), enumerators_str));
         }
         write_line(out, 1, "}");
     }
