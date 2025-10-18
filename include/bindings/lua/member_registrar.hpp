@@ -83,6 +83,13 @@ namespace engine::bindings::lua
             return *this;
         }
 
+        template <typename E, typename... Args>
+        MemberRegistrar& add_enums(const std::string& name, Args&&... args)
+        {
+            usertype_.template new_enum<E>(name, std::forward<Args>(args)...);
+            return *this;
+        }
+
         template <typename Getter, typename Setter>
         MemberRegistrar& add_property(const std::string& name, Getter&& getter, Setter&& setter)
         {
