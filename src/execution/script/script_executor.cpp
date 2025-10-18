@@ -13,7 +13,8 @@ namespace engine::execution::script
     ScriptExecutor::ScriptExecutor()
     {
         lua_ = sol::state();
-        lua_.open_libraries(sol::lib::base);
+        lua_.open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os,
+                            sol::lib::math, sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::utf8);
 
         bindings::lua::LuaBinder binder;
         binder.register_bindings(lua_);
