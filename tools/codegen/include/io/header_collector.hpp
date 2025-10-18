@@ -12,6 +12,7 @@ namespace codegen::io
     {
     public:
         static void collect_headers_to_file(const fs::path& include_dir,
+                                            const fs::path& wrapper_dir,
                                             const fs::path& output_file,
                                             const std::vector<std::string>& extensions = {".h", ".hpp"});
 

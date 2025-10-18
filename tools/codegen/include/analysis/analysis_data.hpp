@@ -15,6 +15,7 @@ namespace codegen::analysis
     struct AnalysisConfig
     {
         std::string target_include_path;
+        std::string wrapper_include_path;
         std::unordered_map<std::string, ClassConfig> target_classes;
         std::vector<std::string> target_free_functions;
     };

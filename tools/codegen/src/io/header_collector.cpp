@@ -3,6 +3,7 @@
 namespace codegen::io
 {
     void HeaderCollector::collect_headers_to_file(const fs::path& include_dir,
+                                                  const fs::path& wrapper_dir,
                                                   const fs::path& output_file,
                                                   const std::vector<std::string>& extensions)
     {
@@ -11,36 +12,44 @@ namespace codegen::io
             throw HeaderCollectorException("Invalid include directory: " + include_dir.string());
         }
 
+        if (!fs::exists(wrapper_dir) || !fs::is_directory(wrapper_dir))
+        {
+            throw HeaderCollectorException("Invalid wrapper include directory: " + wrapper_dir.string());
+        }
+
         std::ofstream out(output_file);
         if (!out)
         {
             throw HeaderCollectorException("Failed to open output file: " + output_file.string());
         }
 
-        for (const auto& entry : fs::recursive_directory_iterator(include_dir))
+        for (const std::vector include_dirs = {include_dir, wrapper_dir}; const auto& dir : include_dirs)
         {
-            if (!entry.is_regular_file())
+            for (const auto& entry : fs::recursive_directory_iterator(dir))
             {
-                continue;
-            }
-
-            const auto& file_path = entry.path();
-            const std::string extension = file_path.extension().string();
-
-            bool is_header = false;
-            for (const auto& ext : extensions)
-            {
-                if (extension == ext)
+                if (!entry.is_regular_file())
                 {
-                    is_header = true;
-                    break;
+                    continue;
                 }
-            }
 
-            if (is_header)
-            {
-                const auto relative_path = fs::relative(file_path, include_dir);
-                out << "#include \"" << relative_path.generic_string() << "\"\n";
+                const auto& file_path = entry.path();
+                const std::string extension = file_path.extension().string();
+
+                bool is_header = false;
+                for (const auto& ext : extensions)
+                {
+                    if (extension == ext)
+                    {
+                        is_header = true;
+                        break;
+                    }
+                }
+
+                if (is_header)
+                {
+                    const auto relative_path = fs::relative(file_path, dir);
+                    out << "#include \"" << relative_path.generic_string() << "\"\n";
+                }
             }
         }
 

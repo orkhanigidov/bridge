@@ -12,7 +12,8 @@ namespace codegen::analysis
             throw std::runtime_error("Failed to create Clang index.");
         }
 
-        const std::vector<std::string> clang_args = {"-x", "c++", "-std=c++20", "-I" + config.target_include_path};
+        const std::vector<std::string> clang_args = {"-x", "c++", "-std=c++20",
+            "-I" + config.wrapper_include_path, "-I" + config.target_include_path};
 
         std::vector<const char*> clang_args_c;
         for (const auto& arg : clang_args)
