@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constructor_descriptor.hpp"
+#include "enumerator_descriptor.hpp"
 #include "function_descriptor.hpp"
 #include "variable_descriptor.hpp"
 
@@ -28,6 +29,11 @@ namespace codegen::metadata
         const std::vector<ConstructorDescriptor>& constructors() const noexcept
         {
             return constructors_;
+        }
+
+        const std::vector<EnumeratorDescriptor>& member_enums() const noexcept
+        {
+            return member_enums_;
         }
 
         const std::vector<VariableDescriptor>& member_variables() const noexcept
@@ -58,6 +64,12 @@ namespace codegen::metadata
             return *this;
         }
 
+        ClassDescriptor& add_member_enumerator(EnumeratorDescriptor enumerator)
+        {
+            member_enums_.emplace_back(std::move(enumerator));
+            return *this;
+        }
+
         ClassDescriptor& add_member_variable(VariableDescriptor member_variable)
         {
             member_variables_.emplace_back(std::move(member_variable));
@@ -74,6 +86,7 @@ namespace codegen::metadata
         std::string name_;
         std::vector<std::string> base_class_names_;
         std::vector<ConstructorDescriptor> constructors_;
+        std::vector<EnumeratorDescriptor> member_enums_;
         std::vector<VariableDescriptor> member_variables_;
         std::vector<FunctionDescriptor> member_functions_;
     };
