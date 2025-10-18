@@ -23,6 +23,7 @@ namespace codegen::analysis
     struct AnalysisResult
     {
         std::unordered_set<std::string> includes;
+        std::unordered_set<std::string> namespaces;
         std::vector<metadata::ClassDescriptor> classes;
         std::vector<metadata::FunctionDescriptor> free_functions;
         std::vector<metadata::EnumeratorDescriptor> enums;

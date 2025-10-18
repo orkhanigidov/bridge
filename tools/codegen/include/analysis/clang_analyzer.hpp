@@ -19,6 +19,11 @@ namespace codegen::analysis
             return result_.includes;
         }
 
+        const std::unordered_set<std::string>& found_namespaces() const
+        {
+            return result_.namespaces;
+        }
+
         const std::vector<metadata::ClassDescriptor>& found_classes() const
         {
             return result_.classes;

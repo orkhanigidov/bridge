@@ -13,6 +13,7 @@ namespace codegen::generation
         }
 
         void generate(const std::unordered_set<std::string>& includes,
+                      const std::unordered_set<std::string>& namespaces,
                       const std::vector<metadata::ClassDescriptor>& classes,
                       const std::vector<metadata::FunctionDescriptor>& free_functions,
                       const std::vector<metadata::EnumeratorDescriptor>& enums) const;
@@ -20,7 +21,9 @@ namespace codegen::generation
     private:
         fs::path output_file_;
 
-        static void write_header(std::ofstream& out, const std::unordered_set<std::string>& includes);
+        static void write_header(std::ofstream& out,
+                                 const std::unordered_set<std::string>& includes,
+                                 const std::unordered_set<std::string>& namespaces);
         static void write_member_registrations(std::ofstream& out, const std::vector<metadata::ClassDescriptor>& classes);
         static void write_non_member_registrations(std::ofstream& out,
                                                    const std::vector<metadata::FunctionDescriptor>& free_functions,
