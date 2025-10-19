@@ -146,6 +146,7 @@ namespace engine::bindings::lua
         sol::usertype<T> usertype_;
 
         template <typename... Args>
+            requires std::is_constructible_v<T, Args...>
         static auto create_call_factory(sol::types<Args...>)
         {
             return [](Args... args)

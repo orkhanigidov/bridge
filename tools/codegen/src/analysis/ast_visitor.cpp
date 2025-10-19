@@ -186,7 +186,23 @@ namespace codegen::analysis
         auto& current_class_desc = result_.classes.back();
         if (current_class_desc.constructors().empty())
         {
-            if (!clang_CXXConstructor_isDefaultConstructor(cursor))
+            bool has_user_declared_ctor = false;
+            clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+            {
+                if (clang_getCursorKind(child) == CXCursor_Constructor)
+                {
+                    *static_cast<bool*>(client_data) = true;
+                    return CXChildVisit_Break;
+                }
+
+                if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
+                {
+                    return CXChildVisit_Continue;
+                }
+                return CXChildVisit_Recurse;
+            }, &has_user_declared_ctor);
+
+            if (!has_user_declared_ctor)
             {
                 metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
                 ctor_desc.set_signature("()");
@@ -211,6 +227,11 @@ namespace codegen::analysis
                     break;
                 }
 
+                if (clang_getCXXAccessSpecifier(cursor) != CX_CXXPublic)
+                {
+                    break;
+                }
+
                 metadata::ConstructorDescriptor ctor_desc(parent_class_name);
                 for (const auto& param : utils::get_parameters(cursor))
                 {
@@ -223,6 +244,11 @@ namespace codegen::analysis
 
         case CXCursor_CXXBaseSpecifier:
             {
+                if (clang_getCXXAccessSpecifier(cursor) != CX_CXXPublic)
+                {
+                    break;
+                }
+
                 CXCursor base_class = clang_getCursorReferenced(cursor);
                 class_desc.add_base_class_name(utils::get_spelling(base_class));
                 std::string base_ns = get_full_namespace(base_class);
@@ -330,7 +356,23 @@ namespace codegen::analysis
             auto& current_class_desc = result_.classes.back();
             if (current_class_desc.constructors().empty())
             {
-                if (!clang_CXXConstructor_isDefaultConstructor(cursor))
+                bool has_user_declared_ctor = false;
+                clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+                {
+                    if (clang_getCursorKind(child) == CXCursor_Constructor)
+                    {
+                        *static_cast<bool*>(client_data) = true;
+                        return CXChildVisit_Break;
+                    }
+
+                    if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
+                    {
+                        return CXChildVisit_Continue;
+                    }
+                    return CXChildVisit_Recurse;
+                }, &has_user_declared_ctor);
+
+                if (!has_user_declared_ctor)
                 {
                     metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
                     ctor_desc.set_signature("()");
