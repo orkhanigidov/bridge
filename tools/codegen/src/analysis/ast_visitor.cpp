@@ -12,34 +12,35 @@ namespace
         }
     };
 
-    std::string get_full_namespace(CXCursor cursor)
+    std::optional<std::string> get_cursor_namespace(CXCursor cursor)
     {
-        std::string full_ns;
-        CXCursor parent = clang_getCursorLexicalParent(cursor);
+        std::string ns;
+        CXCursor parent = clang_getCursorSemanticParent(cursor);
 
-        while (clang_getCursorKind(parent) != CXCursor_TranslationUnit)
+        while (true)
         {
-            if (clang_getCursorKind(parent) == CXCursor_Namespace)
+            CXCursorKind parent_kind = clang_getCursorKind(parent);
+            if (parent_kind == CXCursor_Namespace)
             {
-                std::string ns_name = codegen::analysis::utils::get_spelling(parent);
-                if (ns_name.empty())
-                {
-                    parent = clang_getCursorLexicalParent(parent);
-                    continue;
-                }
-
-                if (full_ns.empty())
-                {
-                    full_ns = ns_name;
-                }
-                else
-                {
-                    full_ns = std::format("{}::{}", ns_name, full_ns);
-                }
+                std::string parent_name = codegen::analysis::utils::get_spelling(parent);
+                ns = ns.empty() ? parent_name : parent_name + "::" + ns;
+                parent = clang_getCursorSemanticParent(parent);
             }
-            parent = clang_getCursorSemanticParent(parent);
+            else if (parent_kind == CXCursor_TranslationUnit || parent_kind == CXCursor_InvalidFile)
+            {
+                break;
+            }
+            else
+            {
+                parent = clang_getCursorSemanticParent(parent);
+            }
         }
-        return full_ns;
+
+        if (ns.empty())
+        {
+            return std::nullopt;
+        }
+        return ns;
     }
 }
 
@@ -171,6 +172,11 @@ namespace codegen::analysis
         }
         result_.processed_classes.emplace(class_name);
 
+        if (const auto ns = get_cursor_namespace(cursor))
+        {
+            result_.namespaces.emplace(std::move(*ns));
+        }
+
         result_.classes.emplace_back(std::move(class_name));
         result_.includes.emplace(utils::get_include_path(cursor));
 
@@ -251,10 +257,9 @@ namespace codegen::analysis
 
                 CXCursor base_class = clang_getCursorReferenced(cursor);
                 class_desc.add_base_class_name(utils::get_spelling(base_class));
-                std::string base_ns = get_full_namespace(base_class);
-                if (!base_ns.empty())
+                if (auto ns = get_cursor_namespace(base_class))
                 {
-                    visitor->result_.namespaces.emplace(std::move(base_ns));
+                    visitor->result_.namespaces.emplace(std::move(*ns));
                 }
                 break;
             }
@@ -347,6 +352,11 @@ namespace codegen::analysis
                 continue;
             }
             result_.processed_classes.emplace(full_name);
+
+            if (auto ns = get_cursor_namespace(cursor))
+            {
+                result_.namespaces.emplace(std::move(*ns));
+            }
 
             result_.classes.emplace_back(full_name);
             result_.includes.emplace(utils::get_include_path(cursor));
