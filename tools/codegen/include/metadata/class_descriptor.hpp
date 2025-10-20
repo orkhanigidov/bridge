@@ -61,7 +61,7 @@ namespace codegen::metadata
          * @brief Gets the list of member enumerators.
          * @return A constant reference to the vector of EnumDescriptors.
          */
-        const std::vector<EnumDescriptor>& member_enumerator() const noexcept
+        const std::vector<EnumDescriptor>& member_enumerators() const noexcept
         {
             return member_enumerators_;
         }
