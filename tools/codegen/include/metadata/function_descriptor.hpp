@@ -149,7 +149,7 @@ namespace codegen::metadata
         }
 
         /**
-         * @brief Sets whether the function is constant.
+         * @brief Sets whether the function is const.
          * @param value True to make the function const, false otherwise.
          * @return A reference to this FunctionDescriptor for chaining.
          */
@@ -176,7 +176,7 @@ namespace codegen::metadata
         std::string return_type_name_; /**< The return type name of the function. */
         std::vector<ParameterDescriptor> parameters_; /**< The list of parameter descriptors. */
         bool is_static_{false}; /**< Whether the function is static. Default is false. */
-        bool is_const_{false}; /**< Whether the function is constant. Default is false. */
+        bool is_const_{false}; /**< Whether the function is const. Default is false. */
         std::string signature_; /**< The signature of the function. */
     };
 } // namespace codegen::metadata
