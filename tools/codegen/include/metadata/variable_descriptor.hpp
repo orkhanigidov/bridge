@@ -20,12 +20,14 @@ namespace codegen::metadata
         VariableDescriptor() = default;
 
         /**
-         * @brief Constructs a VariableDescriptor with the given scope and name.
+         * @brief Constructs a VariableDescriptor with the given scope, name, and type name.
          * @param scope The scope of the variable.
          * @param name The name of the variable.
+         * @param type_name The type name of the variable.
          */
-        explicit VariableDescriptor(Scope scope, std::string name): scope_(scope),
-                                                                    name_(std::move(name))
+        explicit VariableDescriptor(Scope scope, std::string name, std::string type_name): scope_(scope),
+                                                                                           name_(std::move(name)),
+                                                                                           type_name_(std::move(type_name))
         {
         }
 
@@ -76,7 +78,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the scope of the variable.
-         * @param scope The new scope of the variable.
+         * @param scope The scope of the variable.
          * @return A reference to this VariableDescriptor for chaining.
          */
         VariableDescriptor& set_scope(Scope scope) noexcept
@@ -87,7 +89,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the name of the variable.
-         * @param name The new name of the variable.
+         * @param name The name of the variable.
          * @return A reference to this VariableDescriptor for chaining.
          */
         VariableDescriptor& set_name(std::string name)
