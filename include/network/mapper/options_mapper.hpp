@@ -3,22 +3,22 @@
 #include "interop/interop_bridge.hpp"
 #include "network/dto/execution/options_dto.hpp"
 
-namespace engine::mapper
+namespace engine::network::mapper
 {
     class OptionsMapper final
     {
     public:
         OptionsMapper() = delete;
 
-        static oatpp::Object<network::dto::execution::OptionsDto> to_dto(const interop::types::ExecutionOptions& options)
+        static oatpp::Object<dto::execution::OptionsDto> to_dto(const interop::types::ExecutionOptions& options)
         {
-            auto dto = network::dto::execution::OptionsDto::createShared();
+            auto dto = dto::execution::OptionsDto::createShared();
             dto->timeout_milliseconds = options.timeout_milliseconds;
             dto->output_data_format = options.output_data_format;
             return dto;
         }
 
-        static interop::types::ExecutionOptions from_dto(const oatpp::Object<network::dto::execution::OptionsDto>& dto)
+        static interop::types::ExecutionOptions from_dto(const oatpp::Object<dto::execution::OptionsDto>& dto)
         {
             interop::types::ExecutionOptions options{};
             if (dto)
@@ -29,4 +29,4 @@ namespace engine::mapper
             return options;
         }
     };
-} // namespace engine::mapper
+} // namespace engine::network::mapper
