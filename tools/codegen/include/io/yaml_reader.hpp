@@ -15,7 +15,7 @@ namespace codegen::io
     class YamlReader final
     {
     public:
-        static YamlReader from_file(const std::string& filename);
+        static YamlReader from_file(const fs::path& file_path);
 
         const std::unordered_map<std::string, analysis::ClassConfig>& classes() const noexcept
         {
@@ -40,8 +40,5 @@ namespace codegen::io
         std::vector<std::string> free_functions_;
 
         void extract_all_classes(const YAML::Node& root);
-        void extract_free_functions(const YAML::Node& root);
-        static std::vector<std::string> extract_methods(const YAML::Node& node);
-        static std::vector<std::string> extract_types(const YAML::Node& node);
     };
 } // namespace codegen::io

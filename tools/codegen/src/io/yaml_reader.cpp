@@ -1,21 +1,42 @@
 #include "io/yaml_reader.hpp"
 
+namespace
+{
+    std::vector<std::string> extract_string_sequence(const YAML::Node& root, const char* key)
+    {
+        std::vector<std::string> names;
+        const auto& node = root[key];
+
+        if (node && node.IsSequence())
+        {
+            names.reserve(node.size());
+            for (const auto& item_node : node)
+            {
+                if (item_node.IsScalar())
+                {
+                    names.emplace_back(item_node.as<std::string>());
+                }
+            }
+        }
+        return names;
+    }
+}
+
 namespace codegen::io
 {
-    YamlReader YamlReader::from_file(const std::string& filename)
+    YamlReader YamlReader::from_file(const fs::path& file_path)
     {
         YAML::Node root;
         try
         {
-            root = YAML::LoadFile(filename);
-        }
-        catch (const YAML::BadFile&)
+            root = YAML::LoadFile(file_path.string());
+        } catch (const YAML::BadFile&)
         {
-            throw YamlReaderException("Failed to open YAML file: " + filename);
+            throw YamlReaderException(std::format("Could not open YAML file: {}", file_path));
         }
-        catch (const YAML::ParserException&)
+        catch (const YAML::ParserException& e)
         {
-            throw YamlReaderException("Failed to parse YAML file: " + filename);
+            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path, e.what()));
         }
 
         return YamlReader(root);
@@ -24,7 +45,7 @@ namespace codegen::io
     YamlReader::YamlReader(const YAML::Node& root)
     {
         extract_all_classes(root);
-        extract_free_functions(root);
+        free_functions_ = extract_string_sequence(root, FREE_FUNCTIONS);
     }
 
     void YamlReader::extract_all_classes(const YAML::Node& root)
@@ -44,63 +65,11 @@ namespace codegen::io
             }
             auto class_name = name_node.as<std::string>();
             analysis::ClassConfig config;
-            config.methods = extract_methods(class_node);
-            config.types = extract_types(class_node);
-            classes_.emplace(class_name, std::move(config));
-        }
-    }
 
-    std::vector<std::string> YamlReader::extract_methods(const YAML::Node& node)
-    {
-        std::vector<std::string> method_names;
-        const auto& methods_node = node[METHODS];
-        if (methods_node && methods_node.IsSequence())
-        {
-            method_names.reserve(methods_node.size());
-            for (const auto& method_node : methods_node)
-            {
-                if (method_node.IsScalar())
-                {
-                    method_names.emplace_back(method_node.as<std::string>());
-                }
-            }
-        }
-        return method_names;
-    }
+            config.methods = extract_string_sequence(class_node, METHODS);
+            config.types = extract_string_sequence(class_node, TYPES);
 
-    std::vector<std::string> YamlReader::extract_types(const YAML::Node& node)
-    {
-        std::vector<std::string> type_names;
-        const auto& types_node = node[TYPES];
-        if (types_node && types_node.IsSequence())
-        {
-            type_names.reserve(types_node.size());
-            for (const auto& type_node : types_node)
-            {
-                if (type_node.IsScalar())
-                {
-                    type_names.emplace_back(type_node.as<std::string>());
-                }
-            }
-        }
-        return type_names;
-    }
-
-    void YamlReader::extract_free_functions(const YAML::Node& root)
-    {
-        const auto& globals_node = root[FREE_FUNCTIONS];
-        if (!globals_node || !globals_node.IsSequence())
-        {
-            return;
-        }
-
-        free_functions_.reserve(globals_node.size());
-        for (const auto& func_node : globals_node)
-        {
-            if (func_node.IsScalar())
-            {
-                free_functions_.emplace_back(func_node.as<std::string>());
-            }
+            classes_.emplace(std::move(class_name), std::move(config));
         }
     }
 } // namespace codegen::io

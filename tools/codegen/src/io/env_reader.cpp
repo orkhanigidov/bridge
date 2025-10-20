@@ -2,24 +2,27 @@
 
 namespace
 {
-    std::string trim(const std::string& str)
+    constexpr std::string_view trim(std::string_view str) noexcept
     {
-        const auto start = str.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos)
+        constexpr std::string_view whitespace = " \t\r\n";
+        const auto start = str.find_first_not_of(whitespace);
+        if (start == std::string_view::npos)
         {
-            return "";
+            return {};
         }
-        const auto end = str.find_last_not_of(" \t\r\n");
+        const auto end = str.find_last_not_of(whitespace);
         return str.substr(start, end - start + 1);
     }
 
-    std::string strip_quotes(const std::string& str)
+    constexpr std::string_view strip_quotes(std::string_view str) noexcept
     {
         if (str.length() >= 2)
         {
-            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\''))
+            if ((str.starts_with('"') && str.ends_with('"')) ||
+                (str.starts_with('\'') && str.ends_with('\'')))
             {
-                return str.substr(1, str.length() - 2);
+                str.remove_prefix(1);
+                str.remove_suffix(1);
             }
         }
         return str;
@@ -28,60 +31,56 @@ namespace
 
 namespace codegen::io
 {
-    EnvReader::EnvReader(const std::string& filename)
+    EnvReader::EnvReader(const fs::path& env_path)
     {
-#ifdef PROJECT_ROOT
-        const fs::path& env_path = fs::path(PROJECT_ROOT) / filename;
-#else
-        throw std::runtime_error("PROJECT_ROOT environment variable is not defined.");
-#endif
-
-        std::cout << "Loading .env file: " << env_path.string() << std::endl;
-        load_file(env_path.string());
+        from_file(env_path);
     }
 
-    void EnvReader::load_file(const std::string& filename)
+    void EnvReader::from_file(const fs::path& env_path)
     {
-        std::ifstream file(filename);
+        std::ifstream file(env_path);
         if (!file.is_open())
         {
-            throw std::runtime_error("Could not open .env file: " + std::string(filename));
+            throw EnvReaderException(std::format("Could not open .env file: {}", env_path));
         }
 
         std::string line;
         while (std::getline(file, line))
         {
-            if (const auto comment_pos = line.find('#'); comment_pos != std::string::npos)
+            std::string_view line_view = line;
+
+            if (const auto comment_pos = line.find('#');
+                comment_pos != std::string_view::npos)
             {
-                line.erase(comment_pos);
+                line_view.remove_suffix(line_view.length() - comment_pos);
             }
 
-            line = trim(line);
-            if (line.empty())
+            line_view = trim(line_view);
+            if (line_view.empty())
             {
                 continue;
             }
 
-            const auto equal_pos = line.find('=');
-            if (equal_pos == std::string::npos)
+            const auto equal_pos = line_view.find('=');
+            if (equal_pos == std::string_view::npos)
             {
                 continue;
             }
 
-            auto key = trim(line.substr(0, equal_pos));
-            auto value = trim(line.substr(equal_pos + 1));
-            value = strip_quotes(value);
+            auto key_view = trim(line_view.substr(0, equal_pos));
+            auto value_view = strip_quotes(trim(line_view.substr(equal_pos + 1)));
 
-            if (!key.empty())
+            if (!key_view.empty())
             {
-                env_vars_.emplace(key, value);
+                env_vars_.emplace(std::string(key_view), std::string(value_view));
             }
         }
     }
 
-    std::optional<std::string> EnvReader::get(const std::string& key) const
+    std::optional<std::string> EnvReader::get(std::string_view key) const
     {
-        if (const auto it = env_vars_.find(key); it != env_vars_.end())
+        if (const auto it = env_vars_.find(std::string(key));
+            it != env_vars_.end())
         {
             return it->second;
         }
