@@ -6,7 +6,7 @@
 
 namespace codegen::analysis::utils
 {
-    std::string to_std_string(CXString cx_string);
+    std::string to_std_string(const CXString& cx_string);
     std::string get_spelling(const CXCursor& cursor);
     std::string get_type_spelling(const CXType& type);
     std::string get_cursor_type_spelling(const CXCursor& cursor);

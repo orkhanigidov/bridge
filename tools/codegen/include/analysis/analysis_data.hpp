@@ -2,7 +2,7 @@
 
 #include "metadata/class_descriptor.hpp"
 #include "metadata/function_descriptor.hpp"
-#include "metadata/enumerator_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
 
 namespace codegen::analysis
 {
@@ -14,8 +14,8 @@ namespace codegen::analysis
 
     struct AnalysisConfig
     {
-        std::string target_include_path;
-        std::string wrapper_include_path;
+        fs::path target_include_path;
+        fs::path wrapper_include_path;
         std::unordered_map<std::string, ClassConfig> target_classes;
         std::vector<std::string> target_free_functions;
     };
@@ -26,7 +26,7 @@ namespace codegen::analysis
         std::unordered_set<std::string> namespaces;
         std::vector<metadata::ClassDescriptor> classes;
         std::vector<metadata::FunctionDescriptor> free_functions;
-        std::vector<metadata::EnumeratorDescriptor> enums;
+        std::vector<metadata::EnumDescriptor> enums;
         std::unordered_set<std::string> processed_classes;
     };
 } // namespace codegen::analysis

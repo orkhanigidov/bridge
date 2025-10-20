@@ -2,7 +2,7 @@
 
 namespace codegen::analysis::utils
 {
-    std::string to_std_string(CXString cx_string)
+    std::string to_std_string(const CXString& cx_string)
     {
         const char* c_str = clang_getCString(cx_string);
         std::string result = c_str ? c_str : "";
@@ -48,30 +48,35 @@ namespace codegen::analysis::utils
     {
         std::vector<metadata::ParameterDescriptor> parameters;
         const int num_args = clang_Cursor_getNumArguments(cursor);
-        parameters.reserve(num_args);
+        if (num_args <= 0)
+        {
+            return parameters;
+        }
+        parameters.reserve(static_cast<size_t>(num_args));
         for (int i = 0; i < num_args; ++i)
         {
             CXCursor parameter_cursor = clang_Cursor_getArgument(cursor, i);
-            metadata::ParameterDescriptor parameter_desc;
-            parameter_desc.set_name(get_spelling(parameter_cursor));
-            parameter_desc.set_type_name(get_cursor_type_spelling(parameter_cursor));
-            parameters.emplace_back(std::move(parameter_desc));
+            parameters.emplace_back(
+                get_spelling(parameter_cursor),
+                get_cursor_type_spelling(parameter_cursor)
+            );
         }
         return parameters;
     }
 
     std::string build_signature(const std::vector<metadata::ParameterDescriptor>& parameters)
     {
-        std::string signature = "(";
+        std::ostringstream signature_stream;
+        signature_stream << "(";
         for (size_t i = 0; i < parameters.size(); ++i)
         {
-            signature += parameters[i].type_name();
+            signature_stream << parameters[i].type_name();
             if (i != parameters.size() - 1)
             {
-                signature += ", ";
+                signature_stream << ", ";
             }
         }
-        signature += ")";
-        return signature;
+        signature_stream << ")";
+        return signature_stream.str();
     }
 } // namespace codegen::analysis::utils

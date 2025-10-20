@@ -6,40 +6,46 @@
 
 namespace codegen::analysis
 {
+    class ClangAnalyzerException : public std::runtime_error
+    {
+    public:
+        using std::runtime_error::runtime_error;
+    };
+
     using IndexPtr = std::unique_ptr<std::remove_pointer_t<CXIndex>, decltype(&clang_disposeIndex)>;
     using TranslationUnitPtr = std::unique_ptr<std::remove_pointer_t<CXTranslationUnit>, decltype(&clang_disposeTranslationUnit)>;
 
     class ClangAnalyzer final
     {
     public:
-        explicit ClangAnalyzer(const std::string& filename, const AnalysisConfig& config);
+        explicit ClangAnalyzer(const fs::path& file_path, const AnalysisConfig& config);
 
-        const std::unordered_set<std::string>& found_includes() const
+        const std::unordered_set<std::string>& found_includes() const noexcept
         {
             return result_.includes;
         }
 
-        const std::unordered_set<std::string>& found_namespaces() const
+        const std::unordered_set<std::string>& found_namespaces() const noexcept
         {
             return result_.namespaces;
         }
 
-        const std::vector<metadata::ClassDescriptor>& found_classes() const
+        const std::vector<metadata::ClassDescriptor>& found_classes() const noexcept
         {
             return result_.classes;
         }
 
-        const std::vector<metadata::FunctionDescriptor>& found_free_functions() const
+        const std::vector<metadata::FunctionDescriptor>& found_free_functions() const noexcept
         {
             return result_.free_functions;
         }
 
-        const std::vector<metadata::EnumeratorDescriptor>& found_enums() const
+        const std::vector<metadata::EnumDescriptor>& found_enums() const noexcept
         {
             return result_.enums;
         }
 
-        const AnalysisResult& result() const
+        const AnalysisResult& result() const noexcept
         {
             return result_;
         }
