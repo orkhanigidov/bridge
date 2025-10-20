@@ -122,7 +122,7 @@ namespace codegen::metadata
          * @param enumerator The EnumDescriptor.
          * @return A reference to this ClassDescriptor for chaining.
          */
-        ClassDescriptor& add_member_enum(EnumDescriptor enumerator)
+        ClassDescriptor& add_member_enumerator(EnumDescriptor enumerator)
         {
             member_enumerators_.emplace_back(std::move(enumerator));
             return *this;
