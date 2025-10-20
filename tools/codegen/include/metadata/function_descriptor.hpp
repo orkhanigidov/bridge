@@ -21,12 +21,14 @@ namespace codegen::metadata
         FunctionDescriptor() = default;
 
         /**
-         * @brief Constructs a FunctionDescriptor with the given scope and name.
+         * @brief Constructs a FunctionDescriptor with the given scope, name, and return type name.
          * @param scope The scope of the function.
          * @param name The name of the function.
+         * @param return_type_name The return type name of the function.
          */
-        explicit FunctionDescriptor(Scope scope, std::string name): scope_(scope),
-                                                                    name_(std::move(name))
+        explicit FunctionDescriptor(Scope scope, std::string name, std::string return_type_name): scope_(scope),
+                                                                                                  name_(std::move(name)),
+                                                                                                  return_type_name_(std::move(return_type_name))
         {
         }
 
@@ -95,7 +97,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the scope of the function.
-         * @param scope The new scope of the function.
+         * @param scope The scope of the function.
          * @return A reference to this FunctionDescriptor for chaining.
          */
         FunctionDescriptor& set_scope(Scope scope) noexcept
@@ -106,7 +108,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the name of the function.
-         * @param name The new name of the function.
+         * @param name The name of the function.
          * @return A reference to this FunctionDescriptor for chaining.
          */
         FunctionDescriptor& set_name(std::string name)
@@ -128,7 +130,7 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a parameter descriptor.
-         * @param parameter The ParameterDescriptor to add.
+         * @param parameter The ParameterDescriptor.
          * @return A reference to this FunctionDescriptor for chaining.
          */
         FunctionDescriptor& add_parameter(ParameterDescriptor parameter)
@@ -174,7 +176,7 @@ namespace codegen::metadata
         Scope scope_{Scope::Global}; /**< The scope of the function. Default is Global. */
         std::string name_; /**< The name of the function. */
         std::string return_type_name_; /**< The return type name of the function. */
-        std::vector<ParameterDescriptor> parameters_; /**< The list of parameter descriptors. */
+        std::vector<ParameterDescriptor> parameters_; /**< List of parameter descriptors. */
         bool is_static_{false}; /**< Whether the function is static. Default is false. */
         bool is_const_{false}; /**< Whether the function is const. Default is false. */
         std::string signature_; /**< The signature of the function. */
