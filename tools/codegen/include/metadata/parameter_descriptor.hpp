@@ -17,10 +17,12 @@ namespace codegen::metadata
         ParameterDescriptor() = default;
 
         /**
-         * @brief Constructs a ParameterDescriptor with the given name.
+         * @brief Constructs a ParameterDescriptor with the given name and type name.
          * @param name The name of the parameter.
+         * @param type_name The type name of the parameter.
          */
-        explicit ParameterDescriptor(std::string name): name_(std::move(name))
+        explicit ParameterDescriptor(std::string name, std::string type_name): name_(std::move(name)),
+                                                                               type_name_(std::move(type_name))
         {
         }
 
@@ -44,7 +46,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the name of the parameter.
-         * @param name The new name of the parameter.
+         * @param name The name of the parameter.
          * @return A reference to this ParameterDescriptor for chaining.
          */
         ParameterDescriptor& set_name(std::string name)
@@ -55,12 +57,12 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the type name of the parameter.
-         * @param type The new type name of the parameter.
+         * @param type_name The type name of the parameter.
          * @return A reference to this ParameterDescriptor for chaining.
          */
-        ParameterDescriptor& set_type_name(std::string type)
+        ParameterDescriptor& set_type_name(std::string type_name)
         {
-            type_name_ = std::move(type);
+            type_name_ = std::move(type_name);
             return *this;
         }
 
