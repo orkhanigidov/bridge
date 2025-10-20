@@ -2,29 +2,30 @@
 
 namespace codegen::io
 {
-    void HeaderCollector::collect_headers_to_file(const fs::path& include_dir,
-                                                  const fs::path& wrapper_dir,
+    void HeaderCollector::collect_headers_to_file(const std::vector<fs::path>& include_dirs,
                                                   const fs::path& output_file,
                                                   const std::vector<std::string>& extensions)
     {
-        if (!fs::exists(include_dir) || !fs::is_directory(include_dir))
-        {
-            throw HeaderCollectorException("Invalid include directory: " + include_dir.string());
-        }
+        const std::unordered_set extension_set(extensions.begin(), extensions.end());
 
-        if (!fs::exists(wrapper_dir) || !fs::is_directory(wrapper_dir))
+        if (extension_set.empty())
         {
-            throw HeaderCollectorException("Invalid wrapper include directory: " + wrapper_dir.string());
+            throw HeaderCollectorException("No file extensions provided for header collection.");
         }
 
         std::ofstream out(output_file);
         if (!out)
         {
-            throw HeaderCollectorException("Failed to open output file: " + output_file.string());
+            throw HeaderCollectorException(std::format("Failed to open output file: {}", output_file));
         }
 
-        for (const std::vector include_dirs = {include_dir, wrapper_dir}; const auto& dir : include_dirs)
+        for (const auto& dir : include_dirs)
         {
+            if (!fs::exists(dir) || !fs::is_directory(dir))
+            {
+                throw HeaderCollectorException(std::format("Invalid include directory: {}", dir));
+            }
+
             for (const auto& entry : fs::recursive_directory_iterator(dir))
             {
                 if (!entry.is_regular_file())
@@ -35,24 +36,12 @@ namespace codegen::io
                 const auto& file_path = entry.path();
                 const std::string extension = file_path.extension().string();
 
-                bool is_header = false;
-                for (const auto& ext : extensions)
-                {
-                    if (extension == ext)
-                    {
-                        is_header = true;
-                        break;
-                    }
-                }
-
-                if (is_header)
+                if (extension_set.contains(extension))
                 {
                     const auto relative_path = fs::relative(file_path, dir);
                     out << "#include \"" << relative_path.generic_string() << "\"\n";
                 }
             }
         }
-
-        std::cout << "Header files collected successfully into: " << output_file << std::endl;
     }
 } // namespace codegen::io

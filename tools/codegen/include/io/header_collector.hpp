@@ -11,8 +11,7 @@ namespace codegen::io
     class HeaderCollector final
     {
     public:
-        static void collect_headers_to_file(const fs::path& include_dir,
-                                            const fs::path& wrapper_dir,
+        static void collect_headers_to_file(const std::vector<fs::path>& include_dirs,
                                             const fs::path& output_file,
                                             const std::vector<std::string>& extensions = {".h", ".hpp"});
 
