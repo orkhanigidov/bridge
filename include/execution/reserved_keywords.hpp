@@ -1,13 +1,10 @@
 #pragma once
 
-namespace engine::execution
+/**
+ * @brief Namespace containing reserved keywords used in the execution engine
+ */
+namespace engine::execution::reserved
 {
-    class Reserved final
-    {
-    public:
-        Reserved() = delete;
-
-        static constexpr auto INPUT_PATH = "__input__";
-        static constexpr auto OUTPUT_PATH = "__output__";
-    };
-} // namespace engine::execution
+    inline constexpr auto INPUT_PATH = "__input__"; /**< Reserved keyword representing the input path */
+    inline constexpr auto OUTPUT_PATH = "__output__"; /**< Reserved keyword representing the output path */
+} // namespace engine::execution::reserved
