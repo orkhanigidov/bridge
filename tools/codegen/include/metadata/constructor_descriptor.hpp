@@ -56,7 +56,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the name of the class.
-         * @param class_name The new name of the class.
+         * @param class_name The name of the class.
          * @return A reference to this ConstructorDescriptor for chaining.
          */
         ConstructorDescriptor& set_class_name(std::string class_name)
@@ -67,7 +67,7 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a parameter descriptor.
-         * @param parameter The ParameterDescriptor to add.
+         * @param parameter The ParameterDescriptor.
          * @return A reference to this ConstructorDescriptor for chaining.
          */
         ConstructorDescriptor& add_parameter(ParameterDescriptor parameter)
@@ -78,7 +78,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the signature of the constructor.
-         * @param signature The signature of the constructor to set.
+         * @param signature The signature of the constructor.
          * @return A reference to this ConstructorDescriptor for chaining.
          */
         ConstructorDescriptor& set_signature(std::string signature)
