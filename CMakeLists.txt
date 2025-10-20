@@ -61,9 +61,7 @@ set(SOURCES
         ${SRC_DIR}/interop/interop_c_api.cpp
         ${SRC_DIR}/network/server_config.cpp
         ${SRC_DIR}/network/server_manager.cpp
-        ${SRC_DIR}/utils/filesystem_utils.cpp
         ${SRC_DIR}/utils/response_factory.cpp
-        ${SRC_DIR}/utils/string_utils.cpp
         ${SRC_DIR}/main.cpp
         ${GENERATED_SRC}
 )
