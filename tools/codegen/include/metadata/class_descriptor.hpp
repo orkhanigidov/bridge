@@ -1,7 +1,7 @@
 #pragma once
 
 #include "constructor_descriptor.hpp"
-#include "enumerator_descriptor.hpp"
+#include "enum_descriptor.hpp"
 #include "function_descriptor.hpp"
 #include "variable_descriptor.hpp"
 
@@ -59,11 +59,11 @@ namespace codegen::metadata
 
         /**
          * @brief Gets the list of member enumerators.
-         * @return A constant reference to the vector of EnumeratorDescriptors.
+         * @return A constant reference to the vector of EnumDescriptors.
          */
-        const std::vector<EnumeratorDescriptor>& member_enums() const noexcept
+        const std::vector<EnumDescriptor>& member_enumerator() const noexcept
         {
-            return member_enums_;
+            return member_enumerators_;
         }
 
         /**
@@ -86,7 +86,7 @@ namespace codegen::metadata
 
         /**
          * @brief Sets the name of the class.
-         * @param name The new name of the class.
+         * @param name The name of the class.
          * @return A reference to this ClassDescriptor for chaining.
          */
         ClassDescriptor& set_name(std::string name)
@@ -97,7 +97,7 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a base class name.
-         * @param base_class_name The name of the base class to add.
+         * @param base_class_name The name of the base class.
          * @return A reference to this ClassDescriptor for chaining.
          */
         ClassDescriptor& add_base_class_name(std::string base_class_name)
@@ -108,7 +108,7 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a constructor descriptor.
-         * @param constructor The ConstructorDescriptor to add.
+         * @param constructor The ConstructorDescriptor.
          * @return A reference to this ClassDescriptor for chaining.
          */
         ClassDescriptor& add_constructor(ConstructorDescriptor constructor)
@@ -119,18 +119,18 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a member enumerator descriptor.
-         * @param enumerator The EnumeratorDescriptor to add.
+         * @param enumerator The EnumDescriptor.
          * @return A reference to this ClassDescriptor for chaining.
          */
-        ClassDescriptor& add_member_enumerator(EnumeratorDescriptor enumerator)
+        ClassDescriptor& add_member_enum(EnumDescriptor enumerator)
         {
-            member_enums_.emplace_back(std::move(enumerator));
+            member_enumerators_.emplace_back(std::move(enumerator));
             return *this;
         }
 
         /**
          * @brief Adds a member variable descriptor.
-         * @param member_variable The VariableDescriptor to add.
+         * @param member_variable The VariableDescriptor.
          * @return A reference to this ClassDescriptor for chaining.
          */
         ClassDescriptor& add_member_variable(VariableDescriptor member_variable)
@@ -141,7 +141,7 @@ namespace codegen::metadata
 
         /**
          * @brief Adds a member function descriptor.
-         * @param member_function The FunctionDescriptor to add.
+         * @param member_function The FunctionDescriptor.
          * @return A reference to this ClassDescriptor for chaining.
          */
         ClassDescriptor& add_member_function(FunctionDescriptor member_function)
@@ -154,7 +154,7 @@ namespace codegen::metadata
         std::string name_; /**< The name of the class. */
         std::vector<std::string> base_class_names_; /**< List of base class names. */
         std::vector<ConstructorDescriptor> constructors_; /**< List of constructor descriptors. */
-        std::vector<EnumeratorDescriptor> member_enums_; /**< List of member enumerator descriptors. */
+        std::vector<EnumDescriptor> member_enumerators_; /**< List of member enumerator descriptors. */
         std::vector<VariableDescriptor> member_variables_; /**< List of member variable descriptors. */
         std::vector<FunctionDescriptor> member_functions_; /**< List of member function descriptors. */
     };
