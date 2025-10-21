@@ -26,13 +26,13 @@ namespace engine::utils
 
     ExecutionResponsePtr ResponseFactory::create_error(interop::types::ExecutionStatus status,
                                                        interop::types::ExecutionErrorType type,
-                                                       const char* message)
+                                                       const std::string& message)
     {
         ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
 
         response->status = status;
         response->error.type = type;
-        response->error.message = message ? strdup(message) : nullptr;
+        response->error.message = strdup(message.c_str());
 
         return response;
     }
@@ -43,6 +43,9 @@ namespace engine::utils
 
         response->status = interop::types::ExecutionStatus::Success;
         response->metadata.duration_milliseconds = duration_milliseconds;
+
+        response->error.type = {};
+        response->error.message = nullptr;
 
         return response;
     }
