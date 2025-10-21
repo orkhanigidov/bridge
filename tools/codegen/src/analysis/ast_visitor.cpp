@@ -12,14 +12,14 @@ namespace
         }
     };
 
-    std::optional<std::string> get_cursor_namespace(CXCursor cursor)
+    std::optional<std::string> get_cursor_namespace(const CXCursor& cursor)
     {
         std::string ns;
         CXCursor parent = clang_getCursorSemanticParent(cursor);
 
         while (true)
         {
-            CXCursorKind parent_kind = clang_getCursorKind(parent);
+            const CXCursorKind parent_kind = clang_getCursorKind(parent);
             if (parent_kind == CXCursor_Namespace)
             {
                 std::string parent_name = codegen::analysis::utils::get_spelling(parent);
@@ -42,14 +42,45 @@ namespace
         }
         return ns;
     }
+
+    void check_and_add_default_constructor(const CXCursor cursor, codegen::metadata::ClassDescriptor& class_desc)
+    {
+        if (!class_desc.constructors().empty())
+        {
+            return;
+        }
+
+        bool has_user_declared_ctor = false;
+        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+        {
+            if (clang_getCursorKind(child) == CXCursor_Constructor)
+            {
+                *static_cast<bool*>(client_data) = true;
+                return CXChildVisit_Break;
+            }
+
+            if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
+            {
+                return CXChildVisit_Continue;
+            }
+            return CXChildVisit_Recurse;
+        }, &has_user_declared_ctor);
+
+        if (!has_user_declared_ctor)
+        {
+            codegen::metadata::ConstructorDescriptor ctor_desc(class_desc.name());
+            ctor_desc.set_signature("()");
+            class_desc.add_constructor(std::move(ctor_desc));
+        }
+    }
 }
 
 namespace codegen::analysis
 {
-    CXChildVisitResult AstVisitor::visit(CXCursor cursor, CXCursor parent)
+    CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor& parent)
     {
         const auto path = utils::get_include_path(cursor);
-        if (path.empty() || !path.starts_with(config_.target_include_path) && !path.starts_with(config_.wrapper_include_path))
+        if (path.empty() || !path.starts_with(config_.target_include_path.string()) && !path.starts_with(config_.wrapper_include_path.string()))
         {
             return CXChildVisit_Continue;
         }
@@ -82,7 +113,7 @@ namespace codegen::analysis
         return visitor->visit(cursor, parent);
     }
 
-    void AstVisitor::collect_all_base_cursors(CXCursor cursor, std::vector<CXCursor>& bases)
+    void AstVisitor::collect_all_base_cursors(const CXCursor& cursor, std::vector<CXCursor>& bases)
     {
         struct VisitorData
         {
@@ -101,7 +132,7 @@ namespace codegen::analysis
 
         while (!stack.empty())
         {
-            CXCursor current = stack.back();
+            const CXCursor current = stack.back();
             stack.pop_back();
 
             clang_visitChildren(current, [](CXCursor child, CXCursor, CXClientData client_data) -> CXChildVisitResult
@@ -121,38 +152,53 @@ namespace codegen::analysis
         }
     }
 
-    std::optional<metadata::EnumeratorDescriptor> AstVisitor::parse_enumerator_decl(CXCursor cursor)
+    std::optional<metadata::EnumDescriptor> AstVisitor::parse_enum_decl(const CXCursor& cursor)
     {
-        if (const auto enum_name = utils::get_spelling(cursor); enum_name.empty() || enum_name.starts_with("(unnamed"))
+        const auto enum_name = utils::get_spelling(cursor);
+        if (enum_name.empty() || enum_name.starts_with("(unnamed"))
         {
             return std::nullopt;
         }
 
-        metadata::EnumeratorDescriptor enum_desc(utils::get_spelling(cursor));
+        metadata::EnumDescriptor enum_desc(enum_name);
 
-        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData data)-> CXChildVisitResult
+        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
         {
             if (clang_getCursorKind(child) == CXCursor_EnumConstantDecl)
             {
-                auto* current_enum_desc = static_cast<metadata::EnumeratorDescriptor*>(data);
-                metadata::EnumDescriptor enumerator;
-                enumerator.name = utils::get_spelling(child);
-                enumerator.value = clang_getEnumConstantDeclValue(child);
-                current_enum_desc->add_enumerator(std::move(enumerator));
+                auto* current_enum_desc = static_cast<metadata::EnumDescriptor*>(client_data);
+                current_enum_desc->add_enumerator({
+                    .name = utils::get_spelling(child),
+                    .value = clang_getEnumConstantDeclValue(child)
+                });
             }
-
             return CXChildVisit_Continue;
         }, &enum_desc);
 
-        if (!enum_desc.enumerators().empty())
+        if (enum_desc.enumerators().empty())
         {
-            return enum_desc;
+            return std::nullopt;
         }
 
-        return std::nullopt;
+        return enum_desc;
     }
 
-    void AstVisitor::visit_class_decl(CXCursor cursor)
+    void AstVisitor::process_class_common(const CXCursor& cursor, metadata::ClassDescriptor& class_desc)
+    {
+        clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
+
+        std::vector<CXCursor> all_bases;
+        collect_all_base_cursors(cursor, all_bases);
+        for (const auto base : all_bases)
+        {
+            clang_visitChildren(base, &AstVisitor::visit_class_member, this);
+        }
+
+        check_and_add_default_constructor(cursor, class_desc);
+    }
+
+
+    void AstVisitor::visit_class_decl(const CXCursor& cursor)
     {
         auto class_name = utils::get_spelling(cursor);
         if (!config_.target_classes.contains(class_name))
@@ -177,50 +223,19 @@ namespace codegen::analysis
             result_.namespaces.emplace(std::move(*ns));
         }
 
-        result_.classes.emplace_back(std::move(class_name));
         result_.includes.emplace(utils::get_include_path(cursor));
+        result_.classes.emplace_back(std::move(class_name));
+
+        process_class_common(cursor, result_.classes.back());
 
         clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
-
-        std::vector<CXCursor> all_bases;
-        collect_all_base_cursors(cursor, all_bases);
-        for (const auto base : all_bases)
-        {
-            clang_visitChildren(base, &AstVisitor::visit_class_member, this);
-        }
-
-        auto& current_class_desc = result_.classes.back();
-        if (current_class_desc.constructors().empty())
-        {
-            bool has_user_declared_ctor = false;
-            clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
-            {
-                if (clang_getCursorKind(child) == CXCursor_Constructor)
-                {
-                    *static_cast<bool*>(client_data) = true;
-                    return CXChildVisit_Break;
-                }
-
-                if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
-                {
-                    return CXChildVisit_Continue;
-                }
-                return CXChildVisit_Recurse;
-            }, &has_user_declared_ctor);
-
-            if (!has_user_declared_ctor)
-            {
-                metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
-                ctor_desc.set_signature("()");
-                current_class_desc.add_constructor(std::move(ctor_desc));
-            }
-        }
     }
 
     CXChildVisitResult AstVisitor::visit_class_member(CXCursor cursor, CXCursor parent, CXClientData client_data)
     {
         auto* visitor = static_cast<AstVisitor*>(client_data);
         auto& class_desc = visitor->result_.classes.back();
+
         const auto child_kind = clang_getCursorKind(cursor);
         const auto parent_class_name = class_desc.name();
 
@@ -232,6 +247,8 @@ namespace codegen::analysis
                 {
                     break;
                 }
+
+                // TODO: Handle deleted constructors properly
 
                 if (clang_getCXXAccessSpecifier(cursor) != CX_CXXPublic)
                 {
@@ -268,12 +285,12 @@ namespace codegen::analysis
             {
                 auto method_name = utils::get_spelling(cursor);
                 std::string class_lookup_name = parent_class_name;
-
-                size_t template_bracket_pos = class_lookup_name.find('<');
-                if (template_bracket_pos != std::string::npos)
+                if (size_t template_bracket_pos = class_lookup_name.find('<');
+                    template_bracket_pos != std::string::npos)
                 {
                     class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
                 }
+
                 if (visitor->config_.target_classes.contains(class_lookup_name))
                 {
                     const auto& class_config = visitor->config_.target_classes.at(class_lookup_name);
@@ -281,8 +298,7 @@ namespace codegen::analysis
 
                     if (std::ranges::find(target_methods, method_name) != target_methods.end())
                     {
-                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name);
-                        method_desc.set_return_type_name(utils::get_cursor_result_type_spelling(cursor));
+                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name, utils::get_cursor_result_type_spelling(cursor));
                         method_desc.set_static(clang_CXXMethod_isStatic(cursor));
                         method_desc.set_const(clang_CXXMethod_isConst(cursor));
                         for (const auto& param : utils::get_parameters(cursor))
@@ -300,7 +316,7 @@ namespace codegen::analysis
             {
                 if (clang_isCursorDefinition(cursor))
                 {
-                    if (auto enum_desc_opt = visitor->parse_enumerator_decl(cursor))
+                    if (auto enum_desc_opt = visitor->parse_enum_decl(cursor))
                     {
                         class_desc.add_member_enumerator(std::move(*enum_desc_opt));
                         visitor->result_.includes.emplace(utils::get_include_path(cursor));
@@ -314,13 +330,9 @@ namespace codegen::analysis
             {
                 if (clang_getCXXAccessSpecifier(cursor) == CX_CXXPublic)
                 {
-                    metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor));
-                    var_desc.set_type_name(utils::get_cursor_type_spelling(cursor));
+                    metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor), utils::get_cursor_type_spelling(cursor));
                     var_desc.set_const(clang_isConstQualifiedType(clang_getCursorType(cursor)));
-                    if (clang_Cursor_getStorageClass(cursor) == CX_SC_Static)
-                    {
-                        var_desc.set_static(true);
-                    }
+                    var_desc.set_static(clang_Cursor_getStorageClass(cursor) == CX_SC_Static);
                     class_desc.add_member_variable(std::move(var_desc));
                 }
                 break;
@@ -333,7 +345,7 @@ namespace codegen::analysis
         return CXChildVisit_Continue;
     }
 
-    void AstVisitor::visit_class_template(CXCursor cursor)
+    void AstVisitor::visit_class_template(const CXCursor& cursor)
     {
         auto template_name = utils::get_spelling(cursor);
         if (!config_.target_classes.contains(template_name))
@@ -342,11 +354,10 @@ namespace codegen::analysis
         }
 
         const auto& template_config = config_.target_classes.at(template_name);
-        const auto& types = template_config.types;
-
-        for (const auto& type : types)
+        for (const auto& type : template_config.types)
         {
             std::string full_name = std::format("{}<{}>", template_name, type);
+
             if (result_.processed_classes.contains(full_name))
             {
                 continue;
@@ -358,59 +369,33 @@ namespace codegen::analysis
                 result_.namespaces.emplace(std::move(*ns));
             }
 
-            result_.classes.emplace_back(full_name);
             result_.includes.emplace(utils::get_include_path(cursor));
+            result_.classes.emplace_back(std::move(full_name));
 
-            clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
-
-            auto& current_class_desc = result_.classes.back();
-            if (current_class_desc.constructors().empty())
-            {
-                bool has_user_declared_ctor = false;
-                clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
-                {
-                    if (clang_getCursorKind(child) == CXCursor_Constructor)
-                    {
-                        *static_cast<bool*>(client_data) = true;
-                        return CXChildVisit_Break;
-                    }
-
-                    if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
-                    {
-                        return CXChildVisit_Continue;
-                    }
-                    return CXChildVisit_Recurse;
-                }, &has_user_declared_ctor);
-
-                if (!has_user_declared_ctor)
-                {
-                    metadata::ConstructorDescriptor ctor_desc(current_class_desc.name());
-                    ctor_desc.set_signature("()");
-                    current_class_desc.add_constructor(std::move(ctor_desc));
-                }
-            }
+            process_class_common(cursor, result_.classes.back());
         }
     }
 
-    void AstVisitor::visit_enum_decl(CXCursor cursor)
+    void AstVisitor::visit_enum_decl(const CXCursor& cursor)
     {
-        if (auto enum_desc_opt = parse_enumerator_decl(cursor); !enum_desc_opt)
+        if (auto enum_desc_opt = parse_enum_decl(cursor))
         {
             result_.enums.emplace_back(std::move(*enum_desc_opt));
             result_.includes.emplace(utils::get_include_path(cursor));
         }
     }
 
-    void AstVisitor::visit_function_decl(CXCursor cursor)
+    void AstVisitor::visit_function_decl(const CXCursor& cursor)
     {
         const auto path = utils::get_include_path(cursor);
-        const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path);
+        const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path.string());
 
         const auto func_name = utils::get_spelling(cursor);
-        if (is_wrapper || std::ranges::find(config_.target_free_functions, func_name) != config_.target_free_functions.end())
+        const auto& target_funcs = config_.target_free_functions;
+
+        if (is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
         {
-            metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name);
-            func_desc.set_return_type_name(utils::get_cursor_result_type_spelling(cursor));
+            metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name, utils::get_cursor_result_type_spelling(cursor));
             for (const auto& param : utils::get_parameters(cursor))
             {
                 func_desc.add_parameter(param);
