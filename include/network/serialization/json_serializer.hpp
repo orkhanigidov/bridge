@@ -4,7 +4,7 @@
 #include <oatpp/core/macro/component.hpp>
 #include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 
-namespace engine::network
+namespace engine::network::serialization
 {
     class JsonSerializerException final : public std::runtime_error
     {
@@ -59,4 +59,4 @@ namespace engine::network
     private:
         std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
     };
-} // namespace engine::network
+} // namespace engine::network::serialization

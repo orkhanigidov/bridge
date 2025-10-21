@@ -1,4 +1,4 @@
-#include "network/oatpp_type_adapter.hpp"
+#include "../../../include/network/serialization/oatpp_type_adapter.hpp"
 
 namespace
 {
@@ -36,7 +36,7 @@ namespace
     }
 }
 
-namespace engine::network
+namespace engine::network::serialization
 {
     using ConversionFunc = std::function<NativeVariant(const oatpp::Any&)>;
 
@@ -58,4 +58,4 @@ namespace engine::network
         // Unsupported or complex types
         return std::monostate{};
     }
-} // namespace engine::network
+} // namespace engine::network::serialization

@@ -2,7 +2,7 @@
 
 #include <oatpp/core/Types.hpp>
 
-namespace engine::network
+namespace engine::network::serialization
 {
     using NativeVariant = std::variant<
         std::monostate,
@@ -23,4 +23,4 @@ namespace engine::network
 
         static NativeVariant from_oatpp(const oatpp::Any& any);
     };
-} // namespace engine::network
+} // namespace engine::network::serialization
