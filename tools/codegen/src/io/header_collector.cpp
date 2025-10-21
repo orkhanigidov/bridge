@@ -16,14 +16,14 @@ namespace codegen::io
         std::ofstream out(output_file);
         if (!out)
         {
-            throw HeaderCollectorException(std::format("Failed to open output file: {}", output_file));
+            throw HeaderCollectorException(std::format("Failed to open output file: {}", output_file.string()));
         }
 
         for (const auto& dir : include_dirs)
         {
             if (!fs::exists(dir) || !fs::is_directory(dir))
             {
-                throw HeaderCollectorException(std::format("Invalid include directory: {}", dir));
+                throw HeaderCollectorException(std::format("Invalid include directory: {}", dir.string()));
             }
 
             for (const auto& entry : fs::recursive_directory_iterator(dir))

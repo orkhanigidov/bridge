@@ -41,7 +41,7 @@ namespace codegen::io
         std::ifstream file(env_path);
         if (!file.is_open())
         {
-            throw EnvReaderException(std::format("Could not open .env file: {}", env_path));
+            throw EnvReaderException(std::format("Could not open .env file: {}", env_path.string()));
         }
 
         std::string line;

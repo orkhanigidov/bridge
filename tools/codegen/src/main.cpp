@@ -14,13 +14,18 @@ int main(int argc, const char* argv[])
         {
             throw std::runtime_error("INCLUDE_DIR and CONFIG_YAML environment variables are required.");
         }
+        const codegen::io::EnvReader reader(argc > 1 ? argv[1] : ".env");
 
-        const codegen::Engine engine(include_dir.value(), config_yaml.value());
+        const fs::path include_dir = reader.get("INCLUDE_DIR").value();
+        const fs::path wrapper_dir = reader.get("WRAPPER_DIR").value();
+        const fs::path config_yaml = reader.get("CONFIG_YAML").value();
+        const fs::path output_dir = reader.get("OUTPUT_DIR").value();
+
+        const codegen::Engine engine(include_dir, wrapper_dir, config_yaml, output_dir, &std::cout);
         engine.generate_lua_bindings();
-    }
-    catch (const std::exception& e)
+    } catch (const std::exception& e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << std::format("\nFATAL ERROR: {}\n", e.what());
         return EXIT_FAILURE;
     }
 

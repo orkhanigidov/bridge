@@ -53,12 +53,12 @@ add_subdirectory(tools/codegen)
 
 set(SOURCES
         ${SRC_DIR}/bindings/lua/lua_binder.cpp
-        ${SRC_DIR}/conversion/oatpp_type_adapter.cpp
         ${SRC_DIR}/execution/script/script_executor.cpp
         ${SRC_DIR}/execution/execution_engine.cpp
         ${SRC_DIR}/execution/execution_service.cpp
         ${SRC_DIR}/interop/interop_bridge.cpp
         ${SRC_DIR}/interop/interop_c_api.cpp
+        ${SRC_DIR}/network/oatpp_type_adapter.cpp
         ${SRC_DIR}/network/server_config.cpp
         ${SRC_DIR}/network/server_manager.cpp
         ${SRC_DIR}/utils/response_factory.cpp

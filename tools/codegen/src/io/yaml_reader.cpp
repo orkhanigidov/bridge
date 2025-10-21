@@ -32,11 +32,11 @@ namespace codegen::io
             root = YAML::LoadFile(file_path.string());
         } catch (const YAML::BadFile&)
         {
-            throw YamlReaderException(std::format("Could not open YAML file: {}", file_path));
+            throw YamlReaderException(std::format("Could not open YAML file: {}", file_path.string()));
         }
         catch (const YAML::ParserException& e)
         {
-            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path, e.what()));
+            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path.string(), e.what()));
         }
 
         return YamlReader(root);

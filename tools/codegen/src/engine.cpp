@@ -27,7 +27,7 @@ namespace codegen
                 reader.classes(),
                 reader.free_functions()
             };
-            analysis::ClangAnalyzer analyzer(dummy_cpp_path.string(), config);
+            analysis::ClangAnalyzer analyzer(dummy_cpp_path, config);
 
             log("Stage 4: Generating Lua bindings...");
             generation::Sol2Generator generator(generated_bindings_path);
@@ -37,7 +37,7 @@ namespace codegen
                                analyzer.found_free_functions(),
                                analyzer.found_enums());
 
-            log(std::format("Lua bindings generated successfully! -> {}", generated_bindings_path));
+            log(std::format("Lua bindings generated successfully! -> {}", generated_bindings_path.string()));
         } catch (const std::exception& e)
         {
             throw EngineException(std::format("Code generation failed: {}", e.what()));

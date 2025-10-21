@@ -32,7 +32,7 @@ namespace codegen::analysis
 
         if (!tu)
         {
-            throw ClangAnalyzerException(std::format("Failed to parse translation unit for file: {}", file_path));
+            throw ClangAnalyzerException(std::format("Failed to parse translation unit for file: {}", file_path.string()));
         }
 
         AstVisitor visitor(config);
