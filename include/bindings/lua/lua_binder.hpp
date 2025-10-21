@@ -7,9 +7,9 @@ namespace engine::bindings::lua
     class LuaBinder final
     {
     public:
-        LuaBinder() = default;
+        LuaBinder() = delete;
 
-        void register_bindings(sol::state& lua);
+        static void register_bindings(sol::state& lua);
     };
 
     void register_members(sol::state& lua);

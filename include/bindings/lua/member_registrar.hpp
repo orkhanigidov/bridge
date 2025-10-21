@@ -151,7 +151,7 @@ namespace engine::bindings::lua
         {
             return [](Args... args)
             {
-                return std::make_shared<T>(args...);
+                return std::make_shared<T>(std::forward<Args>(args)...);
             };
         }
     };

@@ -14,14 +14,15 @@ namespace engine::bindings::lua
             const auto end_time = std::chrono::high_resolution_clock::now();
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-            std::cout << "Lua bindings successfully registered in " << duration.count() << " milliseconds" << std::endl;
+            std::cout << std::format("Lua bindings successfully registered in {} in milliseconds\n", duration.count());
         }
         catch (const sol::error& e)
         {
-            std::cerr << "Error registering Lua bindings: " << e.what() << std::endl;
-        } catch (const std::exception& e)
+            std::cerr << std::format("Error registering Lua bindings: {}\n", e.what());
+        }
+        catch (const std::exception& e)
         {
-            std::cerr << "Unhandled exception while registering Lua bindings: " << e.what() << std::endl;
+            std::cerr << std::format("Unhandled exception while registering Lua bindings: {}\n", e.what());
         }
     }
 } // namespace engine::bindings::lua
