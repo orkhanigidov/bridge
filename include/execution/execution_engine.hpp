@@ -5,11 +5,23 @@
 
 namespace engine::execution
 {
+    /**
+     * @brief
+     */
     class ExecutionEngine final
     {
     public:
-        ExecutionEngine() = default;
+        /**
+         * @brief Deleted constructor to prevent instantiation of this static class
+         */
+        ExecutionEngine() = delete;
 
-        utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, const std::string& script);
+        /**
+         * @brief
+         * @param type
+         * @param script
+         * @return
+         */
+        static utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, const std::string& script);
     };
 } // namespace engine::execution

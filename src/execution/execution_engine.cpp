@@ -3,6 +3,15 @@
 #include "execution/script/script_executor.hpp"
 #include "utils/response_factory.hpp"
 
+namespace
+{
+    engine::execution::script::ScriptExecutor& get_thread_local_executor()
+    {
+        thread_local static engine::execution::script::ScriptExecutor executor;
+        return executor;
+    }
+}
+
 namespace engine::execution
 {
     utils::ExecutionResponsePtr ExecutionEngine::execute(interop::types::ExecutionType type, const std::string& script)
@@ -14,7 +23,7 @@ namespace engine::execution
                                                         "Execution script content is empty");
         }
 
-        script::ScriptExecutor executor;
+        auto& executor = get_thread_local_executor();
 
         switch (type)
         {
@@ -27,7 +36,7 @@ namespace engine::execution
                 {
                     return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
                                                                 interop::types::ExecutionErrorType::File_Not_Found,
-                                                                ("Script file does not exist: " + script).c_str());
+                                                                std::format("Script file does not exist: {}", script.c_str()));
                 }
 
                 return executor.execute_from_file(script);

@@ -7,12 +7,32 @@
 
 namespace engine::execution
 {
+    class ExecutionServiceException : public std::runtime_error
+    {
+    public:
+        template <typename... Args>
+        explicit ExecutionServiceException(std::format_string<Args...> fmt, Args&&... args)
+            : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+        {
+        }
+    };
+
+    /**
+     * @brief
+     */
     class ExecutionService
     {
     public:
-        ExecutionResult execute(const oatpp::Object<network::dto::execution::RequestDto>& request);
+        /**
+         * @brief Deleted constructor to prevent instantiation of this static class
+         */
+        ExecutionService() = delete;
 
-    private:
-        std::string prepare_script(const std::string& script, const fs::path& input_path, const fs::path& output_path);
+        /**
+         * @brief
+         * @param request
+         * @return
+         */
+        static ExecutionResult execute(const oatpp::Object<network::dto::execution::RequestDto>& request);
     };
 }

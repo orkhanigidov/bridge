@@ -1,11 +1,14 @@
 #pragma once
 
-#include <oatpp/core/Types.hpp>
-
 #include "interop/types/execution_error_type.h"
+
+#include <oatpp/core/Types.hpp>
 
 namespace engine::execution
 {
+    /**
+     * @brief
+     */
     struct ExecutionError
     {
         interop::types::ExecutionErrorType type;
