@@ -5,15 +5,6 @@ int main(int argc, const char* argv[])
 {
     try
     {
-        const codegen::io::EnvReader reader;
-
-        const auto include_dir = reader.get("INCLUDE_DIR");
-        const auto config_yaml = reader.get("CONFIG_YAML");
-
-        if (!include_dir || !config_yaml)
-        {
-            throw std::runtime_error("INCLUDE_DIR and CONFIG_YAML environment variables are required.");
-        }
         const codegen::io::EnvReader reader(argc > 1 ? argv[1] : ".env");
 
         const fs::path include_dir = reader.get("INCLUDE_DIR").value();
