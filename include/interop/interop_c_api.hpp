@@ -13,7 +13,7 @@ extern "C" {
 
 ENGINE_API bool InitializeBindings();
 
-ENGINE_API ExecutionResponse*ExecuteScript(const ExecutionRequest* request);
+ENGINE_API ExecutionResponse* ExecuteScript(const ExecutionRequest* request);
 
 ENGINE_API void FreeExecutionResponse(ExecutionResponse* response);
 

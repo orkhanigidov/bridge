@@ -27,10 +27,6 @@ void FreeExecutionResponse(ExecutionResponse* response)
         return;
     }
 
-    if (response->error.message)
-    {
-        free(response->error.message);
-    }
-
-    delete response;
+    engine::utils::ExecutionResponseDeleter deleter;
+    deleter(response);
 }

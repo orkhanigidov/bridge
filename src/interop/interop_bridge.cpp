@@ -15,14 +15,12 @@ namespace engine::interop
             std::call_once(lua_bindings_init_flag, []
             {
                 sol::state lua;
-                bindings::lua::LuaBinder binder;
-                binder.register_bindings(lua);
+                bindings::lua::LuaBinder::register_bindings(lua);
             });
             return true;
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
-            std::cerr << "Failed to initialize Lua bindings: " << e.what() << std::endl;
+            std::cerr << std::format("Failed to initialize Lua bindings: {}", e.what());
             return false;
         }
     }
@@ -31,19 +29,17 @@ namespace engine::interop
     {
         try
         {
-            execution::ExecutionEngine execution;
-
             switch (request->type)
             {
             case types::ExecutionType::Lua_Script:
-                return execution.execute(request->type, request->script);
+            case types::ExecutionType::Lua_File:
+                return execution::ExecutionEngine::execute(request->type, request->script);
             default:
                 return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
                                                             types::ExecutionErrorType::Invalid_Argument,
                                                             "Unsupported execution type");
             }
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
             return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
                                                         types::ExecutionErrorType::Execution_Failed,
