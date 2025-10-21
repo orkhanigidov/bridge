@@ -18,12 +18,15 @@ namespace engine::serialization
     class JsonSerializer final
     {
     public:
-        explicit JsonSerializer(OATPP_COMPONENT(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper>,
-                                                object_mapper)): object_mapper_(object_mapper)
+        explicit JsonSerializer(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper): object_mapper_(std::move(object_mapper))
         {
+            if (!object_mapper_)
+            {
+                throw JsonSerializerException("Failed to create JSON serializer: object mapper is null.");
+            }
         }
 
-        oatpp::Object<DtoType> from_json(const oatpp::String& json_data) const
+        DtoType from_json(const oatpp::String& json_data) const
         {
             if (!json_data || json_data->empty())
             {
@@ -32,15 +35,14 @@ namespace engine::serialization
 
             try
             {
-                return object_mapper_->readFromString<oatpp::Object<DtoType>>(json_data);
-            }
-            catch (const oatpp::parser::ParsingError& e)
+                return object_mapper_->readFromString<DtoType>(json_data);
+            } catch (const oatpp::parser::ParsingError& e)
             {
-                throw JsonSerializerException("JSON deserialization error: " + std::string(e.what()));
+                throw JsonSerializerException(std::format("JSON deserialization error: {}", e.what()));
             }
         }
 
-        oatpp::String to_json(const oatpp::Object<DtoType>& dto) const
+        oatpp::String to_json(const DtoType& dto) const
         {
             if (!dto)
             {
@@ -50,10 +52,9 @@ namespace engine::serialization
             try
             {
                 return object_mapper_->writeToString(dto);
-            }
-            catch (const std::exception& e)
+            } catch (const std::exception& e)
             {
-                throw JsonSerializerException("JSON serialization error: " + std::string(e.what()));
+                throw JsonSerializerException(std::format("JSON serialization error: {}", e.what()));
             }
         }
 

@@ -5,27 +5,14 @@ namespace
     template <typename OatppType, typename CppType>
     engine::conversion::NativeVariant extract_or_default(const oatpp::Any& any)
     {
-        if (any.get() == nullptr)
-        {
-            return CppType{};
-        }
-
         const auto v = any.retrieve<OatppType>();
         return engine::conversion::NativeVariant{v.getValue(CppType{})};
     }
-}
 
-namespace engine::conversion
-{
-    using ConversionFunc = std::function<NativeVariant(const oatpp::Any&)>;
+    using ConversionFunc = std::function<engine::conversion::NativeVariant(const oatpp::Any&)>;
 
-    NativeVariant OatppTypeAdapter::from_oatpp(const oatpp::Any& any)
+    const std::unordered_map<const oatpp::Type*, ConversionFunc>& get_converter_map()
     {
-        if (!any)
-        {
-            return std::monostate{};
-        }
-
         static const std::unordered_map<const oatpp::Type*, ConversionFunc> converter_map = {
             // Boolean
             {oatpp::Boolean::Class::getType(), extract_or_default<oatpp::Boolean, bool>},
@@ -45,7 +32,22 @@ namespace engine::conversion
             // String
             {oatpp::String::Class::getType(), extract_or_default<oatpp::String, std::string>}
         };
+        return converter_map;
+    }
+}
 
+namespace engine::conversion
+{
+    using ConversionFunc = std::function<NativeVariant(const oatpp::Any&)>;
+
+    NativeVariant OatppTypeAdapter::from_oatpp(const oatpp::Any& any)
+    {
+        if (!any)
+        {
+            return std::monostate{};
+        }
+
+        const auto& converter_map = get_converter_map();
         const auto* type = any.getStoredType();
 
         if (const auto it = converter_map.find(type); it != converter_map.end())
