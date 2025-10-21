@@ -10,7 +10,7 @@ namespace engine::network
     class ServerManager final
     {
     public:
-        explicit ServerManager(const ServerConfig& config) : config_(config)
+        explicit ServerManager(ServerConfig  config) : config_(std::move(config))
         {
         }
 
