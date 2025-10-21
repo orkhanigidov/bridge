@@ -58,7 +58,7 @@ set(SOURCES
         ${SRC_DIR}/execution/execution_service.cpp
         ${SRC_DIR}/interop/interop_bridge.cpp
         ${SRC_DIR}/interop/interop_c_api.cpp
-        ${SRC_DIR}/network/oatpp_type_adapter.cpp
+        ${SRC_DIR}/network/serialization/oatpp_type_adapter.cpp
         ${SRC_DIR}/network/server_config.cpp
         ${SRC_DIR}/network/server_manager.cpp
         ${SRC_DIR}/utils/response_factory.cpp
