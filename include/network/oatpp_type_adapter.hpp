@@ -2,7 +2,7 @@
 
 #include <oatpp/core/Types.hpp>
 
-namespace engine::conversion
+namespace engine::network
 {
     using NativeVariant = std::variant<
         std::monostate,
@@ -23,4 +23,4 @@ namespace engine::conversion
 
         static NativeVariant from_oatpp(const oatpp::Any& any);
     };
-} // namespace engine::conversion
+} // namespace engine::network

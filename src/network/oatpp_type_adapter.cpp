@@ -1,15 +1,15 @@
-#include "conversion/oatpp_type_adapter.hpp"
+#include "network/oatpp_type_adapter.hpp"
 
 namespace
 {
     template <typename OatppType, typename CppType>
-    engine::conversion::NativeVariant extract_or_default(const oatpp::Any& any)
+    engine::network::NativeVariant extract_or_default(const oatpp::Any& any)
     {
         const auto v = any.retrieve<OatppType>();
-        return engine::conversion::NativeVariant{v.getValue(CppType{})};
+        return engine::network::NativeVariant{v.getValue(CppType{})};
     }
 
-    using ConversionFunc = std::function<engine::conversion::NativeVariant(const oatpp::Any&)>;
+    using ConversionFunc = std::function<engine::network::NativeVariant(const oatpp::Any&)>;
 
     const std::unordered_map<const oatpp::Type*, ConversionFunc>& get_converter_map()
     {
@@ -36,7 +36,7 @@ namespace
     }
 }
 
-namespace engine::conversion
+namespace engine::network
 {
     using ConversionFunc = std::function<NativeVariant(const oatpp::Any&)>;
 
@@ -58,4 +58,4 @@ namespace engine::conversion
         // Unsupported or complex types
         return std::monostate{};
     }
-} // namespace engine::conversion
+} // namespace engine::network
