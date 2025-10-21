@@ -6,7 +6,7 @@
 
 #include "network/dto/execution/request_dto.hpp"
 
-namespace engine::serialization
+namespace engine::network::serialization
 {
     class JsonSerializerException final : public std::runtime_error
     {
@@ -61,4 +61,4 @@ namespace engine::serialization
     private:
         std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
     };
-} // namespace engine::serialization
+} // namespace engine::network::serialization

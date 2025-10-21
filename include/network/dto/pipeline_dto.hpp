@@ -4,7 +4,6 @@
 #include <oatpp/core/macro/codegen.hpp>
 
 #include "pipeline_step_dto.hpp"
-#include "execution/pipeline/pipeline_step.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 

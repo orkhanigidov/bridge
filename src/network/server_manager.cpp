@@ -35,12 +35,11 @@ namespace engine::network
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider);
         OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper);
 
-        auto execution_service = std::make_shared<execution::ExecutionService>();
-        auto execution_controller = std::make_shared<controller::ExecutionController>(object_mapper, execution_service);
+        auto execution_controller = std::make_shared<controller::ExecutionController>(object_mapper);
 
         http_router->addController(execution_controller);
 
-        server_ = std::make_shared<oatpp::network::Server>(connection_provider, connection_handler);
+        server_ = std::make_unique<oatpp::network::Server>(connection_provider, connection_handler);
 
         state_ = ServerState::INITIALIZED;
         OATPP_LOGI("Server", "Initialized on %s:%u", config_.host->c_str(), config_.port);

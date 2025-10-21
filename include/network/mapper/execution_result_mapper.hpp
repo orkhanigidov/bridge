@@ -1,5 +1,6 @@
 #pragma once
 
+#include "error_mapper.hpp"
 #include "execution/execution_result.hpp"
 #include "network/dto/execution/response_dto.hpp"
 
@@ -34,7 +35,7 @@ namespace engine::network::mapper
                 dto->status = dto::execution::ExecutionStatusDto::FAILURE;
 
                 const auto error_dto = dto::execution::ErrorDto::createShared();
-                error_dto->type = dto::execution::ExecutionErrorTypeDto::EXECUTION_FAILED;
+                error_dto->type = ErrorMapper::to_dto(result.error.type);
                 error_dto->message = result.error.message;
                 dto->error = error_dto;
             }

@@ -20,12 +20,12 @@ namespace engine::network
         void shutdown();
 
     private:
-        void initialize();
-        void start();
-
         ServerConfig config_;
         ServerState state_{ServerState::STOPPED};
         std::unique_ptr<NetworkComponent> network_component_;
-        std::shared_ptr<oatpp::network::Server> server_;
+        std::unique_ptr<oatpp::network::Server> server_;
+
+        void initialize();
+        void start();
     };
 } // namespace engine::network
