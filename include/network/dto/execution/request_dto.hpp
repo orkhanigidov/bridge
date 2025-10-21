@@ -5,16 +5,12 @@
 
 #include "file_dto.hpp"
 #include "options_dto.hpp"
+#include "type_dto.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace engine::network::dto::execution
 {
-    ENUM(ExecutionTypeDto, v_int8,
-         VALUE(LUA_SCRIPT, 0, "LuaScript"),
-         VALUE(PIPELINE, 1, "Pipeline")
-    )
-
     class RequestDto final : public oatpp::DTO
     {
         DTO_INIT(RequestDto, DTO)

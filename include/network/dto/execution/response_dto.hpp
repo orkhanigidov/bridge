@@ -6,17 +6,12 @@
 #include "error_dto.hpp"
 #include "file_dto.hpp"
 #include "metadata_dto.hpp"
+#include "status_dto.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace engine::network::dto::execution
 {
-    ENUM(ExecutionStatusDto, v_int8,
-         VALUE(SUCCESS, 0, "Success"),
-         VALUE(FAILURE, 1, "Failure"),
-         VALUE(TIMEOUT, 2, "Timeout")
-    )
-
     class ResponseDto final : public oatpp::DTO
     {
         DTO_INIT(ResponseDto, DTO)

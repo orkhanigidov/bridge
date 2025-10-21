@@ -6,7 +6,7 @@
 
 namespace codegen::analysis
 {
-    class ClangAnalyzerException : public std::runtime_error
+    class ClangAnalyzerException final : public std::runtime_error
     {
     public:
         using std::runtime_error::runtime_error;
