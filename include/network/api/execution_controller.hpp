@@ -31,7 +31,7 @@ namespace engine::network::controller
 
         ENDPOINT("GET", "/health", health)
         {
-            auto response = dto::MessageDto::createShared();
+            const auto response = dto::MessageDto::createShared();
             response->status_code = 200;
             response->message = "OK";
             return createDtoResponse(Status::CODE_200, response);
@@ -50,7 +50,7 @@ namespace engine::network::controller
         {
             if (!request)
             {
-                auto error = dto::MessageDto::createShared();
+                const auto error = dto::MessageDto::createShared();
                 error->status_code = 400;
                 error->message = "Request body is missing or malformed";
                 return createDtoResponse(Status::CODE_400, error);
@@ -59,12 +59,12 @@ namespace engine::network::controller
             try
             {
                 auto result = execution::ExecutionService::execute(request);
-                auto response_dto = mapper::ExecutionResultMapper::to_dto(result);
-                auto status = result.is_success ? Status::CODE_200 : Status::CODE_500;
+                const auto response_dto = mapper::ExecutionResultMapper::to_dto(result);
+                const auto status = result.is_success() ? Status::CODE_200 : Status::CODE_500;
                 return createDtoResponse(status, response_dto);
             } catch (const std::exception& e)
             {
-                auto error = dto::MessageDto::createShared();
+                const auto error = dto::MessageDto::createShared();
                 error->status_code = 500;
                 error->message = std::format("An unexpected error occurred: {}", e.what());
                 return createDtoResponse(Status::CODE_500, error);

@@ -1,15 +1,15 @@
-#include "../../../include/network/serialization/oatpp_type_adapter.hpp"
+#include "network/serialization/oatpp_type_adapter.hpp"
 
 namespace
 {
     template <typename OatppType, typename CppType>
-    engine::network::NativeVariant extract_or_default(const oatpp::Any& any)
+    engine::network::serialization::NativeVariant extract_or_default(const oatpp::Any& any)
     {
         const auto v = any.retrieve<OatppType>();
-        return engine::network::NativeVariant{v.getValue(CppType{})};
+        return engine::network::serialization::NativeVariant{v.getValue(CppType{})};
     }
 
-    using ConversionFunc = std::function<engine::network::NativeVariant(const oatpp::Any&)>;
+    using ConversionFunc = std::function<engine::network::serialization::NativeVariant(const oatpp::Any&)>;
 
     const std::unordered_map<const oatpp::Type*, ConversionFunc>& get_converter_map()
     {
