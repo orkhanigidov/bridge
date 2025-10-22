@@ -227,8 +227,6 @@ namespace codegen::analysis
         result_.classes.emplace_back(std::move(class_name));
 
         process_class_common(cursor, result_.classes.back());
-
-        clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
     }
 
     CXChildVisitResult AstVisitor::visit_class_member(CXCursor cursor, CXCursor parent, CXClientData client_data)

@@ -32,6 +32,11 @@ add_executable(${PROJECT_NAME}
         ${SOURCES}
 )
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LIBCLANG_BIN} $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMENT "Copying libclang.dll to build directory"
+)
+
 target_include_directories(${PROJECT_NAME} PRIVATE
         $<BUILD_INTERFACE:${CODEGEN_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${INCLUDE_DIR}>

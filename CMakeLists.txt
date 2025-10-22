@@ -22,6 +22,7 @@ set(GENERATED_SRC ${CMAKE_BINARY_DIR}/generated_bindings.cpp)
 
 set(CLANG_INCLUDE_DIR ${THIRD_PARTY_DIR}/clang/include)
 set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.lib)
+set(LIBCLANG_BIN ${THIRD_PARTY_DIR}/clang/bin/libclang.dll)
 set(LUA_INCLUDE_DIR ${THIRD_PARTY_DIR}/lua/include)
 set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
 

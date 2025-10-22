@@ -2,9 +2,84 @@
 
 namespace
 {
-    void write_line(std::ofstream& out, int indent, const std::string& text, int newlines = 1)
+    void write_line(std::ofstream& out, int indent, std::string_view text, int newlines = 1)
     {
-        out << std::string(indent * 4, ' ') << text << std::string(std::max(0, newlines), '\n');
+        out << std::string(static_cast<size_t>(indent) * 4, ' ') << text << std::string(static_cast<size_t>(std::max(0, newlines)), '\n');
+    }
+
+    std::string format_lua_name(std::string name)
+    {
+        std::ranges::for_each(name, [](char& c)
+        {
+            if (!std::isalnum(static_cast<unsigned char>(c)))
+            {
+                c = '_';
+            }
+        });
+
+        auto new_end = std::ranges::unique(name, [](char a, char b) { return a == '_' && b == '_'; }).begin();
+        name.erase(new_end, name.end());
+
+        if (name.starts_with('_'))
+        {
+            name.erase(0, 1);
+        }
+
+        if (name.ends_with('_'))
+        {
+            name.pop_back();
+        }
+
+        return name;
+    }
+
+    template <bool IsMember>
+    void write_overload_resolutions(std::ostringstream& stream, const std::vector<const codegen::metadata::FunctionDescriptor*>& funcs, int indent, std::string_view class_name = "")
+    {
+        const std::string indent_str(static_cast<size_t>(indent) * 4, ' ');
+        const std::string delimiter = ",\n" + indent_str;
+
+        for (size_t i = 0; i < funcs.size(); ++i)
+        {
+            const auto* func = funcs[i];
+            if constexpr (IsMember)
+            {
+                stream << std::format("sol::resolve<{}{}{}>(&{}::{})",
+                                      func->return_type_name(),
+                                      func->signature(),
+                                      func->is_const() ? " const" : "",
+                                      class_name,
+                                      func->name());
+            }
+            else
+            {
+                stream << std::format("sol::resolve<{}{}>(&{})",
+                                      func->return_type_name(),
+                                      func->signature(),
+                                      func->name());
+            }
+
+            if (i < funcs.size() - 1)
+            {
+                stream << delimiter;
+            }
+        }
+    }
+
+    void write_enum_pairs(std::ostringstream& stream, const codegen::metadata::EnumDescriptor& enum_, int indent, std::string_view full_enum_name)
+    {
+        const std::string indent_str(static_cast<size_t>(indent) * 4, ' ');
+        const std::string delimiter = ",\n" + indent_str;
+        const auto& enumerators = enum_.enumerators();
+
+        for (size_t i = 0; i < enumerators.size(); ++i)
+        {
+            stream << std::format("\"{}\", {}::{}", enumerators[i].name, full_enum_name, enumerators[i].name);
+            if (i < enumerators.size() - 1)
+            {
+                stream << delimiter;
+            }
+        }
     }
 }
 
@@ -14,13 +89,12 @@ namespace codegen::generation
                                  const std::unordered_set<std::string>& namespaces,
                                  const std::vector<metadata::ClassDescriptor>& classes,
                                  const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                 const std::vector<metadata::EnumeratorDescriptor>& enums) const
+                                 const std::vector<metadata::EnumDescriptor>& enums) const
     {
         std::ofstream out(output_file_);
         if (!out.is_open())
         {
-            std::cerr << "Failed to open output file: " << output_file_ << std::endl;
-            return;
+            throw Sol2GeneratorException(std::format("Failed to open output file: {}", output_file_.string()));
         }
 
         write_header(out, includes, namespaces);
@@ -59,21 +133,6 @@ namespace codegen::generation
         write_line(out, 1, "void register_members(sol::state& lua)");
         write_line(out, 1, "{");
 
-        auto lua_name_formatter = [](std::string name)
-        {
-            size_t start_pos = name.find('<');
-            if (start_pos != std::string::npos)
-            {
-                size_t end_pos = name.rfind('>');
-                if (end_pos != std::string::npos)
-                {
-                    name.replace(start_pos, 1, "_");
-                    name.erase(end_pos, 1);
-                }
-            }
-            return name;
-        };
-
         std::unordered_set<std::string> target_class_names;
         for (const auto& cls : classes)
         {
@@ -90,11 +149,10 @@ namespace codegen::generation
                     continue;
                 }
 
-                if (!registered_bases.contains(base_name))
+                if (registered_bases.emplace(base_name).second)
                 {
-                    std::string lua_base_name = lua_name_formatter(base_name);
+                    std::string lua_base_name = format_lua_name(base_name);
                     write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, lua_base_name));
-                    registered_bases.emplace(base_name);
                 }
             }
         }
@@ -106,64 +164,51 @@ namespace codegen::generation
 
         for (const auto& cls : classes)
         {
-            std::string lua_name = lua_name_formatter(cls.name());
+            std::string lua_name = format_lua_name(cls.name());
             std::string ownership = cls.constructors().empty() ? "Cpp" : "Lua";
             write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::{}>(lua, \"{}\")", cls.name(), ownership, lua_name));
 
             if (!cls.constructors().empty())
             {
-                std::string constructor_types;
-                for (size_t i = 0; i < cls.constructors().size(); ++i)
+                std::ostringstream constructor_stream;
+                const auto& ctors = cls.constructors();
+                for (size_t i = 0; i < ctors.size(); ++i)
                 {
-                    auto signature = cls.constructors()[i].signature();
-                    if (signature.front() == '(' && signature.back() == ')')
+                    std::string signature = ctors[i].signature();
+                    if (signature.starts_with('(') && signature.ends_with(')'))
                     {
                         signature = signature.substr(1, signature.length() - 2);
                     }
-                    constructor_types += std::format("sol::types<{}>", signature);
-                    if (i < cls.constructors().size() - 1)
+                    constructor_stream << std::format("sol::types<{}>", signature);
+                    if (i < ctors.size() - 1)
                     {
-                        constructor_types += ", ";
+                        constructor_stream << ", ";
                     }
                 }
-                write_line(out, 3, std::format(".add_shared_constructors<{}>()", constructor_types));
+                write_line(out, 3, std::format(".add_shared_constructors<{}>()", constructor_stream.str()));
             }
 
             if (!cls.base_class_names().empty())
             {
-                std::string bases_str;
+                std::ostringstream base_stream;
+                const auto& bases = cls.base_class_names();
                 for (size_t i = 0; i < cls.base_class_names().size(); ++i)
                 {
-                    bases_str += cls.base_class_names()[i];
-                    if (i < cls.base_class_names().size() - 1)
+                    base_stream << bases[i];
+                    if (i < bases.size() - 1)
                     {
-                        bases_str += ", ";
+                        base_stream << ", ";
                     }
                 }
-                write_line(out, 3, std::format(".add_bases<{}>()", bases_str));
+                write_line(out, 3, std::format(".add_bases<{}>()", base_stream.str()));
             }
 
-            for (const auto& enum_ : cls.member_enums())
+            for (const auto& enum_ : cls.member_enumerators())
             {
+                std::ostringstream enumerators_stream;
                 std::string full_enum_name = std::format("{}::{}", cls.name(), enum_.name());
-
-                std::vector<std::string> enumerator_pairs;
-                enumerator_pairs.reserve(enum_.enumerators().size());
-                for (const auto& enumerator : enum_.enumerators())
-                {
-                    enumerator_pairs.emplace_back(std::format("\"{}\", {}::{}", enumerator.name, full_enum_name, enumerator.name));
-                }
-                std::string enumerators_str;
-                for (size_t i = 0; i < enumerator_pairs.size(); ++i)
-                {
-                    const std::string joiner = ",\n\t\t\t\t";
-                    enumerators_str += enumerator_pairs[i];
-                    if (i < enumerator_pairs.size() - 1)
-                    {
-                        enumerators_str += joiner;
-                    }
-                }
-                write_line(out, 3, std::format(".add_enums(\"{}\", {})", enum_.name(), enumerators_str));
+                write_enum_pairs(enumerators_stream, enum_, 4, full_enum_name);
+                write_line(out, 3, std::format(".add_enums(\"{}\", {})", enum_.name(), enumerators_stream.str()));
             }
 
             for (const auto& var : cls.member_variables())
@@ -174,11 +219,11 @@ namespace codegen::generation
                 }
                 else
                 {
-                    write_line(out, 3, std::format(".add_variable(\"{}\", &{}::{}, {})", var.name(), cls.name(), var.name(), var.is_const()));
+                    // write_line(out, 3, std::format(".add_variable(\"{}\", &{}::{}, {})", var.name(), cls.name(), var.name(), var.is_const()));
                 }
             }
 
-            std::map<std::string, std::vector<const metadata::FunctionDescriptor*>> overloads;
+            std::unordered_map<std::string, std::vector<const metadata::FunctionDescriptor*>> overloads;
             for (const auto& func : cls.member_functions())
             {
                 overloads[func.name()].emplace_back(&func);
@@ -186,42 +231,16 @@ namespace codegen::generation
 
             for (const auto& [name, funcs] : overloads)
             {
-                std::string overload_expressions;
+                std::ostringstream overloads_stream;
                 if (funcs.size() == 1)
                 {
-                    overload_expressions += std::format("&{}::{}", cls.name(), funcs[0]->name());
+                    overloads_stream << std::format("&{}::{}", cls.name(), funcs[0]->name());
                 }
                 else
                 {
-                    std::vector<std::string> expressions;
-                    expressions.reserve(funcs.size());
-                    for (const auto& func : funcs)
-                    {
-                        if (func->is_const())
-                        {
-                            expressions.emplace_back(std::format("sol::resolve<{}{} const>(&{}::{})",
-                                                                 func->return_type_name(), func->signature(),
-                                                                 cls.name(), func->name()));
-                        }
-                        else
-                        {
-                            expressions.emplace_back(std::format("sol::resolve<{}{}>(&{}::{})",
-                                                                 func->return_type_name(), func->signature(),
-                                                                 cls.name(), func->name()));
-                        }
-                    }
-
-                    const std::string joiner = ",\n\t\t\t\t";
-                    for (size_t i = 0; i < expressions.size(); ++i)
-                    {
-                        overload_expressions += expressions[i];
-                        if (i < expressions.size() - 1)
-                        {
-                            overload_expressions += joiner;
-                        }
-                    }
+                    write_overload_resolutions<true>(overloads_stream, funcs, 4, cls.name());
                 }
-                write_line(out, 3, std::format(".add_functions(\"{}\", {})", name, overload_expressions));
+                write_line(out, 3, std::format(".add_functions(\"{}\", {})", name, overloads_stream.str()));
             }
             write_line(out, 2, ";", 2);
         }
@@ -230,13 +249,13 @@ namespace codegen::generation
 
     void Sol2Generator::write_non_member_registrations(std::ofstream& out,
                                                        const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                                       const std::vector<metadata::EnumeratorDescriptor>& enums)
+                                                       const std::vector<metadata::EnumDescriptor>& enums)
     {
         write_line(out, 1, "void register_non_members(sol::state& lua)");
         write_line(out, 1, "{");
         write_line(out, 2, "NonMemberRegistrar registrar(lua);", 2);
 
-        std::map<std::string, std::vector<const metadata::FunctionDescriptor*>> overloads;
+        std::unordered_map<std::string, std::vector<const metadata::FunctionDescriptor*>> overloads;
         for (const auto& func : free_functions)
         {
             overloads[func.name()].emplace_back(&func);
@@ -244,53 +263,23 @@ namespace codegen::generation
 
         for (const auto& [name, funcs] : overloads)
         {
-            std::string overload_expressions;
+            std::ostringstream overloads_stream;
             if (funcs.size() == 1)
             {
-                overload_expressions += std::format("&{}", name);
+                overloads_stream << std::format("&{}", name);
             }
             else
             {
-                std::vector<std::string> expressions;
-                expressions.reserve(funcs.size());
-                for (const auto& func : funcs)
-                {
-                    expressions.emplace_back(std::format("sol::resolve<{}{}>(&{})", func->return_type_name(), func->signature(), name));
-                }
-
-                const std::string joiner = ",\n\t\t\t";
-                for (size_t i = 0; i < expressions.size(); ++i)
-                {
-                    overload_expressions += expressions[i];
-                    if (i < expressions.size() - 1)
-                    {
-                        overload_expressions += joiner;
-                    }
-                }
+                write_overload_resolutions<false>(overloads_stream, funcs, 4);
             }
-            write_line(out, 2, std::format("registrar.add_functions(\"{}\", {});", name, overload_expressions));
+            write_line(out, 2, std::format("registrar.add_functions(\"{}\", {});", name, overloads_stream.str()));
         }
 
         for (const auto& enum_ : enums)
         {
-            std::vector<std::string> enumerator_pairs;
-            enumerator_pairs.reserve(enum_.enumerators().size());
-            for (const auto& enumerator : enum_.enumerators())
-            {
-                enumerator_pairs.emplace_back(std::format("\"{}\", {}::{}", enumerator.name, enum_.name(), enumerator.name));
-            }
-
-            std::string enumerators_str;
-            for (size_t i = 0; i < enumerator_pairs.size(); ++i)
-            {
-                const std::string joiner = ",\n\t\t\t";
-                enumerators_str += enumerator_pairs[i];
-                if (i < enumerator_pairs.size() - 1)
-                {
-                    enumerators_str += joiner;
-                }
-            }
-            write_line(out, 2, std::format("registrar.add_enums(\"{}\", {});", enum_.name(), enumerators_str));
+            std::ostringstream enumerators_stream;
+            write_enum_pairs(enumerators_stream, enum_, 4, enum_.name());
+            write_line(out, 2, std::format("registrar.add_enums(\"{}\", {});", enum_.name(), enumerators_stream.str()));
         }
         write_line(out, 1, "}");
     }
