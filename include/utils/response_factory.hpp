@@ -19,6 +19,6 @@ namespace engine::utils
         static ExecutionResponsePtr create_error(interop::types::ExecutionStatus status,
                                                  interop::types::ExecutionErrorType type,
                                                  const std::string& message);
-        static ExecutionResponsePtr create_success(uint64_t duration_milliseconds);
+        static ExecutionResponsePtr create_success(interop::types::ExecutionMetadata metadata);
     };
 } // namespace engine::utils

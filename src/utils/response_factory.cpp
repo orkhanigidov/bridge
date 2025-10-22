@@ -37,12 +37,12 @@ namespace engine::utils
         return response;
     }
 
-    ExecutionResponsePtr ResponseFactory::create_success(uint64_t duration_milliseconds)
+    ExecutionResponsePtr ResponseFactory::create_success(interop::types::ExecutionMetadata metadata)
     {
         ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
 
         response->status = interop::types::ExecutionStatus::Success;
-        response->metadata.duration_milliseconds = duration_milliseconds;
+        response->metadata = metadata;
 
         response->error.type = {};
         response->error.message = nullptr;

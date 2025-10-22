@@ -1,13 +1,13 @@
 #pragma once
 
-#include "execution_result.hpp"
+#include "core_execution_result.hpp"
 #include "network/dto/execution/request_dto.hpp"
 
 #include <oatpp/core/Types.hpp>
 
 namespace engine::execution
 {
-    class ExecutionServiceException : public std::runtime_error
+    class ExecutionServiceException final : public std::runtime_error
     {
     public:
         template <typename... Args>
@@ -33,6 +33,6 @@ namespace engine::execution
          * @param request
          * @return
          */
-        static ExecutionResult execute(const oatpp::Object<network::dto::execution::RequestDto>& request);
+        static CoreExecutionResult execute(const oatpp::Object<network::dto::execution::RequestDto>& request);
     };
 }

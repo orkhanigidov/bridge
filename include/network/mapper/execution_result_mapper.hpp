@@ -1,7 +1,6 @@
 #pragma once
 
 #include "error_mapper.hpp"
-#include "execution/execution_result.hpp"
 #include "network/dto/execution/response_dto.hpp"
 
 namespace engine::network::mapper
@@ -11,11 +10,11 @@ namespace engine::network::mapper
     public:
         ExecutionResultMapper() = delete;
 
-        static oatpp::Object<dto::execution::ResponseDto> to_dto(const execution::ExecutionResult& result)
+        static oatpp::Object<dto::execution::ResponseDto> to_dto(const execution::CoreExecutionResult& result)
         {
             const auto dto = dto::execution::ResponseDto::createShared();
 
-            if (result.is_success)
+            if (result.is_success())
             {
                 dto->status = dto::execution::ExecutionStatusDto::SUCCESS;
 
@@ -35,7 +34,7 @@ namespace engine::network::mapper
                 dto->status = dto::execution::ExecutionStatusDto::FAILURE;
 
                 const auto error_dto = dto::execution::ErrorDto::createShared();
-                error_dto->type = ErrorMapper::to_dto(result.error.type);
+                error_dto->type = ErrorMapper::to_dto(static_cast<interop::types::ExecutionErrorType>(result.error.type));
                 error_dto->message = result.error.message;
                 dto->error = error_dto;
             }

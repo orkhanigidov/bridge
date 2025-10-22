@@ -1,14 +1,61 @@
 #include "execution/execution_engine.hpp"
 
+#include "execution/core_execution_result.hpp"
 #include "execution/script/script_executor.hpp"
+#include "execution/script/thread_local_executor.hpp"
 #include "utils/response_factory.hpp"
 
 namespace
 {
-    engine::execution::script::ScriptExecutor& get_thread_local_executor()
+    engine::interop::types::ExecutionErrorType convert_error_type(engine::execution::CoreExecutionErrorType type)
     {
-        thread_local static engine::execution::script::ScriptExecutor executor;
-        return executor;
+        using enum engine::execution::CoreExecutionErrorType;
+
+        switch (type)
+        {
+        case Invalid_Argument:
+            return engine::interop::types::Invalid_Argument;
+        case Execution_Failed:
+            return engine::interop::types::Execution_Failed;
+        case Validation_Failed:
+            return engine::interop::types::Validation_Failed;
+        case File_Not_Found:
+            return engine::interop::types::File_Not_Found;
+        default:
+            return engine::interop::types::Execution_Failed;
+        }
+    }
+
+    engine::interop::types::ExecutionStatus convert_status(engine::execution::CoreExecutionStatus status)
+    {
+        using enum engine::execution::CoreExecutionStatus;
+
+        switch (status)
+        {
+        case Success:
+            return engine::interop::types::Success;
+        case Failure:
+            return engine::interop::types::Failure;
+        case Timeout:
+            return engine::interop::types::Timeout;
+        default:
+            return engine::interop::types::Failure;
+        }
+    }
+
+    engine::utils::ExecutionResponsePtr to_interop_response(const engine::execution::CoreExecutionResult& result)
+    {
+        const auto interop_status = convert_status(result.status);
+
+        if (result.is_success())
+        {
+            engine::interop::types::ExecutionMetadata metadata;
+            metadata.duration_milliseconds = result.metadata.duration_milliseconds;
+            return engine::utils::ResponseFactory::create_success(metadata);
+        }
+
+        const auto interop_error_type = convert_error_type(result.error.type);
+        return engine::utils::ResponseFactory::create_error(interop_status, interop_error_type, result.error.message);
     }
 }
 
@@ -23,12 +70,14 @@ namespace engine::execution
                                                         "Execution script content is empty");
         }
 
-        auto& executor = get_thread_local_executor();
+        auto& executor = script::get_thread_local_executor();
+        CoreExecutionResult result;
 
         switch (type)
         {
         case interop::types::ExecutionType::Lua_Script:
-            return executor.execute_from_string(script);
+            result = executor.execute_from_string(script);
+            break;
 
         case interop::types::ExecutionType::Lua_File:
             {
@@ -38,9 +87,9 @@ namespace engine::execution
                                                                 interop::types::ExecutionErrorType::File_Not_Found,
                                                                 std::format("Script file does not exist: {}", script.c_str()));
                 }
-
-                return executor.execute_from_file(script);
+                result = executor.execute_from_file(script);
             }
+            break;
 
         case interop::types::ExecutionType::Pipeline:
             // TODO: Implement pipeline execution
@@ -52,5 +101,7 @@ namespace engine::execution
                                                         interop::types::ExecutionErrorType::Invalid_Argument,
                                                         "Unsupported execution type");
         }
+
+        return to_interop_response(result);
     }
 } // namespace engine::execution

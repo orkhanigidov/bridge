@@ -1,8 +1,7 @@
 #include "execution/execution_service.hpp"
 
-#include "execution/execution_result.hpp"
+#include "execution/core_execution_result.hpp"
 #include "execution/script/script_executor.hpp"
-#include "execution/execution_engine.hpp"
 #include "execution/reserved_keywords.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "utils/filesystem_utils.hpp"
@@ -11,20 +10,22 @@
 #include <oatpp/core/Types.hpp>
 #include <oatpp/encoding/Base64.hpp>
 
+#include "execution/script/thread_local_executor.hpp"
+
+namespace
+{
+    std::string prepare_script(const std::string& script, const fs::path& input_path, const fs::path& output_path)
+    {
+        std::string script_content = script;
+        engine::utils::string::replace_all(script_content, engine::execution::reserved::INPUT_PATH, engine::utils::filesystem::to_forward_slashes(input_path));
+        engine::utils::string::replace_all(script_content, engine::execution::reserved::OUTPUT_PATH, engine::utils::filesystem::to_forward_slashes(output_path));
+        return script_content;
+    }
+}
+
 namespace engine::execution
 {
-    namespace
-    {
-        std::string prepare_script(const std::string& script, const fs::path& input_path, const fs::path& output_path)
-        {
-            std::string script_content = script;
-            utils::string::replace_all(script_content, reserved::INPUT_PATH, utils::filesystem::to_forward_slashes(input_path));
-            utils::string::replace_all(script_content, reserved::OUTPUT_PATH, utils::filesystem::to_forward_slashes(output_path));
-            return script_content;
-        }
-    }
-
-    ExecutionResult ExecutionService::execute(const oatpp::Object<network::dto::execution::RequestDto>& request)
+    CoreExecutionResult ExecutionService::execute(const oatpp::Object<network::dto::execution::RequestDto>& request)
     {
         auto temp_dir = fs::temp_directory_path() / "ogdf_engine_runs";
         fs::create_directories(temp_dir);
@@ -55,13 +56,17 @@ namespace engine::execution
 
             auto prepared_script = prepare_script(request->script->c_str(), input_path, output_path);
 
-            auto response = ExecutionEngine::execute(interop::types::Lua_Script, prepared_script);
+            auto& executor = script::get_thread_local_executor();
+            auto result = executor.execute_from_string(prepared_script);
 
-            if (response->status != interop::types::Success)
+            if (!result.is_success())
             {
                 return {
-                    false, nullptr, response->error.type,
-                    response->error.message ? response->error.message : "Unknown execution error"
+                    .status = result.status,
+                    .error{
+                        .type = result.error.type,
+                        .message = result.error.message
+                    }
                 };
             }
 
@@ -81,10 +86,19 @@ namespace engine::execution
             oatpp::String buffer = output_stream.str();
             auto encoded_output = oatpp::encoding::Base64::encode(buffer);
 
-            return {true, encoded_output, {}};
+            return {
+                .status = CoreExecutionStatus::Success,
+                .output_data = encoded_output
+            };
         } catch (const std::exception& e)
         {
-            return {false, nullptr, interop::types::ExecutionErrorType::Execution_Failed, e.what()};
+            return {
+                .status = CoreExecutionStatus::Failure,
+                .error{
+                    .type = CoreExecutionErrorType::Execution_Failed,
+                    .message = e.what()
+                }
+            };
         }
     }
-}
+} // namespace engine::execution
