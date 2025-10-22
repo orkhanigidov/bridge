@@ -1,8 +1,8 @@
-#include "network/server_manager.hpp"
+#include "network/server/server_manager.hpp"
 
 #include "network/api/execution_controller.hpp"
 
-namespace engine::network
+namespace engine::network::server
 {
     ServerManager::~ServerManager() noexcept
     {
@@ -35,7 +35,7 @@ namespace engine::network
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider);
         OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper);
 
-        auto execution_controller = std::make_shared<controller::ExecutionController>(object_mapper);
+        auto execution_controller = std::make_shared<api::ExecutionController>(object_mapper);
 
         http_router->addController(execution_controller);
 
@@ -104,4 +104,4 @@ namespace engine::network
         state_ = ServerState::STOPPED;
         OATPP_LOGI("Server", "Shutdown complete");
     }
-} // namespace engine::network
+} // namespace engine::network::server

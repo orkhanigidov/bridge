@@ -2,15 +2,16 @@
 
 #include <oatpp/network/Server.hpp>
 
-#include "network_component.hpp"
+#include "server_config.hpp"
 #include "server_state.hpp"
+#include "network/network_component.hpp"
 
-namespace engine::network
+namespace engine::network::server
 {
     class ServerManager final
     {
     public:
-        explicit ServerManager(ServerConfig  config) : config_(std::move(config))
+        explicit ServerManager(ServerConfig config) : config_(std::move(config))
         {
         }
 
@@ -28,4 +29,4 @@ namespace engine::network
         void initialize();
         void start();
     };
-} // namespace engine::network
+} // namespace engine::network::server

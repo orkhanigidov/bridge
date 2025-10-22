@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine::network
+namespace engine::network::server
 {
     enum class ServerState
     {
@@ -9,4 +9,4 @@ namespace engine::network
         RUNNING,
         SHUTTING_DOWN
     };
-} // namespace engine::network
+} // namespace engine::network::server

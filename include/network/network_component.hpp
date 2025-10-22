@@ -6,7 +6,7 @@
 #include <oatpp/web/server/HttpConnectionHandler.hpp>
 #include <oatpp/web/server/HttpRouter.hpp>
 
-#include "server_config.hpp"
+#include "server/server_config.hpp"
 
 namespace engine::network
 {
@@ -17,7 +17,7 @@ namespace engine::network
 
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider)([]
         {
-            OATPP_COMPONENT(std::shared_ptr<ServerConfig>, config);
+            OATPP_COMPONENT(std::shared_ptr<server::ServerConfig>, config);
             return oatpp::network::tcp::server::ConnectionProvider::createShared({
                 config->host, config->port, oatpp::network::Address::IP_4
             });

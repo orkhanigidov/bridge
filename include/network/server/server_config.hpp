@@ -3,7 +3,7 @@
 #include <oatpp/core/base/CommandLineArguments.hpp>
 #include <oatpp/core/Types.hpp>
 
-namespace engine::network
+namespace engine::network::server
 {
     struct ServerConfig
     {
@@ -12,4 +12,4 @@ namespace engine::network
     };
 
     ServerConfig parse_server_config(const oatpp::base::CommandLineArguments& cmd_args);
-} // namespace engine::network
+} // namespace engine::network::server

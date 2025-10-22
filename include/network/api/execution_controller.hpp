@@ -13,7 +13,7 @@
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
-namespace engine::network::controller
+namespace engine::network::api
 {
     class ExecutionController final : public oatpp::web::server::api::ApiController
     {
@@ -71,6 +71,6 @@ namespace engine::network::controller
             }
         }
     };
-} // namespace engine::network::controller
+} // namespace engine::network::api
 
 #include OATPP_CODEGEN_END(ApiController)

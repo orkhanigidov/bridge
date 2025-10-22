@@ -1,4 +1,4 @@
-#include "network/server_config.hpp"
+#include "network/server/server_config.hpp"
 
 #include <oatpp/core/utils/ConversionUtils.hpp>
 
@@ -18,7 +18,7 @@ namespace
     }
 }
 
-namespace engine::network
+namespace engine::network::server
 {
     ServerConfig parse_server_config(const oatpp::base::CommandLineArguments& cmd_args)
     {
@@ -46,4 +46,4 @@ namespace engine::network
 
         return config;
     }
-} // namespace engine::network
+} // namespace engine::network::server
