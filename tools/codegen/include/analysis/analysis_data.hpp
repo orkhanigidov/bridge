@@ -1,8 +1,8 @@
 #pragma once
 
 #include "metadata/class_descriptor.hpp"
-#include "metadata/function_descriptor.hpp"
 #include "metadata/enum_descriptor.hpp"
+#include "metadata/function_descriptor.hpp"
 
 namespace codegen::analysis
 {

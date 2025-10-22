@@ -1,14 +1,20 @@
 #pragma once
 
 #include "metadata/class_descriptor.hpp"
-#include "metadata/enumerator_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
 
 namespace codegen::generation
 {
+    class Sol2GeneratorException final : public std::runtime_error
+    {
+    public:
+        using std::runtime_error::runtime_error;
+    };
+
     class Sol2Generator final
     {
     public:
-        explicit Sol2Generator(const fs::path& output_file): output_file_(output_file)
+        explicit Sol2Generator(const fs::path& output_file): output_file_(std::move(output_file))
         {
         }
 
@@ -16,7 +22,7 @@ namespace codegen::generation
                       const std::unordered_set<std::string>& namespaces,
                       const std::vector<metadata::ClassDescriptor>& classes,
                       const std::vector<metadata::FunctionDescriptor>& free_functions,
-                      const std::vector<metadata::EnumeratorDescriptor>& enums) const;
+                      const std::vector<metadata::EnumDescriptor>& enums) const;
 
     private:
         fs::path output_file_;
@@ -27,7 +33,7 @@ namespace codegen::generation
         static void write_member_registrations(std::ofstream& out, const std::vector<metadata::ClassDescriptor>& classes);
         static void write_non_member_registrations(std::ofstream& out,
                                                    const std::vector<metadata::FunctionDescriptor>& free_functions,
-                                                   const std::vector<metadata::EnumeratorDescriptor>& enums);
+                                                   const std::vector<metadata::EnumDescriptor>& enums);
         static void write_footer(std::ofstream& out);
     };
 } // namespace codegen::generation

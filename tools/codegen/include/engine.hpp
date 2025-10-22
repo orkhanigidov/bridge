@@ -11,12 +11,12 @@ namespace codegen
     class Engine final
     {
     public:
-        explicit Engine(const fs::path& include_dir, const fs::path& wrapper_dir, const fs::path& config_yaml,
-                        const fs::path& output_dir, std::ostream* logger): include_dir_(std::move(include_dir)),
-                                                                           wrapper_dir_(std::move(wrapper_dir)),
-                                                                           config_yaml_(std::move(config_yaml)),
-                                                                           output_dir_(std::move(output_dir)),
-                                                                           logger_(logger)
+        explicit Engine(fs::path include_dir, fs::path wrapper_dir, fs::path config_yaml,
+                        fs::path output_dir, std::ostream* logger): include_dir_(std::move(include_dir)),
+                                                                    wrapper_dir_(std::move(wrapper_dir)),
+                                                                    config_yaml_(std::move(config_yaml)),
+                                                                    output_dir_(std::move(output_dir)),
+                                                                    logger_(logger)
         {
         }
 

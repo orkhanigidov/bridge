@@ -23,7 +23,7 @@ namespace engine::network::server
 
         OATPP_LOGI("Server", "Initializing...");
 
-        OATPP_CREATE_COMPONENT(std::shared_ptr<engine::network::ServerConfig>, config)([this]
+        OATPP_CREATE_COMPONENT(std::shared_ptr<engine::network::server::ServerConfig>, config)([this]
         {
             return std::make_shared<ServerConfig>(config_);
         }());

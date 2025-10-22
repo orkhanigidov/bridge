@@ -1,9 +1,9 @@
 #include "engine.hpp"
 
 #include "analysis/clang_analyzer.hpp"
+#include "generation/sol2_generator.hpp"
 #include "io/header_collector.hpp"
 #include "io/yaml_reader.hpp"
-#include "generation/sol2_generator.hpp"
 
 namespace codegen
 {

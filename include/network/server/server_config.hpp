@@ -1,7 +1,7 @@
 #pragma once
 
-#include <oatpp/core/base/CommandLineArguments.hpp>
 #include <oatpp/core/Types.hpp>
+#include <oatpp/core/base/CommandLineArguments.hpp>
 
 namespace engine::network::server
 {

@@ -220,7 +220,7 @@ namespace codegen::analysis
 
         if (const auto ns = get_cursor_namespace(cursor))
         {
-            result_.namespaces.emplace(std::move(*ns));
+            result_.namespaces.emplace(*ns);
         }
 
         result_.includes.emplace(utils::get_include_path(cursor));

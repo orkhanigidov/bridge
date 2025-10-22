@@ -9,7 +9,7 @@ namespace codegen::analysis
     class AstVisitor final
     {
     public:
-        explicit AstVisitor(const AnalysisConfig& config): config_(config)
+        explicit AstVisitor(AnalysisConfig  config): config_(std::move(config))
         {
         }
 
