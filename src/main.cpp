@@ -1,11 +1,12 @@
 #include "network/network_component.hpp"
-#include "network/server_config.hpp"
-#include "network/server_manager.hpp"
+
+#include "execution/script/script_executor.hpp"
+#include "network/server/server_manager.hpp"
 
 #include <oatpp/core/base/CommandLineArguments.hpp>
 #include <oatpp/core/base/Environment.hpp>
 
-static std::shared_ptr<engine::network::ServerManager> server_manager;
+static std::shared_ptr<engine::network::server::ServerManager> server_manager;
 
 void handle_signal(int signal)
 {
@@ -31,12 +32,11 @@ int main(int argc, const char* argv[])
     try
     {
         const oatpp::base::CommandLineArguments cmd_args(argc, argv);
-        auto server_config = engine::network::parse_server_config(cmd_args);
+        auto server_config = engine::network::server::parse_server_config(cmd_args);
 
-        server_manager = std::make_shared<engine::network::ServerManager>(server_config);
+        server_manager = std::make_shared<engine::network::server::ServerManager>(server_config);
         server_manager->run();
-    }
-    catch (const std::exception& e)
+    } catch (const std::exception& e)
     {
         OATPP_LOGE("Main", "Server startup failed: %s", e.what());
         exit_code = EXIT_FAILURE;

@@ -17,22 +17,11 @@ namespace engine::execution
         }
     };
 
-    /**
-     * @brief
-     */
     class ExecutionService
     {
     public:
-        /**
-         * @brief Deleted constructor to prevent instantiation of this static class
-         */
         ExecutionService() = delete;
 
-        /**
-         * @brief
-         * @param request
-         * @return
-         */
         static CoreExecutionResult execute(const oatpp::Object<network::dto::execution::RequestDto>& request);
     };
 }
