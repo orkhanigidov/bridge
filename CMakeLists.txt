@@ -21,10 +21,39 @@ set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
 set(GENERATED_SRC ${CMAKE_BINARY_DIR}/generated_bindings.cpp)
 
 set(CLANG_INCLUDE_DIR ${THIRD_PARTY_DIR}/clang/include)
-set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.lib)
-set(LIBCLANG_BIN ${THIRD_PARTY_DIR}/clang/bin/libclang.dll)
-set(LUA_INCLUDE_DIR ${THIRD_PARTY_DIR}/lua/include)
-set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
+add_library(clang::libclang UNKNOWN IMPORTED)
+
+if (WIN32)
+    set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.lib)
+    set(LIBCLANG_BIN ${THIRD_PARTY_DIR}/clang/bin/libclang.dll)
+else ()
+    set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.so)
+endif ()
+
+set_target_properties(clang::libclang PROPERTIES
+        IMPORTED_LOCATION ${LIBCLANG_LIB}
+        INTERFACE_INCLUDE_DIRECTORIES ${CLANG_INCLUDE_DIR}
+)
+
+if (WIN32)
+    message(STATUS "Windows platform detected. Using Lua from third_party directory.")
+
+    set(LUA_INCLUDE_DIR ${THIRD_PARTY_DIR}/lua/include)
+    set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
+
+    add_library(lua::lua54 UNKNOWN IMPORTED)
+    set_target_properties(lua::lua54 PROPERTIES
+            IMPORTED_LOCATION ${LUA_LIB}
+            INTERFACE_INCLUDE_DIRECTORIES ${LUA_INCLUDE_DIR}
+    )
+else ()
+    message(STATUS "Linux platform detected. Searching for Lua 5.4 on the system.")
+
+    find_package(Lua 5.4 REQUIRED)
+    if (NOT TARGET Lua::Lua)
+        message(FATAL_ERROR "Lua 5.4 not found on the system.")
+    endif ()
+endif ()
 
 include(cmake/CPM.cmake)
 
@@ -36,18 +65,6 @@ CPMAddPackage(
         GIT_REPOSITORY https://github.com/ogdf/ogdf.git
         GIT_TAG elderberry-202309
         OPTIONS "OGDF_MEMORY_MALLOC_TS ON"
-)
-
-add_library(clang::libclang UNKNOWN IMPORTED)
-set_target_properties(clang::libclang PROPERTIES
-        IMPORTED_LOCATION ${LIBCLANG_LIB}
-        INTERFACE_INCLUDE_DIRECTORIES ${CLANG_INCLUDE_DIR}
-)
-
-add_library(lua::lua54 UNKNOWN IMPORTED)
-set_target_properties(lua::lua54 PROPERTIES
-        IMPORTED_LOCATION ${LUA_LIB}
-        INTERFACE_INCLUDE_DIRECTORIES ${LUA_INCLUDE_DIR}
 )
 
 add_subdirectory(tools/codegen)
@@ -69,7 +86,7 @@ set(SOURCES
 
 add_custom_command(
         OUTPUT ${GENERATED_SRC}
-        COMMAND $<TARGET_FILE:Codegen>
+        COMMAND $<TARGET_FILE:Codegen> "${PROJECT_SOURCE_DIR}/.env"
         DEPENDS Codegen
         COMMENT "Generating Lua bindings from ${GENERATED_SRC}"
         VERBATIM
@@ -90,7 +107,9 @@ else ()
     )
 endif ()
 
-target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+endif ()
 
 add_dependencies(${PROJECT_NAME} generate_bindings)
 
