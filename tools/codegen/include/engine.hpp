@@ -1,5 +1,11 @@
 #pragma once
 
+#include <filesystem>
+#include <ostream>
+#include <stdexcept>
+#include <string_view>
+#include <utility>
+
 namespace codegen
 {
     class EngineException final : public std::runtime_error
@@ -11,12 +17,12 @@ namespace codegen
     class Engine final
     {
     public:
-        explicit Engine(fs::path include_dir, fs::path wrapper_dir, fs::path config_yaml,
-                        fs::path output_dir, std::ostream* logger): include_dir_(std::move(include_dir)),
-                                                                    wrapper_dir_(std::move(wrapper_dir)),
-                                                                    config_yaml_(std::move(config_yaml)),
-                                                                    output_dir_(std::move(output_dir)),
-                                                                    logger_(logger)
+        explicit Engine(std::filesystem::path include_dir, std::filesystem::path wrapper_dir, std::filesystem::path config_yaml,
+                        std::filesystem::path output_dir, std::ostream* logger): include_dir_(std::move(include_dir)),
+                                                                                 wrapper_dir_(std::move(wrapper_dir)),
+                                                                                 config_yaml_(std::move(config_yaml)),
+                                                                                 output_dir_(std::move(output_dir)),
+                                                                                 logger_(logger)
         {
         }
 
@@ -26,10 +32,10 @@ namespace codegen
         static constexpr auto DUMMY_CPP_FILENAME = "dummy.cpp";
         static constexpr auto GENERATED_BINDINGS_FILENAME = "generated_bindings.cpp";
 
-        fs::path include_dir_;
-        fs::path wrapper_dir_;
-        fs::path config_yaml_;
-        fs::path output_dir_;
+        std::filesystem::path include_dir_;
+        std::filesystem::path wrapper_dir_;
+        std::filesystem::path config_yaml_;
+        std::filesystem::path output_dir_;
         std::ostream* logger_;
 
         void log(std::string_view message) const

@@ -1,5 +1,12 @@
 #include "io/yaml_reader.hpp"
 
+#include <string>
+#include <utility>
+#include <vector>
+#include <yaml-cpp/yaml.h>
+
+#include "analysis/analysis_data.hpp"
+
 namespace
 {
     std::vector<std::string> extract_string_sequence(const YAML::Node& root, const char* key)
@@ -24,7 +31,7 @@ namespace
 
 namespace codegen::io
 {
-    YamlReader YamlReader::from_file(const fs::path& file_path)
+    YamlReader YamlReader::from_file(const std::filesystem::path& file_path)
     {
         YAML::Node root;
         try

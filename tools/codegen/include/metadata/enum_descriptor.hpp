@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace codegen::metadata
 {
     struct Enumerator

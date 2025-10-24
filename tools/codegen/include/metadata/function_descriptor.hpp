@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "parameter_descriptor.hpp"
 #include "scope.hpp"
 

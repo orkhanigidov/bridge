@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "constructor_descriptor.hpp"
 #include "enum_descriptor.hpp"
 #include "function_descriptor.hpp"

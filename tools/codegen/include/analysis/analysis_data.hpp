@@ -1,5 +1,11 @@
 #pragma once
 
+#include <filesystem>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include "metadata/class_descriptor.hpp"
 #include "metadata/enum_descriptor.hpp"
 #include "metadata/function_descriptor.hpp"
@@ -14,8 +20,8 @@ namespace codegen::analysis
 
     struct AnalysisConfig
     {
-        fs::path target_include_path;
-        fs::path wrapper_include_path;
+        std::filesystem::path target_include_path;
+        std::filesystem::path wrapper_include_path;
         std::unordered_map<std::string, ClassConfig> target_classes;
         std::vector<std::string> target_free_functions;
     };

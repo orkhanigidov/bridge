@@ -70,17 +70,12 @@ endif ()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         $<BUILD_INTERFACE:${CODEGEN_INCLUDE_DIR}>
-        $<BUILD_INTERFACE:${INCLUDE_DIR}>
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         yaml-cpp::yaml-cpp
         clang::libclang
         OGDF
-)
-
-target_precompile_headers(${PROJECT_NAME} PUBLIC
-        ${CODEGEN_INCLUDE_DIR}/pch.hpp
 )
 
 message(STATUS "Codegen project configuration completed successfully!")

@@ -1,5 +1,12 @@
 #include "io/env_reader.hpp"
 
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <optional>
+#include <string>
+#include <string_view>
+
 namespace
 {
     constexpr std::string_view trim(std::string_view str) noexcept
@@ -31,12 +38,12 @@ namespace
 
 namespace codegen::io
 {
-    EnvReader::EnvReader(const fs::path& env_path)
+    EnvReader::EnvReader(const std::filesystem::path& env_path)
     {
         from_file(env_path);
     }
 
-    void EnvReader::from_file(const fs::path& env_path)
+    void EnvReader::from_file(const std::filesystem::path& env_path)
     {
         std::ifstream file(env_path);
         if (!file.is_open())
@@ -49,8 +56,7 @@ namespace codegen::io
         {
             std::string_view line_view = line;
 
-            if (const auto comment_pos = line.find('#');
-                comment_pos != std::string_view::npos)
+            if (const auto comment_pos = line.find('#'); comment_pos != std::string_view::npos)
             {
                 line_view.remove_suffix(line_view.length() - comment_pos);
             }
@@ -79,8 +85,7 @@ namespace codegen::io
 
     std::optional<std::string> EnvReader::get(std::string_view key) const
     {
-        if (const auto it = env_vars_.find(std::string(key));
-            it != env_vars_.end())
+        if (const auto it = env_vars_.find(std::string(key)); it != env_vars_.end())
         {
             return it->second;
         }

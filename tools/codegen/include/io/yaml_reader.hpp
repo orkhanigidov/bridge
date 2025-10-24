@@ -1,8 +1,13 @@
 #pragma once
 
-#include "analysis/analysis_data.hpp"
-
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
 #include <yaml-cpp/yaml.h>
+
+#include "analysis/analysis_data.hpp"
 
 namespace codegen::io
 {
@@ -15,7 +20,7 @@ namespace codegen::io
     class YamlReader final
     {
     public:
-        static YamlReader from_file(const fs::path& file_path);
+        static YamlReader from_file(const std::filesystem::path& file_path);
 
         const std::unordered_map<std::string, analysis::ClassConfig>& classes() const noexcept
         {

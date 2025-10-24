@@ -1,5 +1,10 @@
 #include "engine.hpp"
 
+#include <exception>
+#include <filesystem>
+#include <format>
+
+#include "analysis/analysis_data.hpp"
 #include "analysis/clang_analyzer.hpp"
 #include "generation/sol2_generator.hpp"
 #include "io/header_collector.hpp"

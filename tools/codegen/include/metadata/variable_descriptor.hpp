@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <utility>
+
 #include "scope.hpp"
 
 namespace codegen::metadata
