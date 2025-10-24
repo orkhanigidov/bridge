@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 
 if (NOT CMAKE_BINARY_DIR)
     set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
@@ -15,6 +15,35 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CODEGEN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CODEGEN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+set(CLANG_INCLUDE_DIR ${THIRD_PARTY_DIR}/clang/include)
+add_library(clang::libclang UNKNOWN IMPORTED)
+
+if (WIN32)
+    message(STATUS "Windows platform detected. Using libclang from third_party directory.")
+
+    set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.lib)
+    set(LIBCLANG_BIN ${THIRD_PARTY_DIR}/clang/bin/libclang.dll)
+else ()
+    message(STATUS "Linux platform detected. Searching for libclang on the system.")
+
+    file(GLOB LIBCLANG_LIB_FOUND
+            LIST_DIRECTORIES false
+            "/usr/lib/llvm-*/lib/libclang.so.*"
+            "/usr/lib/x86_64-linux-gnu/libclang.so.*"
+    )
+
+    list(GET LIBCLANG_LIB_FOUND 0 LIBCLANG_LIB)
+
+    if (NOT LIBCLANG_LIB)
+        message(FATAL_ERROR "Could not find any libclang.so on the system. Please install libclang development package.")
+    endif ()
+endif ()
+
+set_target_properties(clang::libclang PROPERTIES
+        IMPORTED_LOCATION ${LIBCLANG_LIB}
+        INTERFACE_INCLUDE_DIRECTORIES ${CLANG_INCLUDE_DIR}
+)
 
 set(SOURCES
         ${CODEGEN_SRC_DIR}/analysis/utils/clang_utils.cpp

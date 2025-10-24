@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 
 if (NOT CMAKE_BINARY_DIR)
     set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
@@ -20,38 +20,28 @@ set(INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
 set(GENERATED_SRC ${CMAKE_BINARY_DIR}/generated_bindings.cpp)
 
-set(CLANG_INCLUDE_DIR ${THIRD_PARTY_DIR}/clang/include)
-add_library(clang::libclang UNKNOWN IMPORTED)
-
-if (WIN32)
-    set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.lib)
-    set(LIBCLANG_BIN ${THIRD_PARTY_DIR}/clang/bin/libclang.dll)
-else ()
-    set(LIBCLANG_LIB ${THIRD_PARTY_DIR}/clang/lib/libclang.so)
-endif ()
-
-set_target_properties(clang::libclang PROPERTIES
-        IMPORTED_LOCATION ${LIBCLANG_LIB}
-        INTERFACE_INCLUDE_DIRECTORIES ${CLANG_INCLUDE_DIR}
-)
-
 if (WIN32)
     message(STATUS "Windows platform detected. Using Lua from third_party directory.")
 
     set(LUA_INCLUDE_DIR ${THIRD_PARTY_DIR}/lua/include)
     set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
 
-    add_library(lua::lua54 UNKNOWN IMPORTED)
-    set_target_properties(lua::lua54 PROPERTIES
+    add_library(Lua::Lua UNKNOWN IMPORTED)
+    set_target_properties(Lua::Lua PROPERTIES
             IMPORTED_LOCATION ${LUA_LIB}
             INTERFACE_INCLUDE_DIRECTORIES ${LUA_INCLUDE_DIR}
     )
 else ()
     message(STATUS "Linux platform detected. Searching for Lua 5.4 on the system.")
 
-    find_package(Lua 5.4 REQUIRED)
-    if (NOT TARGET Lua::Lua)
-        message(FATAL_ERROR "Lua 5.4 not found on the system.")
+    find_package(Lua)
+
+    if (Lua_FOUND AND NOT TARGET Lua::Lua)
+        add_library(Lua::Lua INTERFACE IMPORTED)
+        set_target_properties(Lua::Lua PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+                INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
+        )
     endif ()
 endif ()
 
@@ -121,8 +111,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC
         sol2::sol2
         oatpp
+        Lua::Lua
         OGDF
-        lua::lua54
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
