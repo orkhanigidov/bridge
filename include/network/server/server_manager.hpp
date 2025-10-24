@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <utility>
 #include <oatpp/network/Server.hpp>
 
 #include "server_config.hpp"

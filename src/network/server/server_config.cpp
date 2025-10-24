@@ -1,5 +1,11 @@
 #include "network/server/server_config.hpp"
 
+#include <exception>
+#include <format>
+#include <stdexcept>
+#include <string_view>
+#include <oatpp/core/base/CommandLineArguments.hpp>
+#include <oatpp/core/base/Environment.hpp>
 #include <oatpp/core/utils/ConversionUtils.hpp>
 
 namespace
@@ -31,8 +37,7 @@ namespace engine::network::server
         try
         {
             port_val = oatpp::utils::conversion::strToInt32(port_str);
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
             throw std::invalid_argument(std::format("Invalid port number format: {}", e.what()));
         }

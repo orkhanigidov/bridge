@@ -2,6 +2,7 @@
 
 #include <oatpp/core/Types.hpp>
 #include <oatpp/core/base/CommandLineArguments.hpp>
+#include <oatpp/core/base/Environment.hpp>
 
 namespace engine::network::server
 {

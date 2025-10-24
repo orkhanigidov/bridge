@@ -1,6 +1,19 @@
 #include "network/server/server_manager.hpp"
 
+#include <exception>
+#include <memory>
+#include <oatpp/core/base/Environment.hpp>
+#include <oatpp/core/data/mapping/ObjectMapper.hpp>
+#include <oatpp/core/macro/component.hpp>
+#include <oatpp/network/ConnectionHandler.hpp>
+#include <oatpp/network/Server.hpp>
+#include <oatpp/network/tcp/server/ConnectionProvider.hpp>
+#include <oatpp/web/server/HttpRouter.hpp>
+
+#include "network/network_component.hpp"
 #include "network/api/execution_controller.hpp"
+#include "network/server/server_config.hpp"
+#include "network/server/server_state.hpp"
 
 namespace engine::network::server
 {
@@ -55,8 +68,7 @@ namespace engine::network::server
             {
                 start();
             }
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
             OATPP_LOGE("Server", "Error during server startup: %s", e.what());
             shutdown();
@@ -92,8 +104,7 @@ namespace engine::network::server
             {
                 server_->stop();
             }
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
             OATPP_LOGE("Server", "Error during server shutdown: %s", e.what());
         }
