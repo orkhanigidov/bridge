@@ -1,10 +1,17 @@
 #include "analysis/clang_analyzer.hpp"
 
+#include <filesystem>
+#include <format>
+#include <memory>
+#include <string>
+#include <vector>
+#include <clang-c/Index.h>
+
 #include "analysis/ast_visitor.hpp"
 
 namespace codegen::analysis
 {
-    ClangAnalyzer::ClangAnalyzer(const fs::path& file_path, const AnalysisConfig& config)
+    ClangAnalyzer::ClangAnalyzer(const std::filesystem::path& file_path, const AnalysisConfig& config)
     {
         const IndexPtr index(clang_createIndex(0, 0), &clang_disposeIndex);
         if (!index)

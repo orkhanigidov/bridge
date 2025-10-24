@@ -1,7 +1,16 @@
 #pragma once
 
+#include <filesystem>
+#include <fstream>
+#include <stdexcept>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "metadata/class_descriptor.hpp"
 #include "metadata/enum_descriptor.hpp"
+#include "metadata/function_descriptor.hpp"
 
 namespace codegen::generation
 {
@@ -14,7 +23,7 @@ namespace codegen::generation
     class Sol2Generator final
     {
     public:
-        explicit Sol2Generator(const fs::path& output_file): output_file_(std::move(output_file))
+        explicit Sol2Generator(const std::filesystem::path& output_file): output_file_(std::move(output_file))
         {
         }
 
@@ -25,7 +34,7 @@ namespace codegen::generation
                       const std::vector<metadata::EnumDescriptor>& enums) const;
 
     private:
-        fs::path output_file_;
+        std::filesystem::path output_file_;
 
         static void write_header(std::ofstream& out,
                                  const std::unordered_set<std::string>& includes,

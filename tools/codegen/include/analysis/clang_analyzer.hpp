@@ -1,8 +1,18 @@
 #pragma once
 
-#include "analysis_data.hpp"
-
+#include <filesystem>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <unordered_set>
+#include <vector>
 #include <clang-c/Index.h>
+
+#include "analysis_data.hpp"
+#include "metadata/class_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
+#include "metadata/function_descriptor.hpp"
 
 namespace codegen::analysis
 {
@@ -18,7 +28,7 @@ namespace codegen::analysis
     class ClangAnalyzer final
     {
     public:
-        explicit ClangAnalyzer(const fs::path& file_path, const AnalysisConfig& config);
+        explicit ClangAnalyzer(const std::filesystem::path& file_path, const AnalysisConfig& config);
 
         const std::unordered_set<std::string>& found_includes() const noexcept
         {
