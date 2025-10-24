@@ -1,5 +1,20 @@
 #include "generation/sol2_generator.hpp"
 
+#include <algorithm>
+#include <cctype>
+#include <format>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "metadata/class_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
+#include "metadata/function_descriptor.hpp"
+
 namespace
 {
     void write_line(std::ofstream& out, int indent, std::string_view text, int newlines = 1)

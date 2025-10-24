@@ -1,6 +1,21 @@
 #include "analysis/ast_visitor.hpp"
 
+#include <algorithm>
+#include <format>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+#include <clang-c/Index.h>
+
 #include "analysis/utils/clang_utils.hpp"
+#include "metadata/class_descriptor.hpp"
+#include "metadata/constructor_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
+#include "metadata/function_descriptor.hpp"
+#include "metadata/scope.hpp"
+#include "metadata/variable_descriptor.hpp"
 
 namespace
 {
@@ -197,7 +212,6 @@ namespace codegen::analysis
         check_and_add_default_constructor(cursor, class_desc);
     }
 
-
     void AstVisitor::visit_class_decl(const CXCursor& cursor)
     {
         auto class_name = utils::get_spelling(cursor);
@@ -283,8 +297,7 @@ namespace codegen::analysis
             {
                 auto method_name = utils::get_spelling(cursor);
                 std::string class_lookup_name = parent_class_name;
-                if (size_t template_bracket_pos = class_lookup_name.find('<');
-                    template_bracket_pos != std::string::npos)
+                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos != std::string::npos)
                 {
                     class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
                 }
