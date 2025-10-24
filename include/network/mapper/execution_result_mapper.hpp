@@ -1,7 +1,16 @@
 #pragma once
 
+#include <cstdint>
+#include <oatpp/core/Types.hpp>
+
 #include "error_mapper.hpp"
+#include "execution/core_execution_result.hpp"
+#include "interop/types/execution_error_type.h"
+#include "network/dto/execution/error_dto.hpp"
+#include "network/dto/execution/file_dto.hpp"
+#include "network/dto/execution/metadata_dto.hpp"
 #include "network/dto/execution/response_dto.hpp"
+#include "network/dto/execution/status_dto.hpp"
 
 namespace engine::network::mapper
 {

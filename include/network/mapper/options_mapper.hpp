@@ -1,6 +1,8 @@
 #pragma once
 
-#include "interop/interop_bridge.hpp"
+#include <oatpp/core/Types.hpp>
+
+#include "interop/types/execution_options.h"
 #include "network/dto/execution/options_dto.hpp"
 
 namespace engine::network::mapper

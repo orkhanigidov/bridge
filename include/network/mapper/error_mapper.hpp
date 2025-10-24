@@ -1,8 +1,11 @@
 #pragma once
 
+#include <oatpp/core/Types.hpp>
+
 #include "interop/types/execution_error.h"
 #include "interop/types/execution_error_type.h"
 #include "network/dto/execution/error_dto.hpp"
+#include "network/dto/execution/error_type_dto.hpp"
 
 namespace engine::network::mapper
 {

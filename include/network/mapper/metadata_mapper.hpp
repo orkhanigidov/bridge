@@ -1,5 +1,7 @@
 #pragma once
 
+#include <oatpp/core/Types.hpp>
+
 #include "interop/types/execution_metadata.h"
 #include "network/dto/execution/metadata_dto.hpp"
 

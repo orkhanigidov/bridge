@@ -1,7 +1,13 @@
 #pragma once
 
+#include <oatpp/core/Types.hpp>
+
 #include "options_mapper.hpp"
+#include "interop/types/execution_request.h"
+#include "interop/types/execution_type.h"
+#include "network/dto/execution/file_dto.hpp"
 #include "network/dto/execution/request_dto.hpp"
+#include "network/dto/execution/type_dto.hpp"
 
 namespace engine::network::mapper
 {

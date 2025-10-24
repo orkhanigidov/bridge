@@ -1,10 +1,14 @@
 #pragma once
 
+#include <oatpp/core/Types.hpp>
+
 #include "error_mapper.hpp"
 #include "metadata_mapper.hpp"
 #include "interop/types/execution_response.h"
 #include "interop/types/execution_status.h"
+#include "network/dto/execution/file_dto.hpp"
 #include "network/dto/execution/response_dto.hpp"
+#include "network/dto/execution/status_dto.hpp"
 
 namespace engine::network::mapper
 {
