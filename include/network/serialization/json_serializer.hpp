@@ -1,7 +1,13 @@
 #pragma once
 
+#include <exception>
+#include <format>
+#include <memory>
+#include <stdexcept>
+#include <utility>
+#include <oatpp/core/Types.hpp>
 #include <oatpp/core/data/mapping/ObjectMapper.hpp>
-#include <oatpp/core/macro/component.hpp>
+#include <oatpp/core/parser/ParsingError.hpp>
 #include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 
 namespace engine::network::serialization

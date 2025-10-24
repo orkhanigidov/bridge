@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <variant>
 #include <oatpp/core/Types.hpp>
 
 namespace engine::network::serialization

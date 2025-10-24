@@ -1,5 +1,12 @@
 #include "network/serialization/oatpp_type_adapter.hpp"
 
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <unordered_map>
+#include <variant>
+#include <oatpp/core/Types.hpp>
+
 namespace
 {
     template <typename OatppType, typename CppType>
