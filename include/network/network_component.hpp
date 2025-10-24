@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <oatpp/core/data/mapping/ObjectMapper.hpp>
 #include <oatpp/core/macro/component.hpp>
+#include <oatpp/network/Address.hpp>
+#include <oatpp/network/ConnectionHandler.hpp>
 #include <oatpp/network/tcp/server/ConnectionProvider.hpp>
 #include <oatpp/parser/json/mapping/ObjectMapper.hpp>
 #include <oatpp/web/server/HttpConnectionHandler.hpp>

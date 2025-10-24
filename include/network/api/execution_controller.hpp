@@ -1,11 +1,15 @@
 #pragma once
 
+#include <exception>
+#include <format>
+#include <memory>
 #include <oatpp/core/Types.hpp>
+#include <oatpp/core/data/mapping/ObjectMapper.hpp>
 #include <oatpp/core/macro/codegen.hpp>
 #include <oatpp/web/server/api/ApiController.hpp>
 
+#include "execution/core_execution_result.hpp"
 #include "execution/execution_service.hpp"
-#include "execution/script/script_executor.hpp"
 #include "network/dto/message_dto.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "network/dto/execution/response_dto.hpp"
@@ -40,13 +44,13 @@ namespace engine::network::api
         ENDPOINT_INFO(execution)
         {
             info->summary = "Execute a script or pipeline";
-            info->addConsumes<Object<dto::execution::RequestDto>>("application/json");
-            info->addResponse<Object<dto::execution::ResponseDto>>(Status::CODE_200, "application/json", "Execution was successful");
-            info->addResponse<Object<dto::execution::ResponseDto>>(Status::CODE_500, "application/json", "Execution failed");
-            info->addResponse<Object<dto::MessageDto>>(Status::CODE_400, "application/json", "Invalid request body");
+            info->addConsumes<oatpp::Object<dto::execution::RequestDto>>("application/json");
+            info->addResponse<oatpp::Object<dto::execution::ResponseDto>>(Status::CODE_200, "application/json", "Execution was successful");
+            info->addResponse<oatpp::Object<dto::execution::ResponseDto>>(Status::CODE_500, "application/json", "Execution failed");
+            info->addResponse<oatpp::Object<dto::MessageDto>>(Status::CODE_400, "application/json", "Invalid request body");
         }
 
-        ENDPOINT("POST", "/execute_script", execution, BODY_DTO(Object<dto::execution::RequestDto>, request))
+        ENDPOINT("POST", "/execute_script", execution, BODY_DTO(oatpp::Object<dto::execution::RequestDto>, request))
         {
             if (!request)
             {
@@ -58,7 +62,7 @@ namespace engine::network::api
 
             try
             {
-                auto result = execution::ExecutionService::execute(request);
+                const auto result = execution::ExecutionService::execute(request);
                 const auto response_dto = mapper::ExecutionResultMapper::to_dto(result);
                 const auto status = result.is_success() ? Status::CODE_200 : Status::CODE_500;
                 return createDtoResponse(status, response_dto);
