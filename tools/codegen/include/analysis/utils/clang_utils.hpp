@@ -1,8 +1,10 @@
 #pragma once
 
-#include "metadata/class_descriptor.hpp"
-
+#include <string>
+#include <vector>
 #include <clang-c/Index.h>
+
+#include "metadata/parameter_descriptor.hpp"
 
 namespace codegen::analysis::utils
 {

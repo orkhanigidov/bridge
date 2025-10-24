@@ -1,5 +1,13 @@
 #include "analysis/utils/clang_utils.hpp"
 
+#include <algorithm>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <clang-c/Index.h>
+
+#include "metadata/parameter_descriptor.hpp"
+
 namespace codegen::analysis::utils
 {
     std::string to_std_string(const CXString& cx_string)
@@ -56,10 +64,7 @@ namespace codegen::analysis::utils
         for (int i = 0; i < num_args; ++i)
         {
             CXCursor parameter_cursor = clang_Cursor_getArgument(cursor, i);
-            parameters.emplace_back(
-                get_spelling(parameter_cursor),
-                get_cursor_type_spelling(parameter_cursor)
-            );
+            parameters.emplace_back(get_spelling(parameter_cursor), get_cursor_type_spelling(parameter_cursor));
         }
         return parameters;
     }

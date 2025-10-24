@@ -1,15 +1,20 @@
 #pragma once
 
-#include "analysis_data.hpp"
-
+#include <optional>
+#include <utility>
+#include <vector>
 #include <clang-c/Index.h>
+
+#include "analysis_data.hpp"
+#include "metadata/class_descriptor.hpp"
+#include "metadata/enum_descriptor.hpp"
 
 namespace codegen::analysis
 {
     class AstVisitor final
     {
     public:
-        explicit AstVisitor(AnalysisConfig  config): config_(std::move(config))
+        explicit AstVisitor(AnalysisConfig config): config_(std::move(config))
         {
         }
 

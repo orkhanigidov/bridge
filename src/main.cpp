@@ -1,10 +1,14 @@
-#include "network/network_component.hpp"
-
-#include "execution/script/script_executor.hpp"
-#include "network/server/server_manager.hpp"
-
+#include <csignal>
+#include <cstdlib>
+#include <exception>
+#include <memory>
 #include <oatpp/core/base/CommandLineArguments.hpp>
 #include <oatpp/core/base/Environment.hpp>
+
+#include "execution/script/script_executor.hpp"
+#include "network/network_component.hpp"
+#include "network/server/server_config.hpp"
+#include "network/server/server_manager.hpp"
 
 static std::shared_ptr<engine::network::server::ServerManager> server_manager;
 
