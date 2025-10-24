@@ -1,6 +1,12 @@
 #pragma once
 
+#include <memory>
+#include <string>
+
+#include "interop/types/execution_error_type.h"
+#include "interop/types/execution_metadata.h"
 #include "interop/types/execution_response.h"
+#include "interop/types/execution_status.h"
 
 namespace engine::utils
 {

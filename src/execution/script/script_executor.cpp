@@ -2,10 +2,15 @@
 
 #define SOL_ALL_SAFETIES_ON 1
 
-#include "bindings/lua/lua_binder.hpp"
-#include "utils/filesystem_utils.hpp"
-
+#include <chrono>
+#include <filesystem>
+#include <functional>
+#include <string>
 #include <sol/sol.hpp>
+
+#include "bindings/lua/lua_binder.hpp"
+#include "execution/core_execution_result.hpp"
+#include "utils/filesystem_utils.hpp"
 
 namespace
 {
@@ -65,12 +70,19 @@ namespace engine::execution::script
 
     CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
     {
-        const auto normalized_path = utils::filesystem::to_forward_slashes(fs::absolute(script_path));
-        return execute_lua([&] { return lua_.safe_script_file(normalized_path); });
+        const auto normalized_path = utils::filesystem::to_forward_slashes(std::filesystem::absolute(script_path));
+
+        return execute_lua([&]
+        {
+            return lua_.safe_script_file(normalized_path);
+        });
     }
 
     CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content)
     {
-        return execute_lua([&] { return lua_.safe_script(script_content); });
+        return execute_lua([&]
+        {
+            return lua_.safe_script(script_content);
+        });
     }
 } // namespace engine::execution::script

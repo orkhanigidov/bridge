@@ -1,6 +1,8 @@
 #include "interop/interop_c_api.hpp"
 
 #include "interop/interop_bridge.hpp"
+#include "interop/types/execution_error_type.h"
+#include "interop/types/execution_status.h"
 #include "utils/response_factory.hpp"
 
 bool InitializeBindings()

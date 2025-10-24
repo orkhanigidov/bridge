@@ -115,10 +115,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         OGDF
 )
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC
-        ${INCLUDE_DIR}/pch.hpp
-)
-
 message(STATUS "Engine project configuration completed successfully!")
 message(STATUS " - Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
 message(STATUS " - C++ Standard: C++${CMAKE_CXX_STANDARD}")

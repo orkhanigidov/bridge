@@ -1,7 +1,16 @@
 #include "interop/interop_bridge.hpp"
 
+#include <exception>
+#include <format>
+#include <iostream>
+#include <mutex>
+
 #include "bindings/lua/lua_binder.hpp"
 #include "execution/execution_engine.hpp"
+#include "interop/interop_c_api.hpp"
+#include "interop/types/execution_error_type.h"
+#include "interop/types/execution_status.h"
+#include "interop/types/execution_type.h"
 #include "utils/response_factory.hpp"
 
 namespace engine::interop
@@ -25,7 +34,7 @@ namespace engine::interop
         }
     }
 
-    utils::ExecutionResponsePtr execute(const types::ExecutionRequest* request)
+    utils::ExecutionResponsePtr execute(const ExecutionRequest* request)
     {
         try
         {

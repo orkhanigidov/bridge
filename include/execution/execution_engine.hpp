@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "interop/types/execution_type.h"
 #include "utils/response_factory.hpp"
 

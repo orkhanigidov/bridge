@@ -1,8 +1,16 @@
 #include "execution/execution_engine.hpp"
 
+#include <filesystem>
+#include <format>
+#include <string>
+
 #include "execution/core_execution_result.hpp"
 #include "execution/script/script_executor.hpp"
 #include "execution/script/thread_local_executor.hpp"
+#include "interop/types/execution_error_type.h"
+#include "interop/types/execution_metadata.h"
+#include "interop/types/execution_status.h"
+#include "interop/types/execution_type.h"
 #include "utils/response_factory.hpp"
 
 namespace
@@ -81,7 +89,7 @@ namespace engine::execution
 
         case interop::types::ExecutionType::Lua_File:
             {
-                if (!fs::exists(script))
+                if (!std::filesystem::exists(script))
                 {
                     return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
                                                                 interop::types::ExecutionErrorType::File_Not_Found,

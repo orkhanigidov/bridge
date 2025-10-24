@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <type_traits>
+#include <utility>
 #include <sol/sol.hpp>
 
 namespace engine::bindings::lua

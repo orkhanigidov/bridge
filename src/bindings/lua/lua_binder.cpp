@@ -1,5 +1,10 @@
 #include "bindings/lua/lua_binder.hpp"
 
+#include <chrono>
+#include <exception>
+#include <format>
+#include <iostream>
+
 namespace engine::bindings::lua
 {
     void LuaBinder::register_bindings(sol::state& lua)
@@ -15,8 +20,7 @@ namespace engine::bindings::lua
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
             std::cout << std::format("Lua bindings successfully registered in {} in milliseconds\n", duration.count());
-        }
-        catch (const sol::error& e)
+        } catch (const sol::error& e)
         {
             std::cerr << std::format("Error registering Lua bindings: {}\n", e.what());
         }

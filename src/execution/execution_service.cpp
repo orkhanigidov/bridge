@@ -1,20 +1,27 @@
 #include "execution/execution_service.hpp"
 
+#include <exception>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <system_error>
+#include <oatpp/core/Types.hpp>
+#include <oatpp/encoding/Base64.hpp>
+
 #include "execution/core_execution_result.hpp"
 #include "execution/reserved_keywords.hpp"
 #include "execution/script/script_executor.hpp"
+#include "execution/script/thread_local_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "utils/filesystem_utils.hpp"
 #include "utils/string_utils.hpp"
 
-#include <oatpp/core/Types.hpp>
-#include <oatpp/encoding/Base64.hpp>
-
-#include "execution/script/thread_local_executor.hpp"
-
 namespace
 {
-    std::string prepare_script(const std::string& script, const fs::path& input_path, const fs::path& output_path)
+    std::string prepare_script(const std::string& script, const std::filesystem::path& input_path, const std::filesystem::path& output_path)
     {
         std::string script_content = script;
         engine::utils::string::replace_all(script_content, engine::execution::reserved::INPUT_PATH, engine::utils::filesystem::to_forward_slashes(input_path));
@@ -27,11 +34,11 @@ namespace engine::execution
 {
     CoreExecutionResult ExecutionService::execute(const oatpp::Object<network::dto::execution::RequestDto>& request)
     {
-        auto temp_dir = fs::temp_directory_path() / "ogdf_engine_runs";
-        fs::create_directories(temp_dir);
+        auto temp_dir = std::filesystem::temp_directory_path() / "ogdf_engine_runs";
+        std::filesystem::create_directories(temp_dir);
 
-        std::string file_extension = request->options->output_data_format->c_str();
-        std::string file_name = std::string(request->input_data->id->c_str()) + "." + file_extension;
+        auto file_extension = request->options->output_data_format->c_str();
+        auto file_name = std::string(request->input_data->id->c_str()) + "." + file_extension;
 
         auto input_path = temp_dir / file_name;
         auto output_path = temp_dir / ("output_" + file_name);
@@ -39,8 +46,8 @@ namespace engine::execution
         std::shared_ptr<void> guard(nullptr, [&](void*)
         {
             std::error_code error_code;
-            fs::remove(input_path, error_code);
-            fs::remove(output_path, error_code);
+            std::filesystem::remove(input_path, error_code);
+            std::filesystem::remove(output_path, error_code);
         });
 
         try

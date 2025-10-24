@@ -1,8 +1,10 @@
 #pragma once
 
-#include "execution/core_execution_result.hpp"
-
+#include <filesystem>
+#include <string>
 #include <sol/state.hpp>
+
+#include "execution/core_execution_result.hpp"
 
 namespace engine::execution::script
 {
@@ -11,7 +13,7 @@ namespace engine::execution::script
     public:
         ScriptExecutor();
 
-        CoreExecutionResult execute_from_file(const fs::path& script_path);
+        CoreExecutionResult execute_from_file(const std::filesystem::path& script_path);
         CoreExecutionResult execute_from_string(const std::string& script_content);
 
     private:

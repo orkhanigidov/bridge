@@ -1,8 +1,12 @@
 #pragma once
 
-#include "memory_ownership.hpp"
-
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <utility>
 #include <sol/sol.hpp>
+
+#include "memory_ownership.hpp"
 
 namespace engine::bindings::lua
 {
