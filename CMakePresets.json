@@ -1,8 +1,8 @@
 {
-  "version": 9,
+  "version": 8,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 31,
+    "minor": 28,
     "patch": 0
   },
   "configurePresets": [
@@ -14,7 +14,7 @@
       "binaryDir": "${sourceDir}/build"
     },
     {
-      "name": "debug",
+      "name": "Debug",
       "inherits": "common",
       "displayName": "Debug",
       "description": "Debug configuration",
@@ -23,7 +23,7 @@
       }
     },
     {
-      "name": "release",
+      "name": "Release",
       "inherits": "common",
       "displayName": "Release",
       "description": "Release configuration",
@@ -34,12 +34,12 @@
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug"
+      "name": "Debug",
+      "configurePreset": "Debug"
     },
     {
-      "name": "release",
-      "configurePreset": "release"
+      "name": "Release",
+      "configurePreset": "Release"
     }
   ],
   "testPresets": [
