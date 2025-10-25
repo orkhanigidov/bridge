@@ -47,6 +47,16 @@ namespace engine::bindings::lua
         }
 
         template <typename... TSignatures>
+        MemberRegistrar& add_unique_constructors()
+        {
+            if constexpr (Ownership == MemoryOwnership::Lua)
+            {
+                usertype_.set(sol::call_constructor, sol::factories(create_unique_call_factory(TSignatures{})...));
+            }
+            return *this;
+        }
+
+        template <typename... TSignatures>
         MemberRegistrar& add_shared_constructors()
         {
             if constexpr (Ownership == MemoryOwnership::Lua)
@@ -163,6 +173,16 @@ namespace engine::bindings::lua
             return [](Args... args)
             {
                 return new T(std::forward<Args>(args)...);
+            };
+        }
+
+        template <typename... Args>
+            requires std::is_constructible_v<T, Args...>
+        static auto create_unique_call_factory(sol::types<Args...>)
+        {
+            return [](Args... args)
+            {
+                return std::make_unique<T>(std::forward<Args>(args)...);
             };
         }
 
