@@ -180,7 +180,20 @@ namespace codegen::generation
         for (const auto& cls : classes)
         {
             std::string lua_name = format_lua_name(cls.name());
-            std::string ownership = cls.constructors().empty() ? "Cpp" : "Lua";
+            std::string ownership;
+            if (cls.constructors().empty())
+            {
+                ownership = "Cpp";
+            }
+            else if (!cls.base_class_names().empty())
+            {
+                ownership = "Cpp";
+            }
+            else
+            {
+                ownership = "Lua";
+            }
+
             write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::{}>(lua, \"{}\")", cls.name(), ownership, lua_name));
 
             if (!cls.constructors().empty())
@@ -200,7 +213,15 @@ namespace codegen::generation
                         constructor_stream << ", ";
                     }
                 }
-                write_line(out, 3, std::format(".add_shared_constructors<{}>()", constructor_stream.str()));
+
+                if (ownership == "Lua")
+                {
+                    write_line(out, 3, std::format(".add_shared_constructors<{}>()", constructor_stream.str()));
+                }
+                else // if (ownership == "Cpp")
+                {
+                    write_line(out, 3, std::format(".add_raw_constructors<{}>()", constructor_stream.str()));
+                }
             }
 
             if (!cls.base_class_names().empty())

@@ -16,13 +16,10 @@ namespace engine::bindings::lua
     public:
         explicit MemberRegistrar(sol::state& lua, const std::string& name) : lua_(lua)
         {
-            if constexpr (Ownership == MemoryOwnership::Lua)
+            usertype_ = lua.new_usertype<T>(name);
+
+            if constexpr (Ownership == MemoryOwnership::Cpp)
             {
-                usertype_ = lua.new_usertype<T>(name);
-            }
-            else // if (Ownership == MemoryOwnership::Cpp)
-            {
-                usertype_ = lua.new_usertype<T>(name, sol::no_constructor);
                 usertype_[sol::meta_function::garbage_collect] = [](T&)
                 {
                 };
@@ -40,11 +37,21 @@ namespace engine::bindings::lua
         }
 
         template <typename... TSignatures>
+        MemberRegistrar& add_raw_constructors()
+        {
+            if constexpr (Ownership == MemoryOwnership::Cpp)
+            {
+                usertype_.set(sol::call_constructor, sol::factories(create_raw_call_factory(TSignatures{})...));
+            }
+            return *this;
+        }
+
+        template <typename... TSignatures>
         MemberRegistrar& add_shared_constructors()
         {
             if constexpr (Ownership == MemoryOwnership::Lua)
             {
-                usertype_.set(sol::call_constructor, sol::factories(create_call_factory(TSignatures{})...));
+                usertype_.set(sol::call_constructor, sol::factories(create_shared_call_factory(TSignatures{})...));
             }
             return *this;
         }
@@ -151,7 +158,17 @@ namespace engine::bindings::lua
 
         template <typename... Args>
             requires std::is_constructible_v<T, Args...>
-        static auto create_call_factory(sol::types<Args...>)
+        static auto create_raw_call_factory(sol::types<Args...>)
+        {
+            return [](Args... args)
+            {
+                return new T(std::forward<Args>(args)...);
+            };
+        }
+
+        template <typename... Args>
+            requires std::is_constructible_v<T, Args...>
+        static auto create_shared_call_factory(sol::types<Args...>)
         {
             return [](Args... args)
             {
