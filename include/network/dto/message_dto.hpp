@@ -11,8 +11,8 @@ namespace engine::network::dto
     {
         DTO_INIT(MessageDto, DTO)
 
-        DTO_FIELD(UInt16, status_code);
-        DTO_FIELD(String, message);
+        DTO_FIELD(oatpp::UInt16, status_code);
+        DTO_FIELD(oatpp::String, message);
     };
 } // namespace engine::network::dto
 

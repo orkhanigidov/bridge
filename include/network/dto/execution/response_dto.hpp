@@ -16,10 +16,10 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(ResponseDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionStatusDto>::AsString, status);
-        DTO_FIELD(Object<FileDto>, output_data);
-        DTO_FIELD(Object<ErrorDto>, error);
-        DTO_FIELD(Object<MetadataDto>, metadata);
+        DTO_FIELD(oatpp::Enum<ExecutionStatusDto>::AsString, status);
+        DTO_FIELD(oatpp::Object<FileDto>, output_data);
+        DTO_FIELD(oatpp::Object<ErrorDto>, error);
+        DTO_FIELD(oatpp::Object<MetadataDto>, metadata);
     };
 } // namespace engine::network::dto::execution
 

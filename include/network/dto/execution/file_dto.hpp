@@ -11,10 +11,10 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(FileDto, DTO)
 
-        DTO_FIELD(String, id);
-        DTO_FIELD(UInt16, chunk_index);
-        DTO_FIELD(UInt16, total_chunks);
-        DTO_FIELD(String, chunk_data);
+        DTO_FIELD(oatpp::String, id);
+        DTO_FIELD(oatpp::UInt16, chunk_index);
+        DTO_FIELD(oatpp::UInt16, total_chunks);
+        DTO_FIELD(oatpp::String, chunk_data);
     };
 } // namespace engine::network::dto::execution
 

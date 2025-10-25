@@ -13,8 +13,8 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(ErrorDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionErrorTypeDto>::AsString, type);
-        DTO_FIELD(String, message);
+        DTO_FIELD(oatpp::Enum<ExecutionErrorTypeDto>::AsString, type);
+        DTO_FIELD(oatpp::String, message);
     };
 } // namespace engine::network::dto::execution
 

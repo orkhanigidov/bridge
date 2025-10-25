@@ -15,10 +15,10 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(RequestDto, DTO)
 
-        DTO_FIELD(Enum<ExecutionTypeDto>::AsString, type);
-        DTO_FIELD(String, script);
-        DTO_FIELD(Object<FileDto>, input_data);
-        DTO_FIELD(Object<OptionsDto>, options);
+        DTO_FIELD(oatpp::Enum<ExecutionTypeDto>::AsString, type);
+        DTO_FIELD(oatpp::String, script);
+        DTO_FIELD(oatpp::Object<FileDto>, input_data);
+        DTO_FIELD(oatpp::Object<OptionsDto>, options);
     };
 } // namespace engine::network::dto::execution
 

@@ -11,11 +11,11 @@ namespace engine::network::dto::pipeline
     {
         DTO_INIT(PipelineStepDto, DTO)
 
-        DTO_FIELD(String, class_name, "create");
-        DTO_FIELD(String, instance_alias, "as");
-        DTO_FIELD(List<Any>, constructor_args, "with");
-        DTO_FIELD(String, function_name, "call");
-        DTO_FIELD(List<Any>, function_args, "using");
+        DTO_FIELD(oatpp::String, class_name, "create");
+        DTO_FIELD(oatpp::String, instance_alias, "as");
+        DTO_FIELD(oatpp::List<oatpp::Any>, constructor_args, "with");
+        DTO_FIELD(oatpp::String, function_name, "call");
+        DTO_FIELD(oatpp::List<oatpp::Any>, function_args, "using");
     };
 } // namespace engine::network::dto::pipeline
 

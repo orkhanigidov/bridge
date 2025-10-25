@@ -13,8 +13,8 @@ namespace engine::network::dto::pipeline
     {
         DTO_INIT(PipelineDto, DTO)
 
-        DTO_FIELD(String, pipeline_task, "task");
-        DTO_FIELD(List<Object<PipelineStepDto>>, pipeline_steps, "steps");
+        DTO_FIELD(oatpp::String, pipeline_task, "task");
+        DTO_FIELD(oatpp::List<oatpp::Object<PipelineStepDto>>, pipeline_steps, "steps");
     };
 } // namespace engine::network::dto::pipeline
 

@@ -11,8 +11,8 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(OptionsDto, DTO)
 
-        DTO_FIELD(UInt32, timeout_milliseconds);
-        DTO_FIELD(String, output_data_format);
+        DTO_FIELD(oatpp::UInt32, timeout_milliseconds);
+        DTO_FIELD(oatpp::String, output_data_format);
     };
 } // namespace engine::network::dto::execution
 

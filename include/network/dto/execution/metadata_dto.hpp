@@ -11,7 +11,7 @@ namespace engine::network::dto::execution
     {
         DTO_INIT(MetadataDto, DTO)
 
-        DTO_FIELD(UInt64, duration_milliseconds);
+        DTO_FIELD(oatpp::UInt64, duration_milliseconds);
     };
 } // namespace engine::network::dto::execution
 
