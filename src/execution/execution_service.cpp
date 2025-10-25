@@ -13,8 +13,8 @@
 
 #include "execution/core_execution_result.hpp"
 #include "execution/reserved_keywords.hpp"
+#include "execution/script/lua_state_manager.hpp"
 #include "execution/script/script_executor.hpp"
-#include "execution/script/thread_local_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "utils/filesystem_utils.hpp"
 #include "utils/string_utils.hpp"
@@ -43,11 +43,19 @@ namespace engine::execution
         auto input_path = temp_dir / file_name;
         auto output_path = temp_dir / ("output_" + file_name);
 
-        std::shared_ptr<void> guard(nullptr, [&](void*)
+        std::shared_ptr<void> guard(nullptr, [input_path, output_path](void*)
         {
             std::error_code error_code;
-            std::filesystem::remove(input_path, error_code);
-            std::filesystem::remove(output_path, error_code);
+
+            if (std::filesystem::exists(input_path, error_code))
+            {
+                std::filesystem::remove(input_path, error_code);
+            }
+
+            if (std::filesystem::exists(output_path, error_code))
+            {
+                std::filesystem::remove(output_path, error_code);
+            }
         });
 
         try
@@ -63,7 +71,7 @@ namespace engine::execution
 
             auto prepared_script = prepare_script(request->script->c_str(), input_path, output_path);
 
-            auto& executor = script::get_thread_local_executor();
+            script::ScriptExecutor executor(script::LuaStateManager::get_state());
             auto result = executor.execute_from_string(prepared_script);
 
             if (!result.is_success())

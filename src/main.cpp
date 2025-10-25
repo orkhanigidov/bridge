@@ -5,6 +5,7 @@
 #include <oatpp/core/base/CommandLineArguments.hpp>
 #include <oatpp/core/base/Environment.hpp>
 
+#include "execution/script/lua_state_manager.hpp"
 #include "execution/script/script_executor.hpp"
 #include "network/network_component.hpp"
 #include "network/server/server_config.hpp"
@@ -35,6 +36,8 @@ int main(int argc, const char* argv[])
 
     try
     {
+        engine::execution::script::LuaStateManager::get_state();
+
         const oatpp::base::CommandLineArguments cmd_args(argc, argv);
         auto server_config = engine::network::server::parse_server_config(cmd_args);
 

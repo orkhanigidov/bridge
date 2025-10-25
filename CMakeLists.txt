@@ -61,6 +61,7 @@ add_subdirectory(tools/codegen)
 
 set(SOURCES
         ${SRC_DIR}/bindings/lua/lua_binder.cpp
+        ${SRC_DIR}/execution/script/lua_state_manager.cpp
         ${SRC_DIR}/execution/script/script_executor.cpp
         ${SRC_DIR}/execution/execution_engine.cpp
         ${SRC_DIR}/execution/execution_service.cpp

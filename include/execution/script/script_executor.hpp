@@ -11,12 +11,14 @@ namespace engine::execution::script
     class ScriptExecutor final
     {
     public:
-        ScriptExecutor();
+        explicit ScriptExecutor(sol::state& lua): lua_(lua)
+        {
+        }
 
-        CoreExecutionResult execute_from_file(const std::filesystem::path& script_path);
-        CoreExecutionResult execute_from_string(const std::string& script_content);
+        CoreExecutionResult execute_from_file(const std::filesystem::path& script_path) const;
+        CoreExecutionResult execute_from_string(const std::string& script_content) const;
 
     private:
-        sol::state lua_;
+        sol::state& lua_;
     };
 } // namespace engine::execution::script

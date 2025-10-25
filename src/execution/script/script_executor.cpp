@@ -8,7 +8,6 @@
 #include <string>
 #include <sol/sol.hpp>
 
-#include "bindings/lua/lua_binder.hpp"
 #include "execution/core_execution_result.hpp"
 #include "utils/filesystem_utils.hpp"
 
@@ -59,16 +58,7 @@ namespace
 
 namespace engine::execution::script
 {
-    ScriptExecutor::ScriptExecutor()
-    {
-        lua_ = sol::state();
-        lua_.open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os,
-                            sol::lib::math, sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::utf8);
-
-        bindings::lua::LuaBinder::register_bindings(lua_);
-    }
-
-    CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path)
+    CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path) const
     {
         const auto normalized_path = utils::filesystem::to_forward_slashes(std::filesystem::absolute(script_path));
 
@@ -78,7 +68,7 @@ namespace engine::execution::script
         });
     }
 
-    CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content)
+    CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content) const
     {
         return execute_lua([&]
         {
