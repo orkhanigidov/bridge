@@ -35,7 +35,7 @@ namespace engine::network::mapper
                 dto->output_data = output_dto;
 
                 const auto metadata_dto = dto::execution::MetadataDto::createShared();
-                metadata_dto->duration_milliseconds = static_cast<uint64_t>(0);
+                metadata_dto->duration_milliseconds = result.metadata.duration_milliseconds;
                 dto->metadata = metadata_dto;
             }
             else

@@ -4,10 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
-#include <memory>
 #include <sstream>
 #include <string>
-#include <system_error>
 #include <oatpp/core/Types.hpp>
 #include <oatpp/encoding/Base64.hpp>
 
@@ -15,6 +13,7 @@
 #include "execution/script/lua_script_runner.hpp"
 #include "execution/script/script_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
+#include "utils/temp_file_guard.hpp"
 
 namespace engine::execution
 {
@@ -29,20 +28,8 @@ namespace engine::execution
         auto input_path = temp_dir / file_name;
         auto output_path = temp_dir / ("output_" + file_name);
 
-        std::shared_ptr<void> guard(nullptr, [input_path, output_path](void*)
-        {
-            std::error_code error_code;
-
-            if (std::filesystem::exists(input_path, error_code))
-            {
-                std::filesystem::remove(input_path, error_code);
-            }
-
-            if (std::filesystem::exists(output_path, error_code))
-            {
-                std::filesystem::remove(output_path, error_code);
-            }
-        });
+        utils::TempFileGuard input_file_guard(input_path);
+        utils::TempFileGuard output_file_guard(output_path);
 
         try
         {
