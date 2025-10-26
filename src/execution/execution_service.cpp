@@ -12,23 +12,9 @@
 #include <oatpp/encoding/Base64.hpp>
 
 #include "execution/core_execution_result.hpp"
-#include "execution/reserved_keywords.hpp"
-#include "execution/script/lua_state_manager.hpp"
+#include "execution/script/lua_script_runner.hpp"
 #include "execution/script/script_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
-#include "utils/filesystem_utils.hpp"
-#include "utils/string_utils.hpp"
-
-namespace
-{
-    std::string prepare_script(const std::string& script, const std::filesystem::path& input_path, const std::filesystem::path& output_path)
-    {
-        std::string script_content = script;
-        engine::utils::string::replace_all(script_content, engine::execution::reserved::INPUT_PATH, engine::utils::filesystem::to_forward_slashes(input_path));
-        engine::utils::string::replace_all(script_content, engine::execution::reserved::OUTPUT_PATH, engine::utils::filesystem::to_forward_slashes(output_path));
-        return script_content;
-    }
-}
 
 namespace engine::execution
 {
@@ -69,10 +55,13 @@ namespace engine::execution
             input_file.write(decoded_input->data(), static_cast<std::streamsize>(decoded_input->size()));
             input_file.close();
 
-            auto prepared_script = prepare_script(request->script->c_str(), input_path, output_path);
+            script::ScriptContext context;
+            context.script_content = request->script->c_str();
+            context.input_path = input_path;
+            context.output_path = output_path;
 
-            script::ScriptExecutor executor(script::LuaStateManager::get_state());
-            auto result = executor.execute_from_string(prepared_script);
+            script::LuaScriptRunner runner;
+            auto result = runner.run_from_string(context);
 
             if (!result.is_success())
             {

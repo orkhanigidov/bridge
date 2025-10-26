@@ -3,31 +3,27 @@
 #include <exception>
 #include <iostream>
 #include <memory>
-#include <mutex>
 #include <sol/state.hpp>
 
 #include "bindings/lua/lua_binder.hpp"
 
 namespace engine::execution::script
 {
-    std::unique_ptr<sol::state> LuaStateManager::state_ = nullptr;
-    std::once_flag LuaStateManager::init_flag_;
-
-    void LuaStateManager::initialize()
+    void LuaStateManager::initialize_thread_state(std::unique_ptr<sol::state>& state)
     {
         try
         {
-            state_ = std::make_unique<sol::state>();
-            state_->open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os,
-                                   sol::lib::math, sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::utf8);
+            state = std::make_unique<sol::state>();
+            state->open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine,
+                                  sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8);
 
-            bindings::lua::LuaBinder::register_bindings(*state_);
+            bindings::lua::LuaBinder::register_bindings(*state);
 
-            std::cout << "Global Lua state initialized." << std::endl;
+            std::cout << "Thread-local Lua state initialized." << std::endl;
         } catch (const std::exception& e)
         {
-            std::cerr << "Failed to initialize global Lua state: " << e.what() << std::endl;
-            state_ = nullptr;
+            std::cerr << "Failed to initialize thread-local Lua state: " << e.what() << std::endl;
+            state = nullptr;
         }
     }
 } // namespace engine::execution::script

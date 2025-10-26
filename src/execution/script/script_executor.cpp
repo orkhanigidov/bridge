@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <functional>
 #include <string>
 #include <sol/sol.hpp>
@@ -19,16 +20,17 @@ namespace
 
         try
         {
-            const auto& lua_result = script_runner();
-            if (!lua_result.valid())
+            const sol::protected_function_result result = script_runner();
+            if (!result.valid())
             {
-                const sol::error error = lua_result;
+                const sol::error err = result;
+                const sol::call_status status = result.status();
                 return {
                     .status = engine::execution::CoreExecutionStatus::Failure,
                     .error
                     {
                         .type = engine::execution::CoreExecutionErrorType::Execution_Failed,
-                        .message = error.what()
+                        .message = std::format("{}: {}", sol::to_string(status), err.what())
                     }
                 };
             }
@@ -58,21 +60,21 @@ namespace
 
 namespace engine::execution::script
 {
-    CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path) const
+    CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path, const sol::environment& env) const
     {
         const auto normalized_path = utils::filesystem::to_forward_slashes(std::filesystem::absolute(script_path));
 
         return execute_lua([&]
         {
-            return lua_.safe_script_file(normalized_path);
+            return lua_.safe_script_file(normalized_path, env, sol::script_pass_on_error);
         });
     }
 
-    CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content) const
+    CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content, const sol::environment& env) const
     {
         return execute_lua([&]
         {
-            return lua_.safe_script(script_content);
+            return lua_.safe_script(script_content, env, sol::script_pass_on_error);
         });
     }
 } // namespace engine::execution::script

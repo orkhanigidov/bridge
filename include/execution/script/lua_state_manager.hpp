@@ -1,8 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
-#include <stdexcept>
 #include <sol/state.hpp>
 
 namespace engine::execution::script
@@ -12,17 +10,15 @@ namespace engine::execution::script
     public:
         static sol::state& get_state()
         {
-            std::call_once(init_flag_, &LuaStateManager::initialize);
+            thread_local std::unique_ptr<sol::state> state_;
             if (!state_)
             {
-                throw std::runtime_error("Global Lua state is not initialized.");
+                initialize_thread_state(state_);
             }
             return *state_;
         }
 
     private:
-        static void initialize();
-        static std::unique_ptr<sol::state> state_;
-        static std::once_flag init_flag_;
+        static void initialize_thread_state(std::unique_ptr<sol::state>& state);
     };
 } // namespace engine::execution::script

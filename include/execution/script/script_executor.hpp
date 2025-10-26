@@ -15,8 +15,8 @@ namespace engine::execution::script
         {
         }
 
-        CoreExecutionResult execute_from_file(const std::filesystem::path& script_path) const;
-        CoreExecutionResult execute_from_string(const std::string& script_content) const;
+        CoreExecutionResult execute_from_file(const std::filesystem::path& script_path, const sol::environment& env) const;
+        CoreExecutionResult execute_from_string(const std::string& script_content, const sol::environment& env) const;
 
     private:
         sol::state& lua_;

@@ -1,12 +1,9 @@
 #include "execution/execution_engine.hpp"
 
-#include <filesystem>
-#include <format>
 #include <string>
 
 #include "execution/core_execution_result.hpp"
-#include "execution/script/lua_state_manager.hpp"
-#include "execution/script/script_executor.hpp"
+#include "execution/script/lua_script_runner.hpp"
 #include "interop/types/execution_error_type.h"
 #include "interop/types/execution_metadata.h"
 #include "interop/types/execution_status.h"
@@ -78,25 +75,20 @@ namespace engine::execution
                                                         "Execution script content is empty");
         }
 
-        script::ScriptExecutor executor(script::LuaStateManager::get_state());
+        script::ScriptContext context;
+        context.script_content = script;
+
         CoreExecutionResult result;
+        const script::LuaScriptRunner runner;
 
         switch (type)
         {
         case interop::types::ExecutionType::Lua_Script:
-            result = executor.execute_from_string(script);
+            result = runner.run_from_string(context);
             break;
 
         case interop::types::ExecutionType::Lua_File:
-            {
-                if (!std::filesystem::exists(script))
-                {
-                    return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
-                                                                interop::types::ExecutionErrorType::File_Not_Found,
-                                                                std::format("Script file does not exist: {}", script));
-                }
-                result = executor.execute_from_file(script);
-            }
+            result = runner.run_from_file(context);
             break;
 
         case interop::types::ExecutionType::Pipeline:
