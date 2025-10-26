@@ -5,7 +5,7 @@
 
 namespace engine::interop
 {
-    bool initialize_bindings();
+    bool prewarm_thread_state();
 
     utils::ExecutionResponsePtr execute(const types::ExecutionRequest* request);
 } // namespace engine::interop

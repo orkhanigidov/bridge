@@ -7,7 +7,7 @@
 
 bool InitializeBindings()
 {
-    return engine::interop::initialize_bindings();
+    return engine::interop::prewarm_thread_state();
 }
 
 ExecutionResponse* ExecuteScript(const ExecutionRequest* request)

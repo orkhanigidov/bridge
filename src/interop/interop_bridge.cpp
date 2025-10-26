@@ -5,8 +5,8 @@
 #include <iostream>
 #include <mutex>
 
-#include "bindings/lua/lua_binder.hpp"
 #include "execution/execution_engine.hpp"
+#include "execution/script/lua_script_runner.hpp"
 #include "interop/interop_c_api.hpp"
 #include "interop/types/execution_error_type.h"
 #include "interop/types/execution_status.h"
@@ -15,21 +15,15 @@
 
 namespace engine::interop
 {
-    static std::once_flag lua_bindings_init_flag;
-
-    bool initialize_bindings()
+    bool prewarm_thread_state()
     {
         try
         {
-            std::call_once(lua_bindings_init_flag, []
-            {
-                sol::state lua;
-                bindings::lua::LuaBinder::register_bindings(lua);
-            });
+            execution::script::LuaStateManager::get_state();
             return true;
         } catch (const std::exception& e)
         {
-            std::cerr << std::format("Failed to initialize Lua bindings: {}", e.what());
+            std::cerr << std::format("Failed to pre-warm thread-local Lua state: {}", e.what());
             return false;
         }
     }
