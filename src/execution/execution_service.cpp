@@ -1,11 +1,13 @@
 #include "execution/execution_service.hpp"
 
+#include <algorithm>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <oatpp/core/Types.hpp>
 #include <oatpp/encoding/Base64.hpp>
 
@@ -22,8 +24,13 @@ namespace engine::execution
         auto temp_dir = std::filesystem::temp_directory_path() / "ogdf_engine_runs";
         std::filesystem::create_directories(temp_dir);
 
+        if (!request->input_data || request->input_data->empty())
+        {
+            throw ExecutionServiceException("Input data is missing or empty");
+        }
+
         auto file_extension = request->options->output_data_format->c_str();
-        auto file_name = std::string(request->input_data->id->c_str()) + "." + file_extension;
+        auto file_name = std::string(*request->input_data[0]->id) + "." + file_extension;
 
         auto input_path = temp_dir / file_name;
         auto output_path = temp_dir / ("output_" + file_name);
@@ -33,17 +40,28 @@ namespace engine::execution
 
         try
         {
-            auto decoded_input = oatpp::encoding::Base64::decode(request->input_data->chunk_data);
+            auto& chunks = request->input_data;
+            std::vector sorted_chunks(chunks->begin(), chunks->end());
+            std::ranges::sort(sorted_chunks, [](const auto& a, const auto& b)
+            {
+                return a->chunk_index < b->chunk_index;
+            });
+
             std::ofstream input_file(input_path, std::ios::binary);
             if (!input_file)
             {
                 throw ExecutionServiceException("Cannot create temporary input file at path: {}", input_path.string());
             }
-            input_file.write(decoded_input->data(), static_cast<std::streamsize>(decoded_input->size()));
+
+            for (const auto& chunk : sorted_chunks)
+            {
+                auto decoded_input = oatpp::encoding::Base64::decode(chunk->chunk_data);
+                input_file.write(decoded_input->data(), static_cast<std::streamsize>(decoded_input->size()));
+            }
             input_file.close();
 
             script::ScriptContext context;
-            context.script_content = request->script->c_str();
+            context.script_content = *request->script;
             context.input_path = input_path;
             context.output_path = output_path;
 

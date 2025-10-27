@@ -17,7 +17,7 @@ namespace engine::network::dto::execution
 
         DTO_FIELD(oatpp::Enum<ExecutionTypeDto>::AsString, type);
         DTO_FIELD(oatpp::String, script);
-        DTO_FIELD(oatpp::Object<FileDto>, input_data);
+        DTO_FIELD(oatpp::List<oatpp::Object<FileDto>>, input_data);
         DTO_FIELD(oatpp::Object<OptionsDto>, options);
     };
 } // namespace engine::network::dto::execution
