@@ -89,7 +89,7 @@ namespace
 
         for (size_t i = 0; i < enumerators.size(); ++i)
         {
-            stream << std::format("\"{}\", {}::{}", enumerators[i].name, full_enum_name, enumerators[i].name);
+            stream << std::format("{{\"{}\", {}::{}}}", enumerators[i].name, full_enum_name, enumerators[i].name);
             if (i < enumerators.size() - 1)
             {
                 stream << delimiter;
@@ -253,7 +253,7 @@ namespace codegen::generation
                 std::ostringstream enumerators_stream;
                 std::string full_enum_name = std::format("{}::{}", cls.name(), enum_.name());
                 write_enum_pairs(enumerators_stream, enum_, 4, full_enum_name);
-                write_line(out, 3, std::format(".add_enums(\"{}\", {})", enum_.name(), enumerators_stream.str()));
+                write_line(out, 3, std::format(".add_enums<{}::{}>(\"{}\", {{ {} }})", cls.name(), enum_.name(), enum_.name(), enumerators_stream.str()));
             }
 
             for (const auto& var : cls.member_variables())
@@ -324,7 +324,7 @@ namespace codegen::generation
         {
             std::ostringstream enumerators_stream;
             write_enum_pairs(enumerators_stream, enum_, 4, enum_.name());
-            write_line(out, 2, std::format("registrar.add_enums(\"{}\", {});", enum_.name(), enumerators_stream.str()));
+            write_line(out, 2, std::format("registrar.add_enums<{}>(\"{}\", {{ {} }});", enum_.name(), enum_.name(), enumerators_stream.str()));
         }
         write_line(out, 1, "}");
     }

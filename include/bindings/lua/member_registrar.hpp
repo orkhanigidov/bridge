@@ -1,7 +1,9 @@
 #pragma once
 
+#include <initializer_list>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <sol/sol.hpp>
@@ -104,10 +106,10 @@ namespace engine::bindings::lua
             return *this;
         }
 
-        template <typename... Args>
-        MemberRegistrar& add_enums(const std::string& name, Args&&... args)
+        template <typename E>
+        MemberRegistrar& add_enums(const std::string& name, std::initializer_list<std::pair<std::string_view, E>> items)
         {
-            lua_.new_enum(name, std::forward<Args>(args)...);
+            lua_.new_enum<E>(name, items);
             return *this;
         }
 
