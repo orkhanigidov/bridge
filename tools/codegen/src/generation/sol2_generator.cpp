@@ -166,7 +166,12 @@ namespace codegen::generation
 
                 if (registered_bases.emplace(base_name).second)
                 {
-                    std::string lua_base_name = format_lua_name(base_name);
+                    std::string stripped_base_name = base_name;
+                    if (size_t template_bracket_pos = stripped_base_name.find('<'); template_bracket_pos != std::string::npos)
+                    {
+                        stripped_base_name = stripped_base_name.substr(0, template_bracket_pos);
+                    }
+                    std::string lua_base_name = format_lua_name(stripped_base_name);
                     write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, lua_base_name));
                 }
             }

@@ -255,7 +255,14 @@ namespace codegen::analysis
         {
         case CXCursor_Constructor:
             {
-                if (utils::get_spelling(parent) != parent_class_name)
+                std::string parent_name = utils::get_spelling(parent);
+                std::string class_lookup_name = parent_class_name;
+                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos != std::string::npos)
+                {
+                    class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
+                }
+
+                if (parent_name != class_lookup_name)
                 {
                     break;
                 }
@@ -284,9 +291,28 @@ namespace codegen::analysis
                     break;
                 }
 
-                CXCursor base_class = clang_getCursorReferenced(cursor);
-                class_desc.add_base_class_name(utils::get_spelling(base_class));
-                if (auto ns = get_cursor_namespace(base_class))
+                const std::string& derived_class_name = class_desc.name();
+                std::string derived_template_args;
+
+                if (size_t template_bracket_pos = derived_class_name.find('<'); template_bracket_pos != std::string::npos)
+                {
+                    derived_template_args = derived_class_name.substr(template_bracket_pos);
+                }
+
+                std::string base_class_name = utils::get_cursor_type_spelling(cursor);
+
+                if (!derived_template_args.empty())
+                {
+                    if (size_t base_bracket_pos = base_class_name.find('<'); base_bracket_pos != std::string::npos)
+                    {
+                        base_class_name = base_class_name.substr(0, base_bracket_pos) + derived_template_args;
+                    }
+                }
+
+                class_desc.add_base_class_name(std::move(base_class_name));
+
+                CXCursor base_class_decl = clang_getCursorReferenced(cursor);
+                if (auto ns = get_cursor_namespace(base_class_decl))
                 {
                     visitor->result_.namespaces.emplace(std::move(*ns));
                 }
