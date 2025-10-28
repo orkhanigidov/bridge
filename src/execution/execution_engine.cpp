@@ -18,16 +18,16 @@ namespace
 
         switch (type)
         {
-        case Invalid_Argument:
-            return engine::interop::types::Invalid_Argument;
-        case Execution_Failed:
-            return engine::interop::types::Execution_Failed;
-        case Validation_Failed:
-            return engine::interop::types::Validation_Failed;
-        case File_Not_Found:
-            return engine::interop::types::File_Not_Found;
+        case InvalidArgument:
+            return engine::interop::types::InvalidArgument;
+        case ExecutionFailed:
+            return engine::interop::types::ExecutionFailed;
+        case ValidationFailed:
+            return engine::interop::types::ValidationFailed;
+        case FileNotFound:
+            return engine::interop::types::FileNotFound;
         default:
-            return engine::interop::types::Execution_Failed;
+            return engine::interop::types::ExecutionFailed;
         }
     }
 
@@ -71,7 +71,7 @@ namespace engine::execution
         if (script.empty())
         {
             return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
-                                                        interop::types::ExecutionErrorType::Invalid_Argument,
+                                                        interop::types::ExecutionErrorType::InvalidArgument,
                                                         "Execution script content is empty");
         }
 
@@ -83,22 +83,22 @@ namespace engine::execution
 
         switch (type)
         {
-        case interop::types::ExecutionType::Lua_Script:
+        case interop::types::ExecutionType::LuaScript:
             result = runner.run_from_string(context);
             break;
 
-        case interop::types::ExecutionType::Lua_File:
+        case interop::types::ExecutionType::LuaFile:
             result = runner.run_from_file(context);
             break;
 
         case interop::types::ExecutionType::Pipeline:
             // TODO: Implement pipeline execution
             return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
-                                                        interop::types::ExecutionErrorType::Invalid_Argument,
+                                                        interop::types::ExecutionErrorType::InvalidArgument,
                                                         "Pipeline execution not yet implemented");
         default:
             return utils::ResponseFactory::create_error(interop::types::ExecutionStatus::Failure,
-                                                        interop::types::ExecutionErrorType::Invalid_Argument,
+                                                        interop::types::ExecutionErrorType::InvalidArgument,
                                                         "Unsupported execution type");
         }
 

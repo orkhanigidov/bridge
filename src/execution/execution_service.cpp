@@ -104,7 +104,7 @@ namespace engine::execution
             return {
                 .status = CoreExecutionStatus::Failure,
                 .error{
-                    .type = CoreExecutionErrorType::Execution_Failed,
+                    .type = CoreExecutionErrorType::ExecutionFailed,
                     .message = e.what()
                 }
             };

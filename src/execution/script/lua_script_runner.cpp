@@ -16,12 +16,12 @@ namespace engine::execution::script
 
         if (context.input_path)
         {
-            env[reserved::INPUT_PATH] = utils::filesystem::to_forward_slashes(*context.input_path);
+            env[reserved::InputPath] = utils::filesystem::to_forward_slashes(*context.input_path);
         }
 
         if (context.output_path)
         {
-            env[reserved::OUTPUT_PATH] = utils::filesystem::to_forward_slashes(*context.output_path);
+            env[reserved::OutputPath] = utils::filesystem::to_forward_slashes(*context.output_path);
         }
 
         return env;
@@ -43,7 +43,7 @@ namespace engine::execution::script
             return {
                 .status = CoreExecutionStatus::Failure,
                 .error = {
-                    .type = CoreExecutionErrorType::File_Not_Found,
+                    .type = CoreExecutionErrorType::FileNotFound,
                     .message = "Script file not found"
                 }
             };

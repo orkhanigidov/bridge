@@ -19,7 +19,7 @@ namespace engine::network::server
 {
     ServerManager::~ServerManager() noexcept
     {
-        if (state_ == ServerState::RUNNING || state_ == ServerState::INITIALIZED)
+        if (state_ == ServerState::Running || state_ == ServerState::Initialized)
         {
             OATPP_LOGW("Server", "Server is still running. Shutting down...");
             shutdown();
@@ -28,7 +28,7 @@ namespace engine::network::server
 
     void ServerManager::initialize()
     {
-        if (state_ != ServerState::STOPPED)
+        if (state_ != ServerState::Stopped)
         {
             OATPP_LOGW("Server", "Initialization skipped - already initialized");
             return;
@@ -54,7 +54,7 @@ namespace engine::network::server
 
         server_ = std::make_unique<oatpp::network::Server>(connection_provider, connection_handler);
 
-        state_ = ServerState::INITIALIZED;
+        state_ = ServerState::Initialized;
         OATPP_LOGI("Server", "Initialized on %s:%u", config_.host->c_str(), config_.port);
     }
 
@@ -64,7 +64,7 @@ namespace engine::network::server
         {
             initialize();
 
-            if (state_ == ServerState::INITIALIZED)
+            if (state_ == ServerState::Initialized)
             {
                 start();
             }
@@ -77,7 +77,7 @@ namespace engine::network::server
 
     void ServerManager::start()
     {
-        state_ = ServerState::RUNNING;
+        state_ = ServerState::Running;
         OATPP_LOGI("Server", "Server is running on %s:%u", config_.host->c_str(), config_.port);
         OATPP_LOGI("Server", "Press Ctrl+C to stop");
 
@@ -89,13 +89,13 @@ namespace engine::network::server
 
     void ServerManager::shutdown()
     {
-        if (state_ != ServerState::RUNNING && state_ != ServerState::INITIALIZED)
+        if (state_ != ServerState::Running && state_ != ServerState::Initialized)
         {
             OATPP_LOGW("Server", "Shutdown skipped - server is not running");
             return;
         }
 
-        state_ = ServerState::SHUTTING_DOWN;
+        state_ = ServerState::ShuttingDown;
         OATPP_LOGI("Server", "Shutting down...");
 
         try
@@ -112,7 +112,7 @@ namespace engine::network::server
         server_.reset();
         network_component_.reset();
 
-        state_ = ServerState::STOPPED;
+        state_ = ServerState::Stopped;
         OATPP_LOGI("Server", "Shutdown complete");
     }
 } // namespace engine::network::server

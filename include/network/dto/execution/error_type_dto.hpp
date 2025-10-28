@@ -9,9 +9,9 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionErrorTypeDto, v_int8,
-         VALUE(INVALID_ARGUMENT, 0, "InvalidArgument"),
-         VALUE(EXECUTION_FAILED, 1, "ExecutionFailed"),
-         VALUE(VALIDATION_FAILED, 2, "ValidationFailed"),
-         VALUE(FILE_NOT_FOUND, 2, "FileNotFound")
+         VALUE(InvalidArgument, 0, "InvalidArgument"),
+         VALUE(ExecutionFailed, 1, "ExecutionFailed"),
+         VALUE(ValidationFailed, 2, "ValidationFailed"),
+         VALUE(FileNotFound, 2, "FileNotFound")
     )
 } // namespace engine::network::dto::execution

@@ -24,7 +24,7 @@ namespace engine::network::server
 
     private:
         ServerConfig config_;
-        ServerState state_{ServerState::STOPPED};
+        ServerState state_{ServerState::Stopped};
         std::unique_ptr<NetworkComponent> network_component_;
         std::unique_ptr<oatpp::network::Server> server_;
 

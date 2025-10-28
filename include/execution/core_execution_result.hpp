@@ -13,26 +13,26 @@ namespace engine::execution
 
     enum class CoreExecutionErrorType
     {
-        Invalid_Argument,
-        Execution_Failed,
-        Validation_Failed,
-        File_Not_Found
+        InvalidArgument,
+        ExecutionFailed,
+        ValidationFailed,
+        FileNotFound
     };
 
     struct CoreExecutionError
     {
-        CoreExecutionErrorType type;
+        CoreExecutionErrorType type = CoreExecutionErrorType::ExecutionFailed;
         std::string message;
     };
 
     struct CoreExecutionMetadata
     {
-        long long duration_milliseconds;
+        long long duration_milliseconds = 0;
     };
 
     struct CoreExecutionResult
     {
-        CoreExecutionStatus status;
+        CoreExecutionStatus status = CoreExecutionStatus::Failure;
         CoreExecutionError error;
         CoreExecutionMetadata metadata;
 

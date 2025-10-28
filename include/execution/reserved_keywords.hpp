@@ -2,7 +2,7 @@
 
 namespace engine::execution::reserved
 {
-    inline constexpr auto INPUT_PATH = "__input__";
+    inline constexpr auto InputPath = "__input__";
 
-    inline constexpr auto OUTPUT_PATH = "__output__";
+    inline constexpr auto OutputPath = "__output__";
 } // namespace engine::execution::reserved

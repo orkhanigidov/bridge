@@ -27,7 +27,7 @@ namespace engine::network::mapper
 
             if (result.is_success())
             {
-                dto->status = dto::execution::ExecutionStatusDto::SUCCESS;
+                dto->status = dto::execution::ExecutionStatusDto::Success;
 
                 const auto& full_data = result.output_data;
                 const size_t total_length = full_data.length();
@@ -71,7 +71,7 @@ namespace engine::network::mapper
             }
             else
             {
-                dto->status = dto::execution::ExecutionStatusDto::FAILURE;
+                dto->status = dto::execution::ExecutionStatusDto::Failure;
 
                 const auto error_dto = dto::execution::ErrorDto::createShared();
                 error_dto->type = ErrorMapper::to_dto(static_cast<interop::types::ExecutionErrorType>(result.error.type));

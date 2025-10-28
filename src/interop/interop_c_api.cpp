@@ -15,7 +15,7 @@ ExecutionResponse* ExecuteScript(const ExecutionRequest* request)
     if (!request)
     {
         return engine::utils::ResponseFactory::create_error(engine::interop::types::ExecutionStatus::Failure,
-                                                            engine::interop::types::ExecutionErrorType::Invalid_Argument,
+                                                            engine::interop::types::ExecutionErrorType::InvalidArgument,
                                                             "The provided request is null.").release();
     }
 

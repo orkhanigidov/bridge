@@ -6,10 +6,10 @@ namespace engine::interop::types
 {
     typedef enum ExecutionErrorType
     {
-        Invalid_Argument = 0,
-        Execution_Failed = 1,
-        Validation_Failed = 2,
-        File_Not_Found = 3
+        InvalidArgument = 0,
+        ExecutionFailed = 1,
+        ValidationFailed = 2,
+        FileNotFound = 3
     } ExecutionErrorType;
 } // namespace engine::interop::types
 

@@ -4,9 +4,9 @@ namespace engine::network::server
 {
     enum class ServerState
     {
-        STOPPED,
-        INITIALIZED,
-        RUNNING,
-        SHUTTING_DOWN
+        Stopped,
+        Initialized,
+        Running,
+        ShuttingDown
     };
 } // namespace engine::network::server

@@ -1,28 +1,27 @@
 #pragma once
 
+#include <string>
 #include <ogdf/fileformats/GraphIO.h>
-
-using namespace ogdf;
 
 namespace codegen::wrappers
 {
-    inline bool read(Graph& G, const string& filename)
+    inline bool read(ogdf::Graph& G, const std::string& filename)
     {
-        return GraphIO::read(G, filename);
+        return ogdf::GraphIO::read(G, filename);
     }
 
-    inline bool read(GraphAttributes& GA, Graph& G, const string& filename)
+    inline bool read(ogdf::GraphAttributes& GA, ogdf::Graph& G, const std::string& filename)
     {
-        return GraphIO::read(GA, G, filename);
+        return ogdf::GraphIO::read(GA, G, filename);
     }
 
-    inline bool write(const Graph& G, const string& filename)
+    inline bool write(const ogdf::Graph& G, const std::string& filename)
     {
-        return GraphIO::write(G, filename);
+        return ogdf::GraphIO::write(G, filename);
     }
 
-    inline bool write(const GraphAttributes& GA, const string& filename)
+    inline bool write(const ogdf::GraphAttributes& GA, const std::string& filename)
     {
-        return GraphIO::write(GA, filename);
+        return ogdf::GraphIO::write(GA, filename);
     }
 } // namespace codegen::wrappers

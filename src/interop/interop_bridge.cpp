@@ -34,18 +34,18 @@ namespace engine::interop
         {
             switch (request->type)
             {
-            case types::ExecutionType::Lua_Script:
-            case types::ExecutionType::Lua_File:
+            case types::ExecutionType::LuaScript:
+            case types::ExecutionType::LuaFile:
                 return execution::ExecutionEngine::execute(request->type, request->script);
             default:
                 return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
-                                                            types::ExecutionErrorType::Invalid_Argument,
+                                                            types::ExecutionErrorType::InvalidArgument,
                                                             "Unsupported execution type");
             }
         } catch (const std::exception& e)
         {
             return utils::ResponseFactory::create_error(types::ExecutionStatus::Failure,
-                                                        types::ExecutionErrorType::Execution_Failed,
+                                                        types::ExecutionErrorType::ExecutionFailed,
                                                         e.what());
         }
     }

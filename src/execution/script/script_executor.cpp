@@ -29,7 +29,7 @@ namespace
                     .status = engine::execution::CoreExecutionStatus::Failure,
                     .error
                     {
-                        .type = engine::execution::CoreExecutionErrorType::Execution_Failed,
+                        .type = engine::execution::CoreExecutionErrorType::ExecutionFailed,
                         .message = std::format("{}: {}", sol::to_string(status), err.what())
                     }
                 };
@@ -40,7 +40,7 @@ namespace
                 .status = engine::execution::CoreExecutionStatus::Failure,
                 .error
                 {
-                    .type = engine::execution::CoreExecutionErrorType::Execution_Failed,
+                    .type = engine::execution::CoreExecutionErrorType::ExecutionFailed,
                     .message = e.what()
                 }
             };

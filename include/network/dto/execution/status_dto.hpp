@@ -9,8 +9,8 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionStatusDto, v_int8,
-         VALUE(SUCCESS, 0, "Success"),
-         VALUE(FAILURE, 1, "Failure"),
-         VALUE(TIMEOUT, 2, "Timeout")
+         VALUE(Success, 0, "Success"),
+         VALUE(Failure, 1, "Failure"),
+         VALUE(Timeout, 2, "Timeout")
     )
 } // namespace engine::network::dto::execution

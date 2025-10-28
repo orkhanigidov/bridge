@@ -9,7 +9,7 @@
 namespace engine::network::dto::execution
 {
     ENUM(ExecutionTypeDto, v_int8,
-         VALUE(LUA_SCRIPT, 0, "LuaScript"),
-         VALUE(PIPELINE, 1, "Pipeline")
+         VALUE(LuaScript, 0, "LuaScript"),
+         VALUE(Pipeline, 1, "Pipeline")
     )
 } // namespace engine::network::dto::execution
