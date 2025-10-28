@@ -25,6 +25,11 @@ namespace codegen::metadata
             return name_;
         }
 
+        const std::vector<std::string>& template_types() const noexcept
+        {
+            return template_types_;
+        }
+
         const std::vector<std::string>& base_class_names() const noexcept
         {
             return base_class_names_;
@@ -53,6 +58,12 @@ namespace codegen::metadata
         ClassDescriptor& set_name(std::string name)
         {
             name_ = std::move(name);
+            return *this;
+        }
+
+        ClassDescriptor& add_template_type(std::string template_type)
+        {
+            template_types_.emplace_back(std::move(template_type));
             return *this;
         }
 
@@ -88,6 +99,7 @@ namespace codegen::metadata
 
     private:
         std::string name_;
+        std::vector<std::string> template_types_;
         std::vector<std::string> base_class_names_;
         std::vector<ConstructorDescriptor> constructors_;
         std::vector<EnumDescriptor> member_enumerators_;

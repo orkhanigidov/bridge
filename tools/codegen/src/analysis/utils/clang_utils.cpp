@@ -25,7 +25,8 @@ namespace codegen::analysis::utils
 
     std::string get_type_spelling(const CXType& type)
     {
-        return to_std_string(clang_getTypeSpelling(type));
+        CXType canonical_type = clang_getCanonicalType(type);
+        return to_std_string(clang_getTypeSpelling(canonical_type));
     }
 
     std::string get_cursor_type_spelling(const CXCursor& cursor)

@@ -408,6 +408,7 @@ namespace codegen::analysis
 
             result_.includes.emplace(utils::get_include_path(cursor));
             result_.classes.emplace_back(std::move(full_name));
+            result_.classes.back().add_template_type(type);
 
             process_class_common(cursor, result_.classes.back());
         }

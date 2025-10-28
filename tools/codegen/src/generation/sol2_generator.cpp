@@ -171,6 +171,10 @@ namespace codegen::generation
                     {
                         stripped_base_name = stripped_base_name.substr(0, template_bracket_pos);
                     }
+                    if (size_t ns_pos = stripped_base_name.rfind("::"); ns_pos != std::string::npos)
+                    {
+                        stripped_base_name = stripped_base_name.substr(ns_pos + 2);
+                    }
                     std::string lua_base_name = format_lua_name(stripped_base_name);
                     write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::Cpp>(lua, \"{}\");", base_name, lua_base_name));
                 }
