@@ -24,6 +24,7 @@ namespace codegen::analysis
         std::filesystem::path wrapper_include_path;
         std::unordered_map<std::string, ClassConfig> target_classes;
         std::vector<std::string> target_free_functions;
+        std::vector<std::string> target_enums;
     };
 
     struct AnalysisResult

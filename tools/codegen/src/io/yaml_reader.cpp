@@ -53,6 +53,7 @@ namespace codegen::io
     {
         extract_all_classes(root);
         free_functions_ = extract_string_sequence(root, FREE_FUNCTIONS);
+        enums_ = extract_string_sequence(root, ENUMS);
     }
 
     void YamlReader::extract_all_classes(const YAML::Node& root)

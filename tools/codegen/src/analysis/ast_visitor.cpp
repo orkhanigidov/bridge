@@ -415,10 +415,16 @@ namespace codegen::analysis
 
     void AstVisitor::visit_enum_decl(const CXCursor& cursor)
     {
-        if (auto enum_desc_opt = parse_enum_decl(cursor))
+        const auto enum_name = utils::get_spelling(cursor);
+        const auto& target_enums = config_.target_enums;
+
+        if (std::ranges::find(target_enums, enum_name) != target_enums.end())
         {
-            result_.enums.emplace_back(std::move(*enum_desc_opt));
-            result_.includes.emplace(utils::get_include_path(cursor));
+            if (auto enum_desc_opt = parse_enum_decl(cursor))
+            {
+                result_.enums.emplace_back(std::move(*enum_desc_opt));
+                result_.includes.emplace(utils::get_include_path(cursor));
+            }
         }
     }
 

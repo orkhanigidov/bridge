@@ -32,6 +32,11 @@ namespace codegen::io
             return free_functions_;
         }
 
+        const std::vector<std::string>& enums() const noexcept
+        {
+            return enums_;
+        }
+
     private:
         explicit YamlReader(const YAML::Node& root);
 
@@ -40,9 +45,11 @@ namespace codegen::io
         static constexpr auto METHODS = "methods";
         static constexpr auto TYPES = "types";
         static constexpr auto FREE_FUNCTIONS = "free_functions";
+        static constexpr auto ENUMS = "enums";
 
         std::unordered_map<std::string, analysis::ClassConfig> classes_;
         std::vector<std::string> free_functions_;
+        std::vector<std::string> enums_;
 
         void extract_all_classes(const YAML::Node& root);
     };

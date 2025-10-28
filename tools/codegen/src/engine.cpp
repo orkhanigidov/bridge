@@ -30,7 +30,8 @@ namespace codegen
                 include_dir_.string(),
                 wrapper_dir_.string(),
                 reader.classes(),
-                reader.free_functions()
+                reader.free_functions(),
+                reader.enums()
             };
             analysis::ClangAnalyzer analyzer(dummy_cpp_path, config);
 
