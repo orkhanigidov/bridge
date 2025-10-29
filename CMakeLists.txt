@@ -48,7 +48,7 @@ endif ()
 include(cmake/CPM.cmake)
 
 CPMAddPackage("gh:jbeder/yaml-cpp#0.8.0")
-CPMAddPackage("gh:ThePhD/sol2#develop")
+CPMAddPackage("gh:ThePhD/sol2#v3.5.0")
 CPMAddPackage("gh:oatpp/oatpp#1.3.1")
 CPMAddPackage(
         NAME ogdf
