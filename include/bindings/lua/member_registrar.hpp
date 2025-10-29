@@ -129,7 +129,7 @@ namespace engine::bindings::lua
 
         template <typename... Fs>
             requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
-        MemberRegistrar& add_functions(const std::string& name, Fs&&... fs)
+        MemberRegistrar& add_function(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)
             {
@@ -144,7 +144,7 @@ namespace engine::bindings::lua
 
         template <typename... Fs>
             requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
-        MemberRegistrar& add_static_functions(const std::string& name, Fs&&... fs)
+        MemberRegistrar& add_static_function(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)
             {

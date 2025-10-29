@@ -285,7 +285,7 @@ namespace codegen::generation
                 {
                     write_overload_resolutions<true>(overloads_stream, funcs, 4, cls.name());
                 }
-                write_line(out, 3, std::format(".add_functions(\"{}\", {})", name, overloads_stream.str()));
+                write_line(out, 3, std::format(".add_function(\"{}\", {})", name, overloads_stream.str()));
             }
             write_line(out, 2, ";", 2);
         }
@@ -317,7 +317,7 @@ namespace codegen::generation
             {
                 write_overload_resolutions<false>(overloads_stream, funcs, 4);
             }
-            write_line(out, 2, std::format("registrar.add_functions(\"{}\", {});", name, overloads_stream.str()));
+            write_line(out, 2, std::format("registrar.add_function(\"{}\", {});", name, overloads_stream.str()));
         }
 
         for (const auto& enum_ : enums)
