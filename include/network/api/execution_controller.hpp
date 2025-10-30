@@ -33,7 +33,7 @@ namespace engine::network::api
             info->addResponse<Object<dto::MessageDto>>(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/health", health)
+        ENDPOINT("GET", "/api/health", health)
         {
             const auto response = dto::MessageDto::createShared();
             response->status_code = 200;
@@ -50,7 +50,7 @@ namespace engine::network::api
             info->addResponse<oatpp::Object<dto::MessageDto>>(Status::CODE_400, "application/json", "Invalid request body");
         }
 
-        ENDPOINT("POST", "/execute_script", execution, BODY_DTO(oatpp::Object<dto::execution::RequestDto>, request))
+        ENDPOINT("POST", "/api/execute_script", execution, BODY_DTO(oatpp::Object<dto::execution::RequestDto>, request))
         {
             if (!request)
             {
