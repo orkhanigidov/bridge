@@ -5,7 +5,7 @@ BUILD_TYPE="Debug"
 INSTALL_DEPS=false
 
 print_error() {
-  echo "[$(date -u + '%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
 usage() {
