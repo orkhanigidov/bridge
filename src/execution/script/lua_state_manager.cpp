@@ -1,3 +1,9 @@
+/**
+ * Author: Orkhan Igidov
+ * Project: Engine
+ * Developed as part of the master's thesis at the University of Konstanz.
+ */
+
 #include "execution/script/lua_state_manager.hpp"
 
 #include <exception>

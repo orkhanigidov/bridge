@@ -1,3 +1,9 @@
+/**
+ * Author: Orkhan Igidov
+ * Project: Engine
+ * Developed as part of the master's thesis at the University of Konstanz.
+ */
+
 #include "network/server/server_config.hpp"
 
 #include <exception>

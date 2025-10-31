@@ -6,11 +6,6 @@
 
 #pragma once
 
-namespace engine::bindings::lua
+namespace codegen::wrappers
 {
-    enum class MemoryOwnership
-    {
-        Cpp,
-        Lua
-    };
-} // namespace engine::bindings::lua
+} // namespace codegen::wrappers

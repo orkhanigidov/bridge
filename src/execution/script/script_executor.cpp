@@ -1,3 +1,9 @@
+/**
+ * Author: Orkhan Igidov
+ * Project: Engine
+ * Developed as part of the master's thesis at the University of Konstanz.
+ */
+
 #include "execution/script/script_executor.hpp"
 
 #define SOL_ALL_SAFETIES_ON 1
