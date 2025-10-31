@@ -44,7 +44,8 @@ namespace codegen::generation
 
         static void write_header(std::ofstream& out,
                                  const std::unordered_set<std::string>& includes,
-                                 const std::unordered_set<std::string>& namespaces);
+                                 const std::unordered_set<std::string>& namespaces,
+                                 const std::unordered_set<std::string>& container_types);
         static void write_member_registrations(std::ofstream& out, const std::vector<metadata::ClassDescriptor>& classes);
         static void write_non_member_registrations(std::ofstream& out,
                                                    const std::vector<metadata::FunctionDescriptor>& free_functions,

@@ -49,6 +49,11 @@ namespace codegen::metadata
             return is_const_;
         }
 
+        bool is_container() const noexcept
+        {
+            return is_container_;
+        }
+
         VariableDescriptor& set_scope(Scope scope) noexcept
         {
             scope_ = scope;
@@ -79,11 +84,18 @@ namespace codegen::metadata
             return *this;
         }
 
+        VariableDescriptor& set_container(bool value) noexcept
+        {
+            is_container_ = value;
+            return *this;
+        }
+
     private:
         Scope scope_{Scope::Global};
         std::string name_;
         std::string type_name_;
         bool is_static_{false};
         bool is_const_{false};
+        bool is_container_{false};
     };
 } // namespace codegen::metadata

@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <iostream>
 #include <vector>
 #include <clang-c/Index.h>
 
@@ -64,7 +65,7 @@ namespace
         return ns;
     }
 
-    void check_and_add_default_constructor(const CXCursor cursor, codegen::metadata::ClassDescriptor& class_desc)
+    void check_and_add_default_constructor(const CXCursor& cursor, codegen::metadata::ClassDescriptor& class_desc)
     {
         if (!class_desc.constructors().empty())
         {
@@ -93,6 +94,71 @@ namespace
             ctor_desc.set_signature("()");
             class_desc.add_constructor(std::move(ctor_desc));
         }
+    }
+
+    bool is_iterable_container(const CXCursor& cursor, codegen::analysis::AstVisitor* visitor)
+    {
+        bool has_begin = false;
+        bool has_end = false;
+
+        CXCursor cursor_to_check = cursor;
+        CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor);
+        if (!clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor))
+        {
+            cursor_to_check = template_cursor;
+        }
+
+        std::vector<CXCursor> classes_to_check;
+        classes_to_check.emplace_back(cursor_to_check);
+
+        codegen::analysis::AstVisitor::collect_all_base_cursors(cursor_to_check, classes_to_check);
+
+        struct MethodCheckData
+        {
+            bool* has_begin;
+            bool* has_end;
+        };
+        MethodCheckData data{&has_begin, &has_end};
+
+        for (const auto& class_cursor : classes_to_check)
+        {
+            clang_visitChildren(class_cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+            {
+                if (clang_getCursorKind(child) == CXCursor_CXXMethod)
+                {
+                    if (clang_getCXXAccessSpecifier(child) != CX_CXXPublic)
+                    {
+                        return CXChildVisit_Continue;
+                    }
+
+                    const std::string method_name = codegen::analysis::utils::get_spelling(child);
+                    const auto* check_data = static_cast<MethodCheckData*>(client_data);
+
+                    if (method_name == "begin")
+                    {
+                        *check_data->has_begin = true;
+                    }
+                    else if (method_name == "end")
+                    {
+                        *check_data->has_end = true;
+                    }
+
+                    if (*check_data->has_begin && *check_data->has_end)
+                    {
+                        return CXChildVisit_Break;
+                    }
+                }
+
+                return CXChildVisit_Continue;
+            }, &data);
+
+            if (has_begin && has_end)
+            {
+                break;
+            }
+        }
+
+        return has_begin && has_end;
     }
 }
 
@@ -161,11 +227,14 @@ namespace codegen::analysis
                 auto* visitor = static_cast<VisitorData*>(client_data);
                 if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
                 {
-                    CXCursor base = clang_getCursorReferenced(child);
-                    if (visitor->visited->emplace(base).second)
+                    if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic)
                     {
-                        visitor->bases->emplace_back(base);
-                        visitor->stack->emplace_back(base);
+                        CXCursor base = clang_getCursorReferenced(child);
+                        if (visitor->visited->emplace(base).second)
+                        {
+                            visitor->bases->emplace_back(base);
+                            visitor->stack->emplace_back(base);
+                        }
                     }
                 }
                 return CXChildVisit_Continue;
@@ -376,6 +445,10 @@ namespace codegen::analysis
                     metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor), utils::get_cursor_type_spelling(cursor));
                     var_desc.set_const(clang_isConstQualifiedType(clang_getCursorType(cursor)));
                     var_desc.set_static(clang_Cursor_getStorageClass(cursor) == CX_SC_Static);
+                    CXType var_type = clang_getCursorType(cursor);
+                    CXCursor type_decl = clang_getTypeDeclaration(var_type);
+                    bool is_container_type = is_iterable_container(type_decl, visitor);
+                    var_desc.set_container(is_container_type);
                     class_desc.add_member_variable(std::move(var_desc));
                 }
                 break;
