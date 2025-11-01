@@ -1,0 +1,21 @@
+classes:
+  - name: Graph
+  - name: GraphAttributes
+  - name: OptimalRanking
+  - name: MedianHeuristic
+  - name: SugiyamaLayout
+    methods:
+      - setRanking
+      - setCrossMin
+      - setLayout
+      - call
+  - name: OptimalHierarchyLayout
+    methods:
+      - layerDistance
+      - nodeDistance
+      - weightBalancing
+
+free_functions:
+  - randomSimpleGraph
+
+enums:

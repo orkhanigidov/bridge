@@ -32,15 +32,15 @@ install_dependencies(){
 
   if command -v apt-get &> /dev/null; then
     PKG_MANAGER="apt"
-    PACKAGES="build-essential g++ cmake lua5.4 liblua5.4-dev libclang1-18 ninja-build wget curl"
+    PACKAGES="build-essential g++ cmake lua5.4 liblua5.4-dev libclang1-20 ninja-build wget curl"
     INSTALL_CMD="apt-get update && apt-get install -y ${PACKAGES}"
   elif command -v yum &> /dev/null; then
     PKG_MANAGER="yum"
-    PACKAGES="gcc-c++ cmake lua5.4 liblua5.4-dev libclang1-18 ninja-build wget curl"
+    PACKAGES="gcc-c++ cmake lua5.4 liblua5.4-dev libclang1-20 ninja-build wget curl"
     INSTALL_CMD="yum install -y ${PACKAGES}"
   elif command -v dnf &> /dev/null; then
     PKG_MANAGER="dnf"
-    PACKAGES="gcc-c++ cmake lua5.4 liblua5.4-dev libclang1-18 ninja-build wget curl"
+    PACKAGES="gcc-c++ cmake lua5.4 liblua5.4-dev libclang1-20 ninja-build wget curl"
     INSTALL_CMD="dnf install -y ${PACKAGES}"
   else
     print_error "Unsupported package manager. Cannot install dependencies automatically."
