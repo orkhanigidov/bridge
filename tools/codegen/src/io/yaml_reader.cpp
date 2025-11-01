@@ -6,6 +6,7 @@
 
 #include "io/yaml_reader.hpp"
 
+#include <format>
 #include <string>
 #include <utility>
 #include <vector>
