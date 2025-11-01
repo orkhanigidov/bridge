@@ -8,11 +8,11 @@
 
 #include <algorithm>
 #include <format>
+#include <iostream>
 #include <optional>
 #include <set>
 #include <string>
 #include <utility>
-#include <iostream>
 #include <vector>
 #include <clang-c/Index.h>
 
@@ -111,7 +111,7 @@ namespace
         std::vector<CXCursor> classes_to_check;
         classes_to_check.emplace_back(cursor_to_check);
 
-        codegen::analysis::AstVisitor::collect_all_base_cursors(cursor_to_check, classes_to_check);
+        visitor->collect_all_base_cursors(cursor_to_check, classes_to_check);
 
         struct MethodCheckData
         {
