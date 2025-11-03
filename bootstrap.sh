@@ -8,7 +8,7 @@ print_error() {
   echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
-usage() {
+show_usage() {
   echo "Usage: $0 [--build-type Debug|Release] [--install-deps] [-h|--help]" >&2
   echo ""
   echo "Options:"
@@ -61,7 +61,7 @@ while [[ $# -gt 0 ]]; do
     --build-type)
         if [[ $# -lt 2 ]]; then
             print_error "Missing argument for --build-type"
-            usage
+            show_usage
         fi
         if [[ "$2" != "Debug" && "$2" != "Release" ]]; then
             print_error "--build-type must be Debug or Release"
@@ -75,11 +75,11 @@ while [[ $# -gt 0 ]]; do
       shift 1
       ;;
     -h|--help)
-        usage
+        show_usage
         ;;
     *)
       print_error "Unknown argument: $1"
-      usage
+      show_usage
       ;;
     esac
 done
