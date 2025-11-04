@@ -59,7 +59,7 @@ function Install-Dependencies {
     }
 
     Write-Host 'Attempting to install required dependencies...'
-    $PACKAGES = @('cmake', 'ninja')
+    $PACKAGES = @('cmake', 'ninja', 'mingw')
 
     Write-Host "Using Chocolatey to install packages: $($PACKAGES -join ' ')"
     try {

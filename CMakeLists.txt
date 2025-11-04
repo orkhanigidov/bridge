@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 
+if (NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+    set(CMAKE_POLICY_VERSION_MINIMUM "3.5" CACHE STRING "Minimum required CMake policy version")
+endif ()
+
 if (NOT CMAKE_BINARY_DIR)
     set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 endif ()
@@ -24,7 +28,8 @@ if (WIN32)
     message(STATUS "Windows platform detected. Using Lua from third_party directory.")
 
     set(LUA_INCLUDE_DIR ${THIRD_PARTY_DIR}/lua/include)
-    set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/lua54.lib)
+    set(LUA_LIB ${THIRD_PARTY_DIR}/lua/lib/liblua54.a)
+    set(LUA_BIN ${THIRD_PARTY_DIR}/lua/bin/lua54.dll)
 
     add_library(Lua::Lua UNKNOWN IMPORTED)
     set_target_properties(Lua::Lua PROPERTIES
@@ -50,12 +55,7 @@ include(cmake/CPM.cmake)
 CPMAddPackage("gh:jbeder/yaml-cpp#0.8.0")
 CPMAddPackage("gh:ThePhD/sol2#v3.5.0")
 CPMAddPackage("gh:oatpp/oatpp#1.3.1")
-CPMAddPackage(
-        NAME ogdf
-        GIT_REPOSITORY https://github.com/ogdf/ogdf.git
-        GIT_TAG elderberry-202309
-        OPTIONS "OGDF_MEMORY_MALLOC_TS ON"
-)
+CPMAddPackage("gh:ogdf/ogdf#elderberry-202309")
 
 add_subdirectory(tools/codegen)
 
@@ -99,8 +99,17 @@ else ()
     )
 endif ()
 
+if (WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LUA_BIN} $<TARGET_FILE_DIR:${PROJECT_NAME}>
+            COMMENT "Copying lua54.dll to build directory"
+    )
+endif ()
+
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+else ()
+    target_compile_options(${PROJECT_NAME} PRIVATE "-Wa,-mbig-obj")
 endif ()
 
 add_dependencies(${PROJECT_NAME} generate_bindings)
