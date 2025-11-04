@@ -42,10 +42,10 @@ int main(int argc, const char* argv[])
 
         const std::filesystem::path project_root = std::filesystem::absolute(env_path).parent_path();
 
-        const std::filesystem::path include_dir = reader.get("INCLUDE_DIR").value();
+        const std::filesystem::path include_dir = reader.get("LIBRARY_INCLUDE_PATH").value();
         const std::filesystem::path wrapper_dir = get_path_or_default(reader, "WRAPPER_DIR", project_root / DEFAULT_WRAPPER_DIR);
-        const std::filesystem::path config_yaml = get_path_or_default(reader, "CONFIG_YAML", project_root / DEFAULT_CONFIG_YAML);
-        const std::filesystem::path output_dir = get_path_or_default(reader, "OUTPUT_DIR", project_root / DEFAULT_OUTPUT_DIR);
+        const std::filesystem::path config_yaml = get_path_or_default(reader, "CONFIG_FILE_PATH", project_root / DEFAULT_CONFIG_YAML);
+        const std::filesystem::path output_dir = get_path_or_default(reader, "GENERATED_CODE_DIR", project_root / DEFAULT_OUTPUT_DIR);
 
         const codegen::Engine engine(include_dir, wrapper_dir, config_yaml, output_dir, &std::cout);
         engine.generate_lua_bindings();

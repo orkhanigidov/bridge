@@ -106,6 +106,19 @@ if (WIN32)
     )
 endif ()
 
+if (BUILD_SHARED_LIB AND WIN32)
+    file(READ "${PROJECT_SOURCE_DIR}/.env" ENV_CONTENT)
+    string(REGEX MATCH "UNITY_PROJECT_PATH=(.*)" _ ${ENV_CONTENT})
+    if (CMAKE_MATCH_1)
+        set(ENV{UNITY_PROJECT_PATH} ${CMAKE_MATCH_1})
+    endif ()
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${PROJECT_NAME}> $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
+            COMMENT "Copying DLL to Unity Plugins directory"
+    )
+endif ()
+
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
 else ()
