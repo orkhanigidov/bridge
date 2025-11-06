@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file main.cpp
+ * @brief Entry point for the code generation tool.
+ */
+
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -20,6 +25,13 @@ namespace
     constexpr auto DEFAULT_CONFIG_YAML = "bindings_config.yaml";
     constexpr auto DEFAULT_OUTPUT_DIR = "build";
 
+    /**
+     * @brief Returns the value for a given environment key or a default if not set.
+     * @param reader The environment variable reader.
+     * @param key The key to look up.
+     * @param default_value The default value to use if the key is not set or empty.
+     * @return The resolved path.
+     */
     std::filesystem::path get_path_or_default(const codegen::io::EnvReader& reader,
                                               const std::string& key,
                                               const std::filesystem::path& default_value)
@@ -33,6 +45,15 @@ namespace
     }
 }
 
+/**
+ * @brief Main entry point for the code generation tool.
+ *
+ * Reads environment configuration, resolves paths, and invokes the code generation engine. Prints a fatal error message and returns EXIT_FAILURE on exception.
+ *
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE on error.
+ */
 int main(int argc, const char* argv[])
 {
     try

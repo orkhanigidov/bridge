@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file oatpp_type_adapter.cpp
+ * @brief Implements the OatppTypeAdapter utility for converting oatpp::Any to native C++ types.
+ */
+
 #include "network/serialization/oatpp_type_adapter.hpp"
 
 #include <cstdint>
@@ -15,6 +20,13 @@
 
 namespace
 {
+    /**
+     * @brief Extracts the value from oatpp::Any as a specific Oat++ type and converts it to a native C++ type.
+     * @tparam OatppType The Oat++ type to extract.
+     * @tparam CppType The native C++ type to convert to.
+     * @param any The oatpp::Any value.
+     * @return The extracted value as a NativeVariant.
+     */
     template <typename OatppType, typename CppType>
     engine::network::serialization::NativeVariant extract_or_default(const oatpp::Any& any)
     {
@@ -24,6 +36,10 @@ namespace
 
     using ConversionFunc = std::function<engine::network::serialization::NativeVariant(const oatpp::Any&)>;
 
+    /**
+     * @brief Returns a static map of Oat++ types to their corresponding conversion functions.
+     * @return Reference to the converter map.
+     */
     const std::unordered_map<const oatpp::Type*, ConversionFunc>& get_converter_map()
     {
         static const std::unordered_map<const oatpp::Type*, ConversionFunc> converter_map = {
@@ -53,6 +69,11 @@ namespace engine::network::serialization
 {
     using ConversionFunc = std::function<NativeVariant(const oatpp::Any&)>;
 
+    /**
+     * @brief Converts an oatpp::Any value to a NativeVariant.
+     * @param any The oatpp::Any value to convert.
+     * @return The corresponding NativeVariant, or std::monostate if unsupported or null.
+     */
     NativeVariant OatppTypeAdapter::from_oatpp(const oatpp::Any& any)
     {
         if (!any)

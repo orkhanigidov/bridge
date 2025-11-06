@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file options_mapper.hpp
+ * @brief Declares the OptionsMapper utility for mapping execution options between internal and DTO representations.
+ */
+
 #pragma once
 
 #include <oatpp/core/Types.hpp>
@@ -13,11 +18,23 @@
 
 namespace engine::network::mapper
 {
+    /**
+     * @class  OptionsMapper
+     * @brief Utility class for mapping exection options between internal and DTO representations.
+     */
     class OptionsMapper final
     {
     public:
+        /**
+         * @brief Deleted default constructor to prevent instantiation.
+         */
         OptionsMapper() = delete;
 
+        /**
+         * @brief Converts internal ExecutionOptions to an OptionsDto object.
+         * @param options The internal execution options.
+         * @return The corresponding OptionsDto object.
+         */
         static oatpp::Object<dto::execution::OptionsDto> to_dto(const interop::types::ExecutionOptions& options)
         {
             auto dto = dto::execution::OptionsDto::createShared();
@@ -26,6 +43,11 @@ namespace engine::network::mapper
             return dto;
         }
 
+        /**
+         * @brief Converts an OptionsDto object to internal ExecutionOptions.
+         * @param dto The OptionsDto object.
+         * @return The corresponding internal ExecutionOptions.
+         */
         static interop::types::ExecutionOptions from_dto(const oatpp::Object<dto::execution::OptionsDto>& dto)
         {
             interop::types::ExecutionOptions options{};

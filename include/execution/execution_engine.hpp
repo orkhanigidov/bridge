@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_engine.hpp
+ * @brief Declares the ExecutionEngine utility for executing scripts.
+ */
+
 #pragma once
 
 #include <string>
@@ -13,11 +18,24 @@
 
 namespace engine::execution
 {
+    /**
+     * @class ExecutionEngine
+     * @brief Utility class for executing scripts based on the execution type.
+     */
     class ExecutionEngine final
     {
     public:
+        /**
+         * @brief Deleted default constructor to prevent instantiation.
+         */
         ExecutionEngine() = delete;
 
+        /**
+         * @brief Executes a script based on the specified execution type.
+         * @param type The execution type.
+         * @param script The script to execute.
+         * @return A pointer to the execution response.
+         */
         static utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, const std::string& script);
     };
 } // namespace engine::execution

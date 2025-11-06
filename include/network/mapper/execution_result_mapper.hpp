@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_result_mapper.hpp
+ * @brief Declares the ExecutionResultMapper utility for mapping core execution results to DTO responses.
+ */
+
 #pragma once
 
 #include <algorithm>
@@ -22,11 +27,23 @@
 
 namespace engine::network::mapper
 {
+    /**
+     * @class ExecutionResultMapper
+     * @brief Utility class for mapping core execution results to DTO responses.
+     */
     class ExecutionResultMapper final
     {
     public:
+        /**
+         * @brief Deleted default constructor to prevent instantiation.
+         */
         ExecutionResultMapper() = delete;
 
+        /**
+         * @brief Converts a CoreExecutionResult to a ResponseDto object, chunking output data if necessary.
+         * @param result The core execution result.
+         * @return The corresponding ResponseDto object.
+         */
         static oatpp::Object<dto::execution::ResponseDto> to_dto(const execution::CoreExecutionResult& result)
         {
             const auto dto = dto::execution::ResponseDto::createShared();
@@ -89,6 +106,9 @@ namespace engine::network::mapper
         }
 
     private:
+        /**
+         * @brief Maximum size of each output data chunk (1 MB).
+         */
         static constexpr size_t MAX_CHUNK_SIZE = 1 * 1024 * 1024; // 1 MB
     };
 } // namespace engine::network::mapper

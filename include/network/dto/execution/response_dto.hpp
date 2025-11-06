@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file response_dto.hpp
+ * @brief Defines the ResponseDto DTO for execution responses in the network API.
+ */
+
 #pragma once
 
 #include <oatpp/core/Types.hpp>
@@ -18,13 +23,34 @@
 
 namespace engine::network::dto::execution
 {
+    /**
+     * @class ResponseDto
+     * @brief Data transfer object for execution responses.
+     *
+     * Contains the execution status, output data files, error information, and execution metadata.
+     */
     class ResponseDto final : public oatpp::DTO
     {
         DTO_INIT(ResponseDto, DTO)
 
+        /**
+         * @brief The status of the execution.
+         */
         DTO_FIELD(oatpp::Enum<ExecutionStatusDto>::AsString, status);
+
+        /**
+         * @brief List of output data files as file chunks.
+         */
         DTO_FIELD(oatpp::List<oatpp::Object<FileDto>>, output_data);
+
+        /**
+         * @brief Error information, if any, occurred during execution.
+         */
         DTO_FIELD(oatpp::Object<ErrorDto>, error);
+
+        /**
+         * @brief Metadata about the execution, such as duration.
+         */
         DTO_FIELD(oatpp::Object<MetadataDto>, metadata);
     };
 } // namespace engine::network::dto::execution

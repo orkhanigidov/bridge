@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file env_reader.cpp
+ * @brief Implements the EnvReader for reading environment variables from a file.
+ */
+
 #include "io/env_reader.hpp"
 
 #include <filesystem>
@@ -15,6 +20,11 @@
 
 namespace
 {
+    /**
+     * @brief Trims whitespace from both ends of a string view.
+     * @param str The string view to trim.
+     * @return Trimmed string view.
+     */
     constexpr std::string_view trim(std::string_view str) noexcept
     {
         constexpr std::string_view whitespace = " \t\r\n";
@@ -27,6 +37,11 @@ namespace
         return str.substr(start, end - start + 1);
     }
 
+    /**
+     * @brief Removes surrounding single or double quotes from a string view.
+     * @param str The string view to process.
+     * @return String view without surrounding quotes.
+     */
     constexpr std::string_view strip_quotes(std::string_view str) noexcept
     {
         if (str.length() >= 2)
@@ -44,11 +59,20 @@ namespace
 
 namespace codegen::io
 {
+    /**
+     * @brief Constructs an EnvReader and loads environment variables from a file.
+     * @param env_path Path to the environment file.
+     */
     EnvReader::EnvReader(const std::filesystem::path& env_path)
     {
         from_file(env_path);
     }
 
+    /**
+     * @brief Loads environment variables from a file into the internal map.
+     * @param env_path Path to the environment file.
+     * @throws EnvReaderException if the file cannot be opened.
+     */
     void EnvReader::from_file(const std::filesystem::path& env_path)
     {
         std::ifstream file(env_path);
@@ -89,6 +113,11 @@ namespace codegen::io
         }
     }
 
+    /**
+     * @brief Gets the value of an environment variable by key.
+     * @param key The environment variable name.
+     * @return The value if found, std::nullopt otherwise.
+     */
     std::optional<std::string> EnvReader::get(std::string_view key) const
     {
         if (const auto it = env_vars_.find(std::string(key)); it != env_vars_.end())

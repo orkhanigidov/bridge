@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_controller.hpp
+ * @brief Declares the ExecutionController API controller for execution-related endpoints.
+ */
+
 #pragma once
 
 #include <exception>
@@ -25,20 +30,35 @@
 
 namespace engine::network::api
 {
+    /**
+     * @class ExecutionController
+     * @brief API controller for handling execution-related HTTP requests.
+     */
     class ExecutionController final : public oatpp::web::server::api::ApiController
     {
     public:
+        /**
+         * @brief Constructor.
+         * @param object_mapper The object mapper for DTO serialization.
+         */
         explicit ExecutionController(const std::shared_ptr<oatpp::data::mapping::ObjectMapper>& object_mapper)
             : ApiController(object_mapper)
         {
         }
 
+        /**
+         * @brief Endpoint info for health check.
+         */
         ENDPOINT_INFO(health)
         {
             info->summary = "Check service health status";
             info->addResponse<Object<dto::MessageDto>>(Status::CODE_200, "application/json");
         }
 
+        /**
+         * @brief Health check endpoint.
+         * @return 200 OK with a status message.
+         */
         ENDPOINT("GET", "/api/health", health)
         {
             const auto response = dto::MessageDto::createShared();
@@ -47,6 +67,9 @@ namespace engine::network::api
             return createDtoResponse(Status::CODE_200, response);
         }
 
+        /**
+         * @brief Endpoint info for script or pipeline execution.
+         */
         ENDPOINT_INFO(execution)
         {
             info->summary = "Execute a script or pipeline";
@@ -56,6 +79,11 @@ namespace engine::network::api
             info->addResponse<oatpp::Object<dto::MessageDto>>(Status::CODE_400, "application/json", "Invalid request body");
         }
 
+        /**
+         * @brief Endpoint for executing a script or pipeline.
+         * @param request The execution request DTO.
+         * @return 200 OK with an execution result, 400 for invalid request, or 500 for errors.
+         */
         ENDPOINT("POST", "/api/execute_script", execution, BODY_DTO(oatpp::Object<dto::execution::RequestDto>, request))
         {
             if (!request)

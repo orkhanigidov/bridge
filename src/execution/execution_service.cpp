@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_service.cpp
+ * @brief Implements the ExecutionService utility for executing requests.
+ */
+
 #include "execution/execution_service.hpp"
 
 #include <algorithm>
@@ -25,6 +30,12 @@
 
 namespace engine::execution
 {
+    /**
+     * @brief Executes a request by decoding input data, running a Lua script, and encoding the output. Handles all errors by returning a failure result or throwing ExecutionServiceException.
+     * @param request The execution request DTO.
+     * @return The result of the execution.
+     * @throws ExecutionServiceExceeption on input/output errors.
+     */
     CoreExecutionResult ExecutionService::execute(const oatpp::Object<network::dto::execution::RequestDto>& request)
     {
         auto temp_dir = std::filesystem::temp_directory_path() / "ogdf_engine_runs";

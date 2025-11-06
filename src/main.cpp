@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file main.cpp
+ * @brief Entry point for the Engine server application.
+ */
+
 #include <csignal>
 #include <cstdlib>
 #include <exception>
@@ -19,6 +24,10 @@
 
 static std::shared_ptr<engine::network::server::ServerManager> server_manager;
 
+/**
+ * @brief Handles termination signals (SIGINT, SIGTERM) to gracefully shut down the server.
+ * @param signal The received signal number.
+ */
 void handle_signal(int signal)
 {
     if (signal == SIGINT || signal == SIGTERM)
@@ -31,6 +40,12 @@ void handle_signal(int signal)
     }
 }
 
+/**
+ * @brief Main entry point for the Engine application. Initializes the environment, parses configuration, starts the server, and handles shutdown.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return Exit code.
+ */
 int main(int argc, const char* argv[])
 {
     int exit_code = EXIT_SUCCESS;

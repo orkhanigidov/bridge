@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file json_serializer.hpp
+ * @brief Defines the JsonSerializer for serializing and deserializing DTOs using Oat++ JSON mapping.
+ */
+
 #pragma once
 
 #include <exception>
@@ -18,17 +23,34 @@
 
 namespace engine::network::serialization
 {
+    /**
+     * @class JsonSerializerException
+     * @brief Exception type for JSON serialization and deserialization errors.
+     */
     class JsonSerializerException final : public std::runtime_error
     {
     public:
         using std::runtime_error::runtime_error;
     };
 
+    /**
+     * @class JsonSerializer
+     * @brief Generic JSON serializer/deserializer for Oat++ DTOs.
+     * @tparam DtoType The DTO type to serialize/deserialize.
+     *
+     * Provides methods to serialize DTOs to JSON strings and deserialize JSON strings to DTOs.
+     * Throws JsonSerializerException on error.
+     */
     template <typename DtoType>
     class JsonSerializer final
     {
     public:
-        explicit JsonSerializer(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper): object_mapper_(std::move(object_mapper))
+        /**
+         * @brief Constructs a JsonSerializer with the given object mapper.
+         * @param object_mapper Shared pointer to an Oat++ JSON object mapper.
+         * @throws JsonSerializerException if the object mapper is null.
+         */
+        explicit JsonSerializer(std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper) : object_mapper_(std::move(object_mapper))
         {
             if (!object_mapper_)
             {
@@ -36,6 +58,12 @@ namespace engine::network::serialization
             }
         }
 
+        /**
+         * @brief Deserializes a JSON string to a DTO object.
+         * @param json_data The JSON string to deserialize.
+         * @return The deserialized DTO object.
+         * @throws JsonSerializerException if input is empty/null, or parsing fails.
+         */
         DtoType from_json(const oatpp::String& json_data) const
         {
             if (!json_data || json_data->empty())
@@ -52,6 +80,12 @@ namespace engine::network::serialization
             }
         }
 
+        /**
+         * @brief Serializes a DTO object to a JSON string.
+         * @param dto The DTO object to serialize.
+         * @return The serialized JSON string.
+         * @throws JsonSerializerException if input is null or serialization fails.
+         */
         oatpp::String to_json(const DtoType& dto) const
         {
             if (!dto)
@@ -69,6 +103,9 @@ namespace engine::network::serialization
         }
 
     private:
+        /**
+         * @brief The Oat++ JSON object mapper.
+         */
         std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
     };
 } // namespace engine::network::serialization

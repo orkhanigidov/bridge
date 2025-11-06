@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file response_mapper.hpp
+ * @brief Declares the ResponseMapper utility for mapping execution responses between internal and DTO representations.
+ */
+
 #pragma once
 
 #include <oatpp/core/Types.hpp>
@@ -18,16 +23,34 @@
 
 namespace engine::network::mapper
 {
+    /**
+     * @class ResponseMapper
+     * @brief Utility class for mapping execution responses between internal and DTO representations.
+     */
     class ResponseMapper final
     {
     public:
+        /**
+         * @brief Deleted default constructor to prevent instantiation.
+         */
         ResponseMapper() = delete;
 
+        /**
+         * @brief Converts internal ExecutionStatus to a DTO enum.
+         * @param status The internal execution status.
+         * @return The corresponding ExecutionStatusDto enum.
+         */
         static oatpp::Enum<dto::execution::ExecutionStatusDto> to_dto(const interop::types::ExecutionStatus& status)
         {
             return static_cast<dto::execution::ExecutionStatusDto>(status);
         }
 
+        /**
+         * @brief Converts internal ExecutionResponse and output data to a ReponseDto object.
+         * @param response The internal execution response.
+         * @param output_data The output file data as a FileDto object.
+         * @return The corresponding ResponseDto object.
+         */
         static oatpp::Object<dto::execution::ResponseDto> to_dto(const interop::types::ExecutionResponse& response,
                                                                  const oatpp::Object<dto::execution::FileDto>& output_data)
         {

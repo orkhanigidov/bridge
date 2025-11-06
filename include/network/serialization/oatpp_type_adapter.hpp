@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file oatpp_type_adapter.hpp
+ * @brief Defines the OatppTypeAdapter utility for converting oatpp::Any to native C++ types.
+ */
+
 #pragma once
 
 #include <cstdint>
@@ -13,6 +18,10 @@
 
 namespace engine::network::serialization
 {
+    /**
+     * @typedef NativeVariant
+     * @brief Variant type representing supported native C++ types for conversion.
+     */
     using NativeVariant = std::variant<
         std::monostate,
         bool,
@@ -25,11 +34,22 @@ namespace engine::network::serialization
         std::string
     >;
 
+    /**
+     * @class OatppTypeAdapter
+     * @brief Utility class for converting oatpp::Any to NativeVariant.
+     *
+     * Provides a static method to convert oatpp::Any values to their corresponding native C++ types.
+     */
     class OatppTypeAdapter final
     {
     public:
         OatppTypeAdapter() = delete;
 
+        /**
+         * @brief Converts an oatpp::Any value to a NativeVariant.
+         * @param any The oatpp::Any value to convert.
+         * @return The corresponding NativeVariant.
+         */
         static NativeVariant from_oatpp(const oatpp::Any& any);
     };
 } // namespace engine::network::serialization

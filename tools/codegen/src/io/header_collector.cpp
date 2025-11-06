@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file header_collector.cpp
+ * @brief Implements the HeaderCollector for collecting header files from directories.
+ */
+
 #include "io/header_collector.hpp"
 
 #include <filesystem>
@@ -15,6 +20,13 @@
 
 namespace codegen::io
 {
+    /**
+     * @brief Collects header files from the given include directories and writes their paths to an output file.
+     * @param include_dirs The directories to search for header files.
+     * @param output_file The file to write the collected header paths to.
+     * @param extensions The file extensions to consider as headers.
+     * @throws HeaderCollectorException if an error occurs during collection or writing.
+     */
     void HeaderCollector::collect_headers_to_file(const std::vector<std::filesystem::path>& include_dirs,
                                                   const std::filesystem::path& output_file,
                                                   const std::vector<std::string>& extensions)

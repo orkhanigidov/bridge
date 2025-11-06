@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file sol2_generator.cpp
+ * @brief Implements the Sol2Generator for generating Lua bindings using Sol2.
+ */
+
 #include "generation/sol2_generator.hpp"
 
 #include <algorithm>
@@ -23,11 +28,26 @@
 
 namespace
 {
+    /**
+     * @brief Writes a line to the output file with the specified indentation and newlines.
+     * @param out Output file stream.
+     * @param indent Number of indentation levels (4 spaces each).
+     * @param text The text to write.
+     * @param newlines Number of newline characters to append (default: 1).
+     */
     void write_line(std::ofstream& out, int indent, std::string_view text, int newlines = 1)
     {
         out << std::string(static_cast<size_t>(indent) * 4, ' ') << text << std::string(static_cast<size_t>(std::max(0, newlines)), '\n');
     }
 
+    /**
+     * @brief Formats a string to a valid Lua identifier.
+     *
+     * Replaces non-alphanumeric characters with underscores, removes leading/trailing underscores, collapses consecutive underscores, and converts to camel case.
+     *
+     * @param name The string to format.
+     * @return The formatted Lua identifier.
+     */
     std::string format_lua_name(std::string name)
     {
         std::ranges::for_each(name, [](char& c)
@@ -72,6 +92,14 @@ namespace
         return name;
     }
 
+    /**
+     * @brief Writes Sol2 overload resolution expressions for a set of functions.
+     * @tparam IsMember True if the functions are class members, false for free functions.
+     * @param stream Output string stream.
+     * @param funcs Vector of function descriptors.
+     * @param indent indent Indentation level.
+     * @param class_name Name of the class (for member functions).
+     */
     template <bool IsMember>
     void write_overload_resolutions(std::ostringstream& stream, const std::vector<const codegen::metadata::FunctionDescriptor*>& funcs, int indent, std::string_view class_name = "")
     {
@@ -105,6 +133,13 @@ namespace
         }
     }
 
+    /**
+     * @brief Writes enum name-value pairs for Sol2 registration.
+     * @param stream Output string stream.
+     * @param enum_ Enum descriptor.
+     * @param indent Indentation level.
+     * @param full_enum_name Fully qualified enum name.
+     */
     void write_enum_pairs(std::ostringstream& stream, const codegen::metadata::EnumDescriptor& enum_, int indent, std::string_view full_enum_name)
     {
         const std::string indent_str(static_cast<size_t>(indent) * 4, ' ');
@@ -124,6 +159,14 @@ namespace
 
 namespace codegen::generation
 {
+    /**
+     * @brief Generates Sol2 bindings for the provided metadata.
+     * @param includes Set of header files to include.
+     * @param namespaces Set of C++ namespaces to process.
+     * @param classes List of class descriptors to generate bindings for.
+     * @param free_functions List of free function descriptors to bind.
+     * @param enums List of enum descriptors to bind.
+     */
     void Sol2Generator::generate(const std::unordered_set<std::string>& includes,
                                  const std::unordered_set<std::string>& namespaces,
                                  const std::vector<metadata::ClassDescriptor>& classes,
@@ -154,6 +197,13 @@ namespace codegen::generation
         write_footer(out);
     }
 
+    /**
+     * @brief Writes the file header, including and namespace declarations.
+     * @param out Output file stream.
+     * @param includes Set of header files to include.
+     * @param namespaces Set of namespaces to open.
+     * @param container_types Set of container types to register.
+     */
     void Sol2Generator::write_header(std::ofstream& out,
                                      const std::unordered_set<std::string>& includes,
                                      const std::unordered_set<std::string>& namespaces,
@@ -190,6 +240,11 @@ namespace codegen::generation
         write_line(out, 0, "{");
     }
 
+    /**
+     * @brief Writes Sol2 member registrations for all classes.
+     * @param out Output file stream.
+     * @param classes List of class descriptors.
+     */
     void Sol2Generator::write_member_registrations(std::ofstream& out, const std::vector<metadata::ClassDescriptor>& classes)
     {
         write_line(out, 1, "void register_members(sol::state& lua)");
@@ -343,6 +398,12 @@ namespace codegen::generation
         write_line(out, 1, "}", 2);
     }
 
+    /**
+     * @brief Writes Sol2 registrations for free functions and enums.
+     * @param out Output file stream.
+     * @param free_functions List of free function descriptors.
+     * @param enums List of enum descriptors.
+     */
     void Sol2Generator::write_non_member_registrations(std::ofstream& out,
                                                        const std::vector<metadata::FunctionDescriptor>& free_functions,
                                                        const std::vector<metadata::EnumDescriptor>& enums)
@@ -380,6 +441,10 @@ namespace codegen::generation
         write_line(out, 1, "}");
     }
 
+    /**
+     * @brief Writes the file footer, closing any open namespaces.
+     * @param out Output file stream.
+     */
     void Sol2Generator::write_footer(std::ofstream& out)
     {
         write_line(out, 0, "} // namespace engine::bindings::lua");

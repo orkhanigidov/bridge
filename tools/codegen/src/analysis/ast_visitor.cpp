@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file ast_visitor.cpp
+ * @brief Implements the AST visitor for code analysis.
+ */
+
 #include "analysis/ast_visitor.hpp"
 
 #include <algorithm>
@@ -26,6 +31,9 @@
 
 namespace
 {
+    /**
+     * @brief Comparator for CXCursor objects based on their hash values.
+     */
     struct CursorComparator
     {
         bool operator()(const CXCursor& lhs, const CXCursor& rhs) const
@@ -34,6 +42,11 @@ namespace
         }
     };
 
+    /**
+     * @brief Retrieves the namespace of the given AST cursor, if any.
+     * @param cursor The AST cursor whose namespace is to be determined.
+     * @return An optional string containing the fully qualified namespace, or std::nullopt if none.
+     */
     std::optional<std::string> get_cursor_namespace(const CXCursor& cursor)
     {
         std::string ns;
@@ -65,6 +78,11 @@ namespace
         return ns;
     }
 
+    /**
+     * @brief Ensures a class has at least a default constructor.
+     * @param cursor The class declaration cursor.
+     * @param class_desc The class descriptor to update.
+     */
     void check_and_add_default_constructor(const CXCursor& cursor, codegen::metadata::ClassDescriptor& class_desc)
     {
         if (!class_desc.constructors().empty())
@@ -96,6 +114,12 @@ namespace
         }
     }
 
+    /**
+     * @brief Checks if the given type cursor represents an iterable container (has public begin and end methods).
+     * @param cursor The type declaration cursor to check.
+     * @param visitor Pointer to the AstVisitor instance for base class traversal.
+     * @return True if the type is an iterable container, false otherwise.
+     */
     bool is_iterable_container(const CXCursor& cursor, codegen::analysis::AstVisitor* visitor)
     {
         bool has_begin = false;
@@ -164,6 +188,12 @@ namespace
 
 namespace codegen::analysis
 {
+    /**
+     * @brief Visits a Clang AST node and its children.
+     * @param cursor The current AST node.
+     * @param parent The parent AST node.
+     * @return The result of the visit (continue, recurse, or break).
+     */
     CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor& parent)
     {
         const auto path = utils::get_include_path(cursor);
@@ -194,12 +224,24 @@ namespace codegen::analysis
         return CXChildVisit_Recurse;
     }
 
+    /**
+     * @brief Static callback for Clang's AST traversal.
+     * @param cursor The current AST node.
+     * @param parent The parent AST node.
+     * @param client_data Pointer to the AstVisitor instance.
+     * @return The result of the visit.
+     */
     CXChildVisitResult AstVisitor::visitor_callback(CXCursor cursor, CXCursor parent, CXClientData client_data)
     {
         auto* visitor = static_cast<AstVisitor*>(client_data);
         return visitor->visit(cursor, parent);
     }
 
+    /**
+     * @brief Collects all base class cursors for a given class cursor.
+     * @param cursor The class cursor.
+     * @param bases Vector to store found base class cursors.
+     */
     void AstVisitor::collect_all_base_cursors(const CXCursor& cursor, std::vector<CXCursor>& bases)
     {
         struct VisitorData
@@ -242,6 +284,11 @@ namespace codegen::analysis
         }
     }
 
+    /**
+     * @brief Parses an enum declaration cursor into an EnumDescriptor.
+     * @param cursor The enum declaration cursor.
+     * @return Optional EnumDescriptor if parsing is successful.
+     */
     std::optional<metadata::EnumDescriptor> AstVisitor::parse_enum_decl(const CXCursor& cursor)
     {
         const auto enum_name = utils::get_spelling(cursor);
@@ -273,6 +320,11 @@ namespace codegen::analysis
         return enum_desc;
     }
 
+    /**
+     * @brief Processes common logic for class declarations and templates.
+     * @param cursor The class cursor.
+     * @param class_desc The class descriptor to populate.
+     */
     void AstVisitor::process_class_common(const CXCursor& cursor, metadata::ClassDescriptor& class_desc)
     {
         clang_visitChildren(cursor, &AstVisitor::visit_class_member, this);
@@ -287,6 +339,10 @@ namespace codegen::analysis
         check_and_add_default_constructor(cursor, class_desc);
     }
 
+    /**
+     * @brief Visits a class declaration node.
+     * @param cursor The class declaration cursor.
+     */
     void AstVisitor::visit_class_decl(const CXCursor& cursor)
     {
         auto class_name = utils::get_spelling(cursor);
@@ -318,6 +374,13 @@ namespace codegen::analysis
         process_class_common(cursor, result_.classes.back());
     }
 
+    /**
+     * @brief Static callback for visiting class members.
+     * @param cursor The member cursor.
+     * @param parent The parent class cursor.
+     * @param client_data Pointer to the class descriptor.
+     * @return The result of the visit.
+     */
     CXChildVisitResult AstVisitor::visit_class_member(CXCursor cursor, CXCursor parent, CXClientData client_data)
     {
         auto* visitor = static_cast<AstVisitor*>(client_data);
@@ -461,6 +524,10 @@ namespace codegen::analysis
         return CXChildVisit_Continue;
     }
 
+    /**
+     * @brief Visits a class template declaration node.
+     * @param cursor The class template cursor.
+     */
     void AstVisitor::visit_class_template(const CXCursor& cursor)
     {
         auto template_name = utils::get_spelling(cursor);
@@ -493,6 +560,10 @@ namespace codegen::analysis
         }
     }
 
+    /**
+     * @brief Visits an enum declaration node.
+     * @param cursor The enum declaration cursor.
+     */
     void AstVisitor::visit_enum_decl(const CXCursor& cursor)
     {
         const auto enum_name = utils::get_spelling(cursor);
@@ -508,6 +579,10 @@ namespace codegen::analysis
         }
     }
 
+    /**
+     * @brief Visits a function declaration node.
+     * @param cursor The function declaration cursor.
+     */
     void AstVisitor::visit_function_decl(const CXCursor& cursor)
     {
         const auto path = utils::get_include_path(cursor);

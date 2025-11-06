@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file yaml_reader.cpp
+ * @brief Implements the YamlReader for reading and parsing YAML configuration files.
+ */
+
 #include "io/yaml_reader.hpp"
 
 #include <format>
@@ -16,6 +21,12 @@
 
 namespace
 {
+    /**
+     * @brief Extracts a sequence of strings from a YAML node by key.
+     * @param root The root YAML node.
+     * @param key The key to extract the sequence from.
+     * @return Vector of strings found under the key.
+     */
     std::vector<std::string> extract_string_sequence(const YAML::Node& root, const char* key)
     {
         std::vector<std::string> names;
@@ -38,6 +49,12 @@ namespace
 
 namespace codegen::io
 {
+    /**
+     * @brief Loads and parses a YAML file into a YamlReader.
+     * @param file_path Path to the YAML configuration file.
+     * @return YamlReader instance with parsed data.
+     * @throws YamlReaderException if the file cannot be read or parsed.
+     */
     YamlReader YamlReader::from_file(const std::filesystem::path& file_path)
     {
         YAML::Node root;
@@ -47,8 +64,7 @@ namespace codegen::io
         } catch (const YAML::BadFile&)
         {
             throw YamlReaderException(std::format("Could not open YAML file: {}", file_path.string()));
-        }
-        catch (const YAML::ParserException& e)
+        } catch (const YAML::ParserException& e)
         {
             throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path.string(), e.what()));
         }
@@ -56,6 +72,10 @@ namespace codegen::io
         return YamlReader(root);
     }
 
+    /**
+     * @brief Constructs a YamlReader from a parsed YAML node.
+     * @param root The root YAML node.
+     */
     YamlReader::YamlReader(const YAML::Node& root)
     {
         extract_all_classes(root);
@@ -63,6 +83,10 @@ namespace codegen::io
         enums_ = extract_string_sequence(root, ENUMS);
     }
 
+    /**
+     * @brief Extracts all class configurations from the YAML root node.
+     * @param root The root YAML node.
+     */
     void YamlReader::extract_all_classes(const YAML::Node& root)
     {
         const auto& classes_node = root[CLASSES];

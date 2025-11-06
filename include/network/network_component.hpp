@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file network_component.hpp
+ * @brief Declares the NetworkComponent class providing Oat++ DI components for networking.
+ */
+
 #pragma once
 
 #include <memory>
@@ -20,11 +25,21 @@
 
 namespace engine::network
 {
+    /**
+     * @class NetworkComponent
+     * @brief Provides Oat++ dependency injection components for networking.
+     */
     class NetworkComponent final
     {
     public:
+        /**
+         * @brief Default constructor.
+         */
         NetworkComponent() = default;
 
+        /**
+         * @brief Provides a shared ServerConnectionProvider component.
+         */
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider)([]
         {
             OATPP_COMPONENT(std::shared_ptr<server::ServerConfig>, config);
@@ -33,17 +48,26 @@ namespace engine::network
             });
         }());
 
+        /**
+         * @brief Provides a shared HttpRouter component.
+         */
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, http_router)([]
         {
             return oatpp::web::server::HttpRouter::createShared();
         }());
 
+        /**
+         * @brief Provides a shared ConnectionHandler component.
+         */
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connection_handler)([]
         {
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
             return oatpp::web::server::HttpConnectionHandler::createShared(router);
         }());
 
+        /**
+         * @brief Provides a shared JSON ObjectMapper component with beautifier enabled.
+         */
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, object_mapper)([]
         {
             auto mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();

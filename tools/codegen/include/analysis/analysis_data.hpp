@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file analysis_data.hpp
+ * @brief Data structures for analysis configuration and results.
+ */
+
 #pragma once
 
 #include <filesystem>
@@ -18,28 +23,95 @@
 
 namespace codegen::analysis
 {
+    /**
+     * @struct ClassConfig
+     * @brief Configuration for a class to be analyzed.
+     *
+     * Contains the list of method names and template types to process for a class.
+     */
     struct ClassConfig
     {
+        /**
+         * @brief Names of methods to analyze.
+         */
         std::vector<std::string> methods;
-        std::vector<std::string> types; // For template classes
+
+        /**
+         * @brief Template types for template classes.
+         */
+        std::vector<std::string> types;
     };
 
+    /**
+     * @struct AnalysisConfig
+     * @brief Configuration for the analysis process.
+     *
+     * Specifies include paths, target classes, free functions, and enums to analyze.
+     */
     struct AnalysisConfig
     {
+        /**
+         * @brief The path to the target includes a directory.
+         */
         std::filesystem::path target_include_path;
+
+        /**
+         * @brief The path to the wrapper includes a directory.
+         */
         std::filesystem::path wrapper_include_path;
+
+        /**
+         * @brief Classes to analyze.
+         */
         std::unordered_map<std::string, ClassConfig> target_classes;
+
+        /**
+         * @brief Free functions to analyze.
+         */
         std::vector<std::string> target_free_functions;
+
+        /**
+         * @brief Enums to analyze.
+         */
         std::vector<std::string> target_enums;
     };
 
+    /**
+     * @struct AnalysisResult
+     * @brief Result of the analysis process.
+     *
+     * Contains discovered includes, namespaces, classes, free functions, enums, and processed classes.
+     */
     struct AnalysisResult
     {
+        /**
+         * @brief Set of include paths found.Set of include paths found.
+         */
         std::unordered_set<std::string> includes;
+
+        /**
+         * @brief Set of namespaces found.
+         */
         std::unordered_set<std::string> namespaces;
+
+        /**
+         * @brief Analyzed class descriptors.
+         */
         std::vector<metadata::ClassDescriptor> classes;
+
+        /**
+         * @brief Analyzed free function descriptors.
+         */
         std::vector<metadata::FunctionDescriptor> free_functions;
+
+        /**
+         * @brief Analyzed enum descriptors.
+         */
         std::vector<metadata::EnumDescriptor> enums;
+
+        /**
+         * @brief Set of processed class names.
+         */
         std::unordered_set<std::string> processed_classes;
     };
 } // namespace codegen::analysis

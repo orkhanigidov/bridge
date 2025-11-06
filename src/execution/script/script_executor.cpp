@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file script_executor.cpp
+ * @brief Implements the ScriptExecutor utility for executing Lua scripts.
+ */
+
 #include "execution/script/script_executor.hpp"
 
 #define SOL_ALL_SAFETIES_ON 1
@@ -20,6 +25,11 @@
 
 namespace
 {
+    /**
+     * @brief Executes a Lua script using the provided runner and measures execution time. Returns a CoreExecutionResult with status and error/metadata.
+     * @param script_runner The function that runs the Lua script and returns a protected result.
+     * @return The result of the script execution.
+     */
     engine::execution::CoreExecutionResult execute_lua(const std::function<sol::protected_function_result()>& script_runner)
     {
         const auto start = std::chrono::high_resolution_clock::now();
@@ -66,6 +76,12 @@ namespace
 
 namespace engine::execution::script
 {
+    /**
+     * @brief Executes a Lua script from a file using the given environment.
+     * @param script_path The path to the Lua script file.
+     * @param env The Lua environment to use.
+     * @return The result of the script execution.
+     */
     CoreExecutionResult ScriptExecutor::execute_from_file(const std::filesystem::path& script_path, const sol::environment& env) const
     {
         const auto normalized_path = utils::filesystem::to_forward_slashes(std::filesystem::absolute(script_path));
@@ -76,6 +92,12 @@ namespace engine::execution::script
         });
     }
 
+    /**
+     * @brief Executes a Lua script from a sting using the given environment.
+     * @param script_content The Lua script content as a string.
+     * @param env The Lua environment to use.
+     * @return The result of the script exection.
+     */
     CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content, const sol::environment& env) const
     {
         return execute_lua([&]

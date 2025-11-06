@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file lua_binder.cpp
+ * @brief Implements the LuaBinder utility for registering Lua bindings.
+ */
+
 #include "bindings/lua/lua_binder.hpp"
 
 #include <chrono>
@@ -13,6 +18,10 @@
 
 namespace engine::bindings::lua
 {
+    /**
+     * @brief Registers all Lua bindings to the given Lua state. Logs the registration duration and any errors encountered.
+     * @param lua The Lua state to register bindings to.
+     */
     void LuaBinder::register_bindings(sol::state& lua)
     {
         try
@@ -29,8 +38,7 @@ namespace engine::bindings::lua
         } catch (const sol::error& e)
         {
             std::cerr << std::format("Error registering Lua bindings: {}\n", e.what());
-        }
-        catch (const std::exception& e)
+        } catch (const std::exception& e)
         {
             std::cerr << std::format("Unhandled exception while registering Lua bindings: {}\n", e.what());
         }

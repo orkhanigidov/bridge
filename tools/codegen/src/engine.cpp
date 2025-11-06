@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file engine.cpp
+ * @brief Implements the Engine class for generating Lua bindings.
+ */
+
 #include "engine.hpp"
 
 #include <exception>
@@ -18,6 +23,19 @@
 
 namespace codegen
 {
+    /**
+     * @brief Generates Lua bindings based on the provided configuration and directories.
+     *
+     * This method performs the following steps:
+     * 1. Collects header files from the include and wrapper directories.
+     * 2. Reads and parses the YAML configuration file.
+     * 3. Analyzes the code using Clang.
+     * 4. Generates Lua bindings using the Sol2 generator.
+     *
+     * Progress is logged via the log method. Throws EngineException on failure.
+     *
+     * @throws EngineException if any stage of the code generation fails.
+     */
     void Engine::generate_lua_bindings() const
     {
         try

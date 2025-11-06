@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file error_mapper.hpp
+ * @brief Declares the ErrorMapper utility for mapping execution errors between internal and DTO representations.
+ */
+
 #pragma once
 
 #include <oatpp/core/Types.hpp>
@@ -15,16 +20,33 @@
 
 namespace engine::network::mapper
 {
+    /**
+     * @class ErrorMapper
+     * @brief Utility class for mapping execution errors between internal and DTO representations.
+     */
     class ErrorMapper final
     {
     public:
+        /**
+         * @brief Deleted default constructor to prevent instantiation.
+         */
         ErrorMapper() = delete;
 
+        /**
+         * @brief Converts internal ExecutionErrorType to a DTO enum.
+         * @param type The internal execution error type.
+         * @return The corresponding ExecutionErrorTypeDto enum.
+         */
         static oatpp::Enum<dto::execution::ExecutionErrorTypeDto> to_dto(const interop::types::ExecutionErrorType& type)
         {
             return static_cast<dto::execution::ExecutionErrorTypeDto>(type);
         }
 
+        /**
+         * @brief Converts internal ExecutionError to an ErrorDto object.
+         * @param error The internal execution error.
+         * @return The corresponding ErrorDto object, or nullptr if the message is null.
+         */
         static oatpp::Object<dto::execution::ErrorDto> to_dto(const interop::types::ExecutionError& error)
         {
             if (error.message == nullptr)

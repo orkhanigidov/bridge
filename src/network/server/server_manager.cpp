@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file server_manager.cpp
+ * @brief Implements the ServerManager class for managing the server lifecycle.
+ */
+
 #include "network/server/server_manager.hpp"
 
 #include <exception>
@@ -23,6 +28,9 @@
 
 namespace engine::network::server
 {
+    /**
+     * @brief Destructor for ServerManager. Shuts down the server if still running.
+     */
     ServerManager::~ServerManager() noexcept
     {
         if (state_ == ServerState::Running || state_ == ServerState::Initialized)
@@ -32,6 +40,9 @@ namespace engine::network::server
         }
     }
 
+    /**
+     * @brief Initializes the server components and sets up the HTTP router and controllers.
+     */
     void ServerManager::initialize()
     {
         if (state_ != ServerState::Stopped)
@@ -64,6 +75,9 @@ namespace engine::network::server
         OATPP_LOGI("Server", "Initialized on %s:%u", config_.host->c_str(), config_.port);
     }
 
+    /**
+     * @brief Runs the server, handling initialization and startup. Logs errors if startup fails.
+     */
     void ServerManager::run()
     {
         try
@@ -81,6 +95,9 @@ namespace engine::network::server
         }
     }
 
+    /**
+     * @brief Starts the server and enters the main loops. Logs server status.
+     */
     void ServerManager::start()
     {
         state_ = ServerState::Running;
@@ -93,6 +110,9 @@ namespace engine::network::server
         shutdown();
     }
 
+    /**
+     * @brief Shuts down the server and releases resources. Logs shutdown status and errors.
+     */
     void ServerManager::shutdown()
     {
         if (state_ != ServerState::Running && state_ != ServerState::Initialized)

@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_error.h
+ * @brief Defines the ExecutionError struct for engine interop layer.
+ */
+
 #pragma once
 
 #include "execution_error_type.h"
@@ -12,9 +17,22 @@
 
 namespace engine::interop::types
 {
+    /**
+     * @struct ExecutionError
+     * @brief Represents an error that occurred during execution in the engine interop layer.
+     *
+     * Contains the error type and an associated error message.
+     */
     typedef struct ExecutionError
     {
+        /**
+         * @brief The type of the execution error.
+         */
         ExecutionErrorType type;
+
+        /**
+         * @brief The error message describing the error.
+         */
         char* message;
     } ExecutionError;
 } // namespace engine::interop::types

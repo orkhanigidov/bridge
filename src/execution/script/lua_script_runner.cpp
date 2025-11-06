@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file lua_script_runner.cpp
+ * @brief Implements the LuaScriptRunner utility for running Lua scripts with a context.
+ */
+
 #include "execution/script/lua_script_runner.hpp"
 
 #include <filesystem>
@@ -16,6 +21,11 @@
 
 namespace engine::execution::script
 {
+    /**
+     * @brief Creates a Lua environment for the script using the provided context. Sets input and output paths as environment variables if present.
+     * @param context The script context.
+     * @return The created Lua environment.
+     */
     sol::environment LuaScriptRunner::create_script_env(const ScriptContext& context) const
     {
         sol::environment env(lua_, sol::create, lua_.globals());
@@ -33,6 +43,11 @@ namespace engine::execution::script
         return env;
     }
 
+    /**
+     * @brief Runs a Lua script from a string using the provided context.
+     * @param context The script context containing script content and optional paths.
+     * @return The result of the script execution.
+     */
     CoreExecutionResult LuaScriptRunner::run_from_string(const ScriptContext& context) const
     {
         const sol::environment env = create_script_env(context);
@@ -40,6 +55,11 @@ namespace engine::execution::script
         return executor.execute_from_string(context.script_content, env);
     }
 
+    /**
+     * @brief Runs a Lua script from a file using the provided context. Returns a failure result if the script file does not exist.
+     * @param context The script context containing script content and optional paths.
+     * @return The result of the script execution.
+     */
     CoreExecutionResult LuaScriptRunner::run_from_file(const ScriptContext& context) const
     {
         const sol::environment env = create_script_env(context);

@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file interop_bridge.cpp
+ * @brief Implements the interop bridge for script execution and Lua state management.
+ */
+
 #include "interop/interop_bridge.hpp"
 
 #include <exception>
@@ -21,6 +26,12 @@
 
 namespace engine::interop
 {
+    /**
+     * @brief Pre-warms the thread-local Lua state for script execution.
+     * @return True if successful, false otherwise.
+     *
+     * Logs errors to std::cerr if Lua state initialization fails.
+     */
     bool prewarm_thread_state()
     {
         try
@@ -34,6 +45,13 @@ namespace engine::interop
         }
     }
 
+    /**
+     * @brief Executes a script based on the provided execution request.
+     * @param request Pointer to the exection request.
+     * @return Pointer to the exection response.
+     *
+     * Returns an error response for unsupported execution types or exceptions.
+     */
     utils::ExecutionResponsePtr execute(const ExecutionRequest* request)
     {
         try

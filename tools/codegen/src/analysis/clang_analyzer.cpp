@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file clang_analyzer.cpp
+ * @brief Implements the ClangAnalyzer class for analyzing C++ source files using Clang.
+ */
+
 #include "analysis/clang_analyzer.hpp"
 
 #include <filesystem>
@@ -17,6 +22,12 @@
 
 namespace codegen::analysis
 {
+    /**
+     * @brief Constructs a ClangAnalyzer, parses the given source file, and collects code metadata.
+     * @param file_path Path to the C++ source file to analyze.
+     * @param config Analysis configuration specifying includes paths and extraction options.
+     * @throws ClangAnalyzerException if Clang index or translation unit creation fails.
+     */
     ClangAnalyzer::ClangAnalyzer(const std::filesystem::path& file_path, const AnalysisConfig& config)
     {
         const IndexPtr index(clang_createIndex(0, 0), &clang_disposeIndex);

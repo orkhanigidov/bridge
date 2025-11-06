@@ -4,6 +4,11 @@
  * Developed as part of the master's thesis at the University of Konstanz.
  */
 
+/**
+ * @file execution_engine.cpp
+ * @brief Implements the ExecutionEngine utility for executing scripts.
+ */
+
 #include "execution/execution_engine.hpp"
 
 #include <string>
@@ -18,6 +23,11 @@
 
 namespace
 {
+    /**
+     * @brief Converts CoreExecutionErrorType to interop ExecutionErrorType.
+     * @param type The core execution error type.
+     * @return The corresponding interop execution error type.
+     */
     engine::interop::types::ExecutionErrorType convert_error_type(engine::execution::CoreExecutionErrorType type)
     {
         using enum engine::execution::CoreExecutionErrorType;
@@ -37,6 +47,11 @@ namespace
         }
     }
 
+    /**
+     * @brief Converts CoreExecutionStatus to interop ExecutionStatus.
+     * @param status The core execution status.
+     * @return The corresponding interop execution status.
+     */
     engine::interop::types::ExecutionStatus convert_status(engine::execution::CoreExecutionStatus status)
     {
         using enum engine::execution::CoreExecutionStatus;
@@ -54,6 +69,11 @@ namespace
         }
     }
 
+    /**
+     * @brief Converts a CoreExectionResult to an interop ExecutionResponsePtr.
+     * @param result The core execution result.
+     * @return The corresponding interop execution response pointer.
+     */
     engine::utils::ExecutionResponsePtr to_interop_response(const engine::execution::CoreExecutionResult& result)
     {
         const auto interop_status = convert_status(result.status);
@@ -72,6 +92,12 @@ namespace
 
 namespace engine::execution
 {
+    /**
+     * @brief Executes a script based on the specified execution type. Returns an error response if the script is empty or the type is unsupported.
+     * @param type The execution type.
+     * @param script The script to execute.
+     * @return A pointer to the execution response.
+     */
     utils::ExecutionResponsePtr ExecutionEngine::execute(interop::types::ExecutionType type, const std::string& script)
     {
         if (script.empty())
