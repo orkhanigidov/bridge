@@ -74,12 +74,12 @@ namespace codegen::generation
          * @param out Output file stream.
          * @param includes Set of header files to include.
          * @param namespaces Set of namespaces to open.
-         * @param container_types Set of container types to register.
+         * @param classes List of class descriptors.
          */
         static void write_header(std::ofstream& out,
                                  const std::unordered_set<std::string>& includes,
                                  const std::unordered_set<std::string>& namespaces,
-                                 const std::unordered_set<std::string>& container_types);
+                                 const std::vector<metadata::ClassDescriptor>& classes);
 
         /**
          * @brief Writes Sol2 member registrations for all classes.
