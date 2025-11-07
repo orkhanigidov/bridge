@@ -29,8 +29,8 @@ namespace engine::execution::script
         try
         {
             state = std::make_unique<sol::state>();
-            state->open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine,
-                                  sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8);
+            using enum sol::lib;
+            state->open_libraries(base, package, coroutine, string, math, table, utf8);
 
             bindings::lua::LuaBinder::register_bindings(*state);
 

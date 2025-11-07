@@ -27,10 +27,12 @@ namespace
 {
     /**
      * @brief Executes a Lua script using the provided runner and measures execution time. Returns a CoreExecutionResult with status and error/metadata.
+     * @tparam Func The callable type for the script runner.
      * @param script_runner The function that runs the Lua script and returns a protected result.
      * @return The result of the script execution.
      */
-    engine::execution::CoreExecutionResult execute_lua(const std::function<sol::protected_function_result()>& script_runner)
+    template<typename Func>
+    engine::execution::CoreExecutionResult execute_lua(Func script_runner)
     {
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -86,7 +88,7 @@ namespace engine::execution::script
     {
         const auto normalized_path = utils::filesystem::to_forward_slashes(std::filesystem::absolute(script_path));
 
-        return execute_lua([&]
+        return execute_lua([this, &normalized_path, &env]
         {
             return lua_.safe_script_file(normalized_path, env, sol::script_pass_on_error);
         });
@@ -100,7 +102,7 @@ namespace engine::execution::script
      */
     CoreExecutionResult ScriptExecutor::execute_from_string(const std::string& script_content, const sol::environment& env) const
     {
-        return execute_lua([&]
+        return execute_lua([this, &script_content, &env]
         {
             return lua_.safe_script(script_content, env, sol::script_pass_on_error);
         });

@@ -30,13 +30,10 @@ static std::shared_ptr<engine::network::server::ServerManager> server_manager;
  */
 void handle_signal(int signal)
 {
-    if (signal == SIGINT || signal == SIGTERM)
+    if ((signal == SIGINT || signal == SIGTERM) && server_manager)
     {
-        if (server_manager)
-        {
-            OATPP_LOGI("Main", "Signal %d received. Shutting down the server...", signal);
-            server_manager->shutdown();
-        }
+        OATPP_LOGI("Main", "Signal %d received. Shutting down the server...", signal)
+        server_manager->shutdown();
     }
 }
 
@@ -66,12 +63,12 @@ int main(int argc, const char* argv[])
         server_manager->run();
     } catch (const std::exception& e)
     {
-        OATPP_LOGE("Main", "Server startup failed: %s", e.what());
+        OATPP_LOGE("Main", "Server startup failed: %s", e.what())
         exit_code = EXIT_FAILURE;
     }
 
     oatpp::base::Environment::destroy();
-    OATPP_LOGI("Main", "Application stopped. Exiting with code %d", exit_code);
+    OATPP_LOGI("Main", "Application stopped. Exiting with code %d", exit_code)
 
     return exit_code;
 }

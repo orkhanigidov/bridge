@@ -20,7 +20,7 @@ namespace engine::network::mapper
 {
     /**
      * @class  OptionsMapper
-     * @brief Utility class for mapping exection options between internal and DTO representations.
+     * @brief Utility class for mapping exception options between internal and DTO representations.
      */
     class OptionsMapper final
     {

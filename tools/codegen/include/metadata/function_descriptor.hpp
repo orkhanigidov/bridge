@@ -35,7 +35,7 @@ namespace codegen::metadata
         FunctionDescriptor() = default;
 
         /**
-         * @brief Constructs a FunctionDescriptor with given scope, name, and return type.
+         * @brief Constructs a FunctionDescriptor with a given scope, name, and return type.
          * @param scope The scope of the function.
          * @param name The name of the function.
          * @param return_type_name The return type name of the function.

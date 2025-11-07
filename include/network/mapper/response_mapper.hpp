@@ -46,7 +46,7 @@ namespace engine::network::mapper
         }
 
         /**
-         * @brief Converts internal ExecutionResponse and output data to a ReponseDto object.
+         * @brief Converts internal ExecutionResponse and output data to a ResponseDto object.
          * @param response The internal execution response.
          * @param output_data The output file data as a FileDto object.
          * @return The corresponding ResponseDto object.

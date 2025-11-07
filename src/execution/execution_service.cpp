@@ -57,7 +57,7 @@ namespace engine::execution
 
         try
         {
-            auto& chunks = request->input_data;
+            const auto& chunks = request->input_data;
             std::vector sorted_chunks(chunks->begin(), chunks->end());
             std::ranges::sort(sorted_chunks, [](const auto& a, const auto& b)
             {
@@ -83,9 +83,8 @@ namespace engine::execution
             context.output_path = output_path;
 
             script::LuaScriptRunner runner;
-            auto result = runner.run_from_string(context);
-
-            if (!result.is_success())
+            if (auto result = runner.run_from_string(context);
+                !result.is_success())
             {
                 return {
                     .status = result.status,

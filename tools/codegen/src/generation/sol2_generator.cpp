@@ -231,7 +231,7 @@ namespace codegen::generation
         write_line(out, 0, "{");
         for (const auto& type_name : container_types)
         {
-            write_line(out, 1, std::format("template <>", type_name));
+            write_line(out, 1, std::format("template <>"));
             write_line(out, 1, std::format("struct is_container<{}> : std::false_type {{}};", type_name), 2);
         }
         write_line(out, 0, "}", 2);

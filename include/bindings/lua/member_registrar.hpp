@@ -288,7 +288,7 @@ namespace engine::bindings::lua
         sol::usertype<T> usertype_;
 
         template <typename... Args>
-            requires std::is_constructible_v<T, Args...>
+            requires (std::is_constructible_v<T, Args...>)
         static auto create_raw_call_factory(sol::types<Args...>)
         {
             return [](Args... args)
@@ -298,7 +298,7 @@ namespace engine::bindings::lua
         }
 
         template <typename... Args>
-            requires std::is_constructible_v<T, Args...>
+            requires (std::is_constructible_v<T, Args...>)
         static auto create_unique_call_factory(sol::types<Args...>)
         {
             return [](Args... args)
@@ -308,7 +308,7 @@ namespace engine::bindings::lua
         }
 
         template <typename... Args>
-            requires std::is_constructible_v<T, Args...>
+            requires (std::is_constructible_v<T, Args...>)
         static auto create_shared_call_factory(sol::types<Args...>)
         {
             return [](Args... args)

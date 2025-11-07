@@ -34,7 +34,7 @@ namespace engine::bindings::lua::utils
      * @return A Lua table with key-value pairs.
      */
     template <typename Container>
-        requires MappedContainer<Container>
+        requires (MappedContainer<Container>)
     sol::table to_lua_table(sol::state_view lua, const Container& container)
     {
         sol::table table = lua.create_table_with(container.size(), 0);
@@ -53,7 +53,7 @@ namespace engine::bindings::lua::utils
      * @return A Lua table with sequential elements.
      */
     template <typename Container>
-        requires !MappedContainer<Container>
+        requires (!MappedContainer<Container>)
     sol::table to_lua_table(sol::state_view lua, const Container& container)
     {
         sol::table table = lua.create_table_with(0, container.size());

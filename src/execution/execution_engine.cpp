@@ -11,7 +11,7 @@
 
 #include "execution/execution_engine.hpp"
 
-#include <string>
+#include <string_view>
 
 #include "execution/core_execution_result.hpp"
 #include "execution/script/lua_script_runner.hpp"
@@ -98,7 +98,7 @@ namespace engine::execution
      * @param script The script to execute.
      * @return A pointer to the execution response.
      */
-    utils::ExecutionResponsePtr ExecutionEngine::execute(interop::types::ExecutionType type, const std::string& script)
+    utils::ExecutionResponsePtr ExecutionEngine::execute(interop::types::ExecutionType type, std::string_view script)
     {
         if (script.empty())
         {

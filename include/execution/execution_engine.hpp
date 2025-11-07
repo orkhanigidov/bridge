@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "interop/types/execution_type.h"
 #include "utils/response_factory.hpp"
@@ -36,6 +36,6 @@ namespace engine::execution
          * @param script The script to execute.
          * @return A pointer to the execution response.
          */
-        static utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, const std::string& script);
+        static utils::ExecutionResponsePtr execute(interop::types::ExecutionType type, std::string_view script);
     };
 } // namespace engine::execution

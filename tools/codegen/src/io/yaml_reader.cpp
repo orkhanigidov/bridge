@@ -30,9 +30,8 @@ namespace
     std::vector<std::string> extract_string_sequence(const YAML::Node& root, const char* key)
     {
         std::vector<std::string> names;
-        const auto& node = root[key];
-
-        if (node && node.IsSequence())
+        if (const auto& node = root[key];
+            node && node.IsSequence())
         {
             names.reserve(node.size());
             for (const auto& item_node : node)
@@ -64,9 +63,9 @@ namespace codegen::io
         } catch (const YAML::BadFile&)
         {
             throw YamlReaderException(std::format("Could not open YAML file: {}", file_path.string()));
-        } catch (const YAML::ParserException& e)
+        } catch (const YAML::ParserException&)
         {
-            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path.string(), e.what()));
+            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path.string()));
         }
 
         return YamlReader(root);
@@ -108,7 +107,7 @@ namespace codegen::io
             config.methods = extract_string_sequence(class_node, METHODS);
             config.types = extract_string_sequence(class_node, TYPES);
 
-            classes_.emplace(std::move(class_name), std::move(config));
+            classes_.try_emplace(std::move(class_name), std::move(config));
         }
     }
 } // namespace codegen::io

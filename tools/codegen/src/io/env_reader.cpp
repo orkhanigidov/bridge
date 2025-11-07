@@ -44,14 +44,11 @@ namespace
      */
     constexpr std::string_view strip_quotes(std::string_view str) noexcept
     {
-        if (str.length() >= 2)
+        if (str.length() >= 2 && (str.starts_with('"') && str.ends_with('"') ||
+            str.starts_with('\'') && str.ends_with('\'')))
         {
-            if ((str.starts_with('"') && str.ends_with('"')) ||
-                (str.starts_with('\'') && str.ends_with('\'')))
-            {
-                str.remove_prefix(1);
-                str.remove_suffix(1);
-            }
+            str.remove_prefix(1);
+            str.remove_suffix(1);
         }
         return str;
     }
@@ -108,7 +105,7 @@ namespace codegen::io
 
             if (!key_view.empty())
             {
-                env_vars_.emplace(std::string(key_view), std::string(value_view));
+                env_vars_.try_emplace(std::string(key_view), value_view);
             }
         }
     }
