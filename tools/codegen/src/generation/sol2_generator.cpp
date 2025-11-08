@@ -397,15 +397,37 @@ namespace codegen::generation
             for (const auto& [name, funcs] : overloads)
             {
                 std::ostringstream overloads_stream;
+                const bool is_wrapper_func = funcs[0]->is_wrapper();
                 if (funcs.size() == 1)
                 {
-                    overloads_stream << std::format("&{}::{}", cls.name(), funcs[0]->name());
+                    if (is_wrapper_func)
+                    {
+                        overloads_stream << std::format("&{}", funcs[0]->name());
+                    }
+                    else
+                    {
+                        overloads_stream << std::format("&{}::{}", cls.name(), funcs[0]->name());
+                    }
                 }
                 else
                 {
-                    write_overload_resolutions<true>(overloads_stream, funcs, 4, cls.name());
+                    if (is_wrapper_func)
+                    {
+                        write_overload_resolutions<false>(overloads_stream, funcs, 4);
+                    }
+                    else
+                    {
+                        write_overload_resolutions<true>(overloads_stream, funcs, 4, cls.name());
+                    }
                 }
-                write_line(out, 3, std::format(".add_function(\"{}\", {})", name, overloads_stream.str()));
+                if (is_wrapper_func)
+                {
+                    write_line(out, 3, std::format(".add_wrapper_function(\"{}\", {})", name, overloads_stream.str()));
+                }
+                else
+                {
+                    write_line(out, 3, std::format(".add_function(\"{}\", {})", name, overloads_stream.str()));
+                }
             }
             write_line(out, 2, ";", 2);
         }

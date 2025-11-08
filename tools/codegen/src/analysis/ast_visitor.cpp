@@ -659,6 +659,44 @@ namespace codegen::analysis
         const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path.string());
 
         const auto func_name = utils::get_spelling(cursor);
+
+        if (is_wrapper)
+        {
+            for (const auto& [class_name_from_config, class_config] : config_.target_classes)
+            {
+                if (std::ranges::find(class_config.methods, func_name) != class_config.methods.end())
+                {
+                    auto it = std::ranges::find_if(result_.classes, [&](const auto& cls)
+                    {
+                        std::string base_class_name = cls.name();
+                        if (size_t template_pos = base_class_name.find('<'); template_pos != std::string::npos)
+                        {
+                            base_class_name = base_class_name.substr(0, template_pos);
+                        }
+                        return base_class_name == class_name_from_config;
+                    });
+
+                    if (it != result_.classes.end())
+                    {
+                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, func_name, utils::get_cursor_result_type_spelling(cursor));
+
+                        for (const auto& param : utils::get_parameters(cursor))
+                        {
+                            method_desc.add_parameter(param);
+                        }
+                        method_desc.set_signature(utils::build_signature(method_desc.parameters()));
+
+                        method_desc.set_wrapper(true);
+
+                        it->add_member_function(std::move(method_desc));
+                        result_.includes.emplace(utils::get_include_path(cursor));
+
+                        return;
+                    }
+                }
+            }
+        }
+
         if (const auto& target_funcs = config_.target_free_functions;
             is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
         {

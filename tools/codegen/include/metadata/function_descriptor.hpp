@@ -101,6 +101,15 @@ namespace codegen::metadata
         }
 
         /**
+         * @brief Checks if the function is wrapper.
+         * @return True if wrapper, false otherwise.
+         */
+        bool is_wrapper() const noexcept
+        {
+            return is_wrapper_;
+        }
+
+        /**
          * @brief Gets the function's signature.
          * @return The signature string.
          */
@@ -176,6 +185,17 @@ namespace codegen::metadata
         }
 
         /**
+         * @brief Sets whether the function is wrapper.
+         * @param value True if wrapper.
+         * @return Reference to this descriptor.
+         */
+        FunctionDescriptor& set_wrapper(bool value) noexcept
+        {
+            is_wrapper_ = value;
+            return *this;
+        }
+
+        /**
          * @brief Sets the function's signature.
          * @param signature The new signature string.
          * @return Reference to this descriptor.
@@ -216,6 +236,11 @@ namespace codegen::metadata
          * @brief Whether the function is const.
          */
         bool is_const_{false};
+
+        /**
+         * @brief Whether the function is a wrapper function.
+         */
+        bool is_wrapper_{false};
 
         /**
          * @brief The function's signature.

@@ -245,7 +245,7 @@ namespace engine::bindings::lua
          * @tparam Fs Static function pointer types.
          * @param name The function name in Lua.
          * @param fs The static function pointers.
-         * @return Reference to this reigstrar.
+         * @return Reference to this registrar.
          */
         template <typename... Fs>
             requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
@@ -258,6 +258,20 @@ namespace engine::bindings::lua
             else
             {
                 usertype_.set_static_function(name, sol::overload(std::forward<Fs>(fs)...));
+            }
+            return *this;
+        }
+
+        template <typename... Fs>
+        MemberRegistrar& add_wrapper_function(const std::string& name, Fs&&... fs)
+        {
+            if constexpr (sizeof...(Fs) == 1)
+            {
+                usertype_.set_function(name, std::forward<Fs>(fs)...);
+            }
+            else
+            {
+                usertype_.set_function(name, sol::overload(std::forward<Fs>(fs)...));
             }
             return *this;
         }
