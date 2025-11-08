@@ -114,29 +114,30 @@ namespace
         }
     }
 
-    /**
-     * @brief Checks if the given type cursor represents an iterable container (has public begin and end methods).
-     * @param cursor The type declaration cursor to check.
-     * @param visitor Pointer to the AstVisitor instance for base class traversal.
-     * @return True if the type is an iterable container, false otherwise.
-     */
-    bool is_iterable_container(const CXCursor& cursor, const codegen::analysis::AstVisitor* visitor)
+    bool is_iterable_recursive_check(const CXCursor& cursor, std::set<CXCursor, CursorComparator>& visited)
     {
-        bool has_begin = false;
-        bool has_end = false;
+        const CXType cursor_type = clang_getCursorType(cursor);
+        const CXType canonical_type = clang_getCanonicalType(cursor_type);
+        CXCursor definition_cursor = clang_getTypeDeclaration(canonical_type);
+        if (clang_isInvalid(clang_getCursorKind(definition_cursor)) || clang_equalCursors(definition_cursor, clang_getNullCursor()))
+        {
+            definition_cursor = cursor;
+        }
 
-        CXCursor cursor_to_check = cursor;
-        if (const CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor);
-            !clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor))
+        CXCursor cursor_to_check = definition_cursor;
+        if (const CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor_to_check);
+            !clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor_to_check))
         {
             cursor_to_check = template_cursor;
         }
 
-        std::vector<CXCursor> classes_to_check;
-        classes_to_check.emplace_back(cursor_to_check);
+        if (!visited.emplace(clang_getCanonicalCursor(cursor_to_check)).second)
+        {
+            return false;
+        }
 
-        visitor->collect_all_base_cursors(cursor_to_check, classes_to_check);
-
+        bool has_begin = false;
+        bool has_end = false;
         struct MethodCheckData
         {
             bool* has_begin;
@@ -144,17 +145,12 @@ namespace
         };
         MethodCheckData data{&has_begin, &has_end};
 
-        for (const auto& class_cursor : classes_to_check)
+        clang_visitChildren(cursor_to_check, [](CXCursor child, CXCursor, const CXClientData client_data)
         {
-            clang_visitChildren(class_cursor, [](CXCursor child, CXCursor, const CXClientData client_data)
+            if (clang_getCursorKind(child) == CXCursor_CXXMethod)
             {
-                if (clang_getCursorKind(child) == CXCursor_CXXMethod)
+                if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic)
                 {
-                    if (clang_getCXXAccessSpecifier(child) != CX_CXXPublic)
-                    {
-                        return CXChildVisit_Continue;
-                    }
-
                     const std::string method_name = codegen::analysis::utils::get_spelling(child);
                     const auto* check_data = static_cast<MethodCheckData*>(client_data);
 
@@ -162,7 +158,8 @@ namespace
                     {
                         *check_data->has_begin = true;
                     }
-                    else if (method_name == "end")
+
+                    if (method_name == "end")
                     {
                         *check_data->has_end = true;
                     }
@@ -172,17 +169,60 @@ namespace
                         return CXChildVisit_Break;
                     }
                 }
-
-                return CXChildVisit_Continue;
-            }, &data);
-
-            if (has_begin && has_end)
-            {
-                break;
             }
+            return CXChildVisit_Recurse;
+        }, &data);
+
+        if (has_begin && has_end)
+        {
+            return true;
         }
 
-        return has_begin && has_end;
+        bool found_in_base = false;
+        struct BaseVisitorData
+        {
+            std::set<CXCursor, CursorComparator>* visited;
+            bool* found_in_base;
+        };
+        BaseVisitorData base_data{&visited, &found_in_base};
+
+        clang_visitChildren(cursor_to_check, [](CXCursor child, CXCursor, const CXClientData client_data)
+        {
+            const auto* v_data = static_cast<BaseVisitorData*>(client_data);
+            if (*v_data->found_in_base)
+            {
+                return CXChildVisit_Break;
+            }
+
+            std::cout << "Checking base: " << codegen::analysis::utils::get_spelling(child) << std::endl;
+            if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
+            {
+                if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic || clang_getCXXAccessSpecifier(child) == CX_CXXPrivate)
+                {
+                    if (const CXCursor base_cursor = clang_getCursorReferenced(child);
+                        is_iterable_recursive_check(base_cursor, *v_data->visited))
+                    {
+                        *v_data->found_in_base = true;
+                        return CXChildVisit_Break;
+                    }
+                }
+            }
+            return CXChildVisit_Recurse;
+        }, &base_data);
+
+        return found_in_base;
+    }
+
+    /**
+     * @brief Checks if the given type cursor represents an iterable container (has public begin and end methods).
+     * @param cursor The type declaration cursor to check.
+     * @param visitor Pointer to the AstVisitor instance for base class traversal.
+     * @return True if the type is an iterable container, false otherwise.
+     */
+    bool is_iterable_container(const CXCursor& cursor, const codegen::analysis::AstVisitor* visitor)
+    {
+        std::set<CXCursor, CursorComparator> visited;
+        return is_iterable_recursive_check(cursor, visited);
     }
 }
 
@@ -194,7 +234,7 @@ namespace codegen::analysis
      * @param parent The parent AST node.
      * @return The result of the visit (continue, recurse, or break).
      */
-    CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor& parent)
+    CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor&)
     {
         if (const auto path = utils::get_include_path(cursor);
             path.empty() || !path.starts_with(config_.target_include_path.string()) && !path.starts_with(config_.wrapper_include_path.string()))
@@ -526,7 +566,20 @@ namespace codegen::analysis
                     metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor), utils::get_cursor_type_spelling(cursor));
                     var_desc.set_const(clang_isConstQualifiedType(clang_getCursorType(cursor)));
                     var_desc.set_static(clang_Cursor_getStorageClass(cursor) == CX_SC_Static);
+
                     CXType var_type = clang_getCursorType(cursor);
+
+                    if (var_type.kind == CXType_LValueReference || var_type.kind == CXType_RValueReference)
+                    {
+                        var_type = clang_getPointeeType(var_type);
+                    }
+                    if (var_type.kind == CXType_Pointer)
+                    {
+                        var_type = clang_getPointeeType(var_type);
+                    }
+
+                    var_type = clang_getUnqualifiedType(var_type);
+
                     CXCursor type_decl = clang_getTypeDeclaration(var_type);
                     bool is_container_type = is_iterable_container(type_decl, visitor);
                     var_desc.set_container(is_container_type);
