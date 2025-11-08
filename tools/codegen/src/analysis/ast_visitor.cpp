@@ -54,8 +54,8 @@ namespace
 
         while (true)
         {
-            const CXCursorKind parent_kind = clang_getCursorKind(parent);
-            if (parent_kind == CXCursor_Namespace)
+            if (const CXCursorKind parent_kind = clang_getCursorKind(parent);
+                parent_kind == CXCursor_Namespace)
             {
                 std::string parent_name = codegen::analysis::utils::get_spelling(parent);
                 ns = ns.empty() ? parent_name : parent_name + "::" + ns;
@@ -126,8 +126,8 @@ namespace
         bool has_end = false;
 
         CXCursor cursor_to_check = cursor;
-        CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor);
-        if (!clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor))
+        if (const CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor);
+            !clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor))
         {
             cursor_to_check = template_cursor;
         }
@@ -196,15 +196,14 @@ namespace codegen::analysis
      */
     CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor& parent)
     {
-        const auto path = utils::get_include_path(cursor);
-        if (path.empty() || !path.starts_with(config_.target_include_path.string()) && !path.starts_with(config_.wrapper_include_path.string()))
+        if (const auto path = utils::get_include_path(cursor);
+            path.empty() || !path.starts_with(config_.target_include_path.string()) && !path.starts_with(config_.wrapper_include_path.string()))
         {
             return CXChildVisit_Continue;
         }
 
-        const auto kind = clang_getCursorKind(cursor);
-
-        if (kind == CXCursor_ClassDecl && clang_isCursorDefinition(cursor))
+        if (const auto kind = clang_getCursorKind(cursor);
+            kind == CXCursor_ClassDecl && clang_isCursorDefinition(cursor))
         {
             visit_class_decl(cursor);
         }
@@ -266,13 +265,13 @@ namespace codegen::analysis
 
             clang_visitChildren(current, [](CXCursor child, CXCursor, CXClientData client_data) -> CXChildVisitResult
             {
-                auto* visitor = static_cast<VisitorData*>(client_data);
+                const auto* visitor = static_cast<VisitorData*>(client_data);
                 if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
                 {
                     if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic)
                     {
-                        CXCursor base = clang_getCursorReferenced(child);
-                        if (visitor->visited->emplace(base).second)
+                        if (CXCursor base = clang_getCursorReferenced(child);
+                            visitor->visited->emplace(base).second)
                         {
                             visitor->bases->emplace_back(base);
                             visitor->stack->emplace_back(base);
@@ -469,9 +468,8 @@ namespace codegen::analysis
                 if (visitor->config_.target_classes.contains(class_lookup_name))
                 {
                     const auto& class_config = visitor->config_.target_classes.at(class_lookup_name);
-                    const auto& target_methods = class_config.methods;
-
-                    if (std::ranges::find(target_methods, method_name) != target_methods.end())
+                    if (const auto& target_methods = class_config.methods;
+                        std::ranges::find(target_methods, method_name) != target_methods.end())
                     {
                         CXType return_type = clang_getCursorResultType(cursor);
 
@@ -587,9 +585,8 @@ namespace codegen::analysis
     void AstVisitor::visit_enum_decl(const CXCursor& cursor)
     {
         const auto enum_name = utils::get_spelling(cursor);
-        const auto& target_enums = config_.target_enums;
-
-        if (std::ranges::find(target_enums, enum_name) != target_enums.end())
+        if (const auto& target_enums = config_.target_enums;
+            std::ranges::find(target_enums, enum_name) != target_enums.end())
         {
             if (auto enum_desc_opt = parse_enum_decl(cursor))
             {
@@ -609,9 +606,8 @@ namespace codegen::analysis
         const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path.string());
 
         const auto func_name = utils::get_spelling(cursor);
-        const auto& target_funcs = config_.target_free_functions;
-
-        if (is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
+        if (const auto& target_funcs = config_.target_free_functions;
+            is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
         {
             CXType return_type = clang_getCursorResultType(cursor);
 
