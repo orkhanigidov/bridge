@@ -91,7 +91,7 @@ namespace
         }
 
         bool has_user_declared_ctor = false;
-        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+        clang_visitChildren(cursor, [](CXCursor child, CXCursor, const CXClientData client_data)
         {
             if (clang_getCursorKind(child) == CXCursor_Constructor)
             {
@@ -120,7 +120,7 @@ namespace
      * @param visitor Pointer to the AstVisitor instance for base class traversal.
      * @return True if the type is an iterable container, false otherwise.
      */
-    bool is_iterable_container(const CXCursor& cursor, codegen::analysis::AstVisitor* visitor)
+    bool is_iterable_container(const CXCursor& cursor, const codegen::analysis::AstVisitor* visitor)
     {
         bool has_begin = false;
         bool has_end = false;
@@ -146,7 +146,7 @@ namespace
 
         for (const auto& class_cursor : classes_to_check)
         {
-            clang_visitChildren(class_cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+            clang_visitChildren(class_cursor, [](CXCursor child, CXCursor, const CXClientData client_data)
             {
                 if (clang_getCursorKind(child) == CXCursor_CXXMethod)
                 {
@@ -263,7 +263,7 @@ namespace codegen::analysis
             const CXCursor current = stack.back();
             stack.pop_back();
 
-            clang_visitChildren(current, [](CXCursor child, CXCursor, CXClientData client_data) -> CXChildVisitResult
+            clang_visitChildren(current, [](CXCursor child, CXCursor, const CXClientData client_data)
             {
                 const auto* visitor = static_cast<VisitorData*>(client_data);
                 if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
@@ -298,7 +298,7 @@ namespace codegen::analysis
 
         metadata::EnumDescriptor enum_desc(enum_name);
 
-        clang_visitChildren(cursor, [](CXCursor child, CXCursor, CXClientData client_data)-> CXChildVisitResult
+        clang_visitChildren(cursor, [](CXCursor child, CXCursor, const CXClientData client_data)
         {
             if (clang_getCursorKind(child) == CXCursor_EnumConstantDecl)
             {
