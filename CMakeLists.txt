@@ -121,8 +121,6 @@ endif ()
 
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
-else ()
-    target_compile_options(${PROJECT_NAME} PRIVATE "-Wa,-mbig-obj")
 endif ()
 
 add_dependencies(${PROJECT_NAME} generate_bindings)
