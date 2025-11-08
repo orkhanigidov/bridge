@@ -56,12 +56,14 @@ namespace codegen::generation
          * @brief Generates Sol2 bindings for the provided metadata.
          * @param includes Set of header files to include.
          * @param namespaces Set of C++ namespaces to process.
+         * @param containers Set of containers to specialize.
          * @param classes List of class descriptors to generate bindings for.
          * @param free_functions List of free function descriptors to bind.
          * @param enums List of enum descriptors to bind.
          */
         void generate(const std::unordered_set<std::string>& includes,
                       const std::unordered_set<std::string>& namespaces,
+                      const std::unordered_set<std::string>& containers,
                       const std::vector<metadata::ClassDescriptor>& classes,
                       const std::vector<metadata::FunctionDescriptor>& free_functions,
                       const std::vector<metadata::EnumDescriptor>& enums) const;
@@ -74,11 +76,13 @@ namespace codegen::generation
          * @param out Output file stream.
          * @param includes Set of header files to include.
          * @param namespaces Set of namespaces to open.
+         * @param containers Set of containers to specialize.
          * @param classes List of class descriptors.
          */
         static void write_header(std::ofstream& out,
                                  const std::unordered_set<std::string>& includes,
                                  const std::unordered_set<std::string>& namespaces,
+                                 const std::unordered_set<std::string>& containers,
                                  const std::vector<metadata::ClassDescriptor>& classes);
 
         /**

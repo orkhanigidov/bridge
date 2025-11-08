@@ -473,6 +473,26 @@ namespace codegen::analysis
 
                     if (std::ranges::find(target_methods, method_name) != target_methods.end())
                     {
+                        CXType return_type = clang_getCursorResultType(cursor);
+
+                        if (return_type.kind == CXType_LValueReference || return_type.kind == CXType_RValueReference)
+                        {
+                            return_type = clang_getPointeeType(return_type);
+                        }
+                        if (return_type.kind == CXType_Pointer)
+                        {
+                            return_type = clang_getPointeeType(return_type);
+                        }
+
+                        return_type = clang_getUnqualifiedType(return_type);
+
+                        if (const CXCursor type_decl = clang_getTypeDeclaration(return_type);
+                            is_iterable_container(type_decl, visitor))
+                        {
+                            std::string container_type_name = utils::get_type_spelling(return_type);
+                            visitor->result_.containers.emplace(std::move(container_type_name));
+                        }
+
                         metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name, utils::get_cursor_result_type_spelling(cursor));
                         method_desc.set_static(clang_CXXMethod_isStatic(cursor));
                         method_desc.set_const(clang_CXXMethod_isConst(cursor));
@@ -593,6 +613,26 @@ namespace codegen::analysis
 
         if (is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
         {
+            CXType return_type = clang_getCursorResultType(cursor);
+
+            if (return_type.kind == CXType_LValueReference || return_type.kind == CXType_RValueReference)
+            {
+                return_type = clang_getPointeeType(return_type);
+            }
+            if (return_type.kind == CXType_Pointer)
+            {
+                return_type = clang_getPointeeType(return_type);
+            }
+
+            return_type = clang_getUnqualifiedType(return_type);
+
+            if (const CXCursor type_decl = clang_getTypeDeclaration(return_type);
+                is_iterable_container(type_decl, this))
+            {
+                std::string container_type_name = utils::get_type_spelling(return_type);
+                result_.containers.emplace(std::move(container_type_name));
+            }
+
             metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name, utils::get_cursor_result_type_spelling(cursor));
             for (const auto& param : utils::get_parameters(cursor))
             {

@@ -84,6 +84,15 @@ namespace codegen::analysis
         }
 
         /**
+         * @brief Returns the set of found containers.
+         * @return Set of containers.
+         */
+        const std::unordered_set<std::string>& found_containers() const noexcept
+        {
+            return result_.containers;
+        }
+
+        /**
          * @brief Returns the list of found class descriptors.
          * @return Vector of class descriptors.
          */

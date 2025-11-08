@@ -63,6 +63,7 @@ namespace codegen
             generation::Sol2Generator generator(generated_bindings_path);
             generator.generate(analyzer.found_includes(),
                                analyzer.found_namespaces(),
+                               analyzer.found_containers(),
                                analyzer.found_classes(),
                                analyzer.found_free_functions(),
                                analyzer.found_enums());

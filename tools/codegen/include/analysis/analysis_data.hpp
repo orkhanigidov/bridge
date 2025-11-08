@@ -95,6 +95,11 @@ namespace codegen::analysis
         std::unordered_set<std::string> namespaces;
 
         /**
+         * @brief Set of containers found.
+         */
+        std::unordered_set<std::string> containers;
+
+        /**
          * @brief Analyzed class descriptors.
          */
         std::vector<metadata::ClassDescriptor> classes;
