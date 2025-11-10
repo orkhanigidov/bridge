@@ -40,32 +40,27 @@ namespace
      * @brief Returns a static map of Oat++ types to their corresponding conversion functions.
      * @return Reference to the converter map.
      */
-    inline const std::unordered_map<const oatpp::Type*, ConversionFunc> converter_map = {
-        // Boolean
-        {oatpp::Boolean::Class::getType(), extract_or_default<oatpp::Boolean, bool>},
-        // Signed integers
-        {oatpp::Int8::Class::getType(), extract_or_default<oatpp::Int8, std::int8_t>},
-        {oatpp::Int16::Class::getType(), extract_or_default<oatpp::Int16, std::int16_t>},
-        {oatpp::Int32::Class::getType(), extract_or_default<oatpp::Int32, std::int32_t>},
-        {oatpp::Int64::Class::getType(), extract_or_default<oatpp::Int64, std::int64_t>},
-        // Unsigned integers
-        {oatpp::UInt8::Class::getType(), extract_or_default<oatpp::UInt8, std::uint8_t>},
-        {oatpp::UInt16::Class::getType(), extract_or_default<oatpp::UInt16, std::uint16_t>},
-        {oatpp::UInt32::Class::getType(), extract_or_default<oatpp::UInt32, std::uint32_t>},
-        {oatpp::UInt64::Class::getType(), extract_or_default<oatpp::UInt64, std::uint64_t>},
-        // Floating point
-        {oatpp::Float32::Class::getType(), extract_or_default<oatpp::Float32, float>},
-        {oatpp::Float64::Class::getType(), extract_or_default<oatpp::Float64, double>},
-        // String
-        {oatpp::String::Class::getType(), extract_or_default<oatpp::String, std::string>}
-    };
-
-    /**
-     * @brief Returns a reference to the converter map.
-     * @return Reference to the converter map.
-     */
     const std::unordered_map<const oatpp::Type*, ConversionFunc>& get_converter_map()
     {
+        static const std::unordered_map<const oatpp::Type*, ConversionFunc> converter_map = {
+            // Boolean
+            {oatpp::Boolean::Class::getType(), extract_or_default<oatpp::Boolean, bool>},
+            // Signed integers
+            {oatpp::Int8::Class::getType(), extract_or_default<oatpp::Int8, std::int8_t>},
+            {oatpp::Int16::Class::getType(), extract_or_default<oatpp::Int16, std::int16_t>},
+            {oatpp::Int32::Class::getType(), extract_or_default<oatpp::Int32, std::int32_t>},
+            {oatpp::Int64::Class::getType(), extract_or_default<oatpp::Int64, std::int64_t>},
+            // Unsigned integers
+            {oatpp::UInt8::Class::getType(), extract_or_default<oatpp::UInt8, std::uint8_t>},
+            {oatpp::UInt16::Class::getType(), extract_or_default<oatpp::UInt16, std::uint16_t>},
+            {oatpp::UInt32::Class::getType(), extract_or_default<oatpp::UInt32, std::uint32_t>},
+            {oatpp::UInt64::Class::getType(), extract_or_default<oatpp::UInt64, std::uint64_t>},
+            // Floating point
+            {oatpp::Float32::Class::getType(), extract_or_default<oatpp::Float32, float>},
+            {oatpp::Float64::Class::getType(), extract_or_default<oatpp::Float64, double>},
+            // String
+            {oatpp::String::Class::getType(), extract_or_default<oatpp::String, std::string>}
+        };
         return converter_map;
     }
 }
