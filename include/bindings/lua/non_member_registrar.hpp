@@ -99,7 +99,13 @@ namespace engine::bindings::lua
         template <typename E>
         NonMemberRegistrar& add_enums(const std::string& name, std::initializer_list<std::pair<std::string_view, E>> items)
         {
-            lua_.new_enum<E>(name, items);
+            (void)name;
+
+            for (const auto& pair : items)
+            {
+                lua_.set(pair.first, pair.second);
+            }
+            // lua_.new_enum<E>(name, items);
             return *this;
         }
 

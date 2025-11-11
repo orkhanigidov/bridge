@@ -1,6 +1,9 @@
 classes:
   - name: Graph
   - name: GraphAttributes
+    methods:
+        - width
+        - height
   - name: OptimalRanking
   - name: MedianHeuristic
   - name: SugiyamaLayout
@@ -9,13 +12,51 @@ classes:
       - setCrossMin
       - setLayout
       - call
+        - arrangeCCs
   - name: OptimalHierarchyLayout
     methods:
       - layerDistance
       - nodeDistance
       - weightBalancing
+  - name: FMMMLayout
+    methods:
+      - useHighLevelOptions
+      - unitEdgeLength
+      - newInitialPlacement
+      - qualityVersusSpeed
+      - call
+  - name: NodeArray
+    types:
+      - int
+  - name: PlanarizationLayout
+    methods:
+      - setCrossMin
+      - setEmbedder
+      - setPlanarLayouter
+      - call
+  - name: SubgraphPlanarizer
+    methods:
+      - setSubgraph
+      - setInserter
+  - name: PlanarSubgraphFast
+    types:
+      - int
+    methods:
+      - runs
+  - name: VariableEmbeddingInserter
+    methods:
+      - removeReinsert
+  - name: EmbedderMinDepthMaxFaceLayers
+  - name: OrthoLayout
+    methods:
+      - separation
+      - cOverhang
+  - name: FMMMOptions
+
 
 free_functions:
   - randomSimpleGraph
 
+
 enums:
+  - RemoveReinsertType

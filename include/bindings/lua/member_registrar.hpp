@@ -41,6 +41,7 @@ namespace engine::bindings::lua
         explicit MemberRegistrar(sol::state& lua, const std::string& name) : lua_(lua)
         {
             usertype_ = lua.new_usertype<T>(name);
+            table_ = lua[name].get<sol::table>();
 
             if constexpr (Ownership == MemoryOwnership::Cpp)
             {
@@ -184,7 +185,13 @@ namespace engine::bindings::lua
         template <typename E>
         MemberRegistrar& add_enums(const std::string& name, std::initializer_list<std::pair<std::string_view, E>> items)
         {
-            lua_.new_enum<E>(name, items);
+            (void)name;
+
+            for (const auto& pair : items)
+            {
+                lua_.set(pair.first, pair.second);
+            }
+            // table_.new_enum<E>(name, items);
             return *this;
         }
 
@@ -300,6 +307,11 @@ namespace engine::bindings::lua
          * @brief The usertype registered in Lua.
          */
         sol::usertype<T> usertype_;
+
+        /**
+         * @brief The table for static members and enums
+         */
+        sol::table table_;
 
         template <typename... Args>
             requires (std::is_constructible_v<T, Args...>)
