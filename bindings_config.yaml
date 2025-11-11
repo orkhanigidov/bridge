@@ -12,7 +12,7 @@ classes:
       - setCrossMin
       - setLayout
       - call
-        - arrangeCCs
+      - arrangeCCs
   - name: OptimalHierarchyLayout
     methods:
       - layerDistance
