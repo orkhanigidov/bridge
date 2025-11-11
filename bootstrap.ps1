@@ -4,6 +4,8 @@ param(
 
     [switch]$InstallDeps,
 
+    [switch]$BuildShared,
+
     [switch]$Help
 )
 
@@ -23,47 +25,38 @@ function Show-Usage {
     Write-Host ""
     Write-Host "Options:"
     Write-Host "  -BuildType <TYPE>    Specify the build type (Debug or Release). Default is Debug."
-    Write-Host "  -InstallDeps         Attempt to install required dependencies. Requires Administrator privileges."
+    Write-Host "  -InstallDeps         Attempt to install required dependencies."
+    Write-Host "  -BuildShared         Build the engine as shared library (DLL)."
     Write-Host "  -Help                Show this help message."
 }
 
 function Install-Dependencies {
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if (-not $isAdmin) {
-        Print-Error 'Dependency installation requires Administrator privileges.'
-        Print-Error 'Please re-run this script with "Run as Administrator" or install dependencies manually.'
-        exit 1
-    }
-
-    $choco = Get-Command choco -ErrorAction SilentlyContinue
-    if (-not $choco) {
-        Write-Host 'Chocolatey not found. Attempting to install Chocolatey...'
+    $scoop = Get-Command scoop -ErrorAction SilentlyContinue
+    if (-not $scoop) {
+        Write-Host 'Scoop not found. Attempting to install Scoop...'
         try {
-            Set-ExecutionPolicy Bypass -Scope Process -Force
-            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-            Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-            $choco = Get-Command choco -ErrorAction SilentlyContinue
-            if (-not $choco) {
-                Print-Error 'Chocolatey installation failed. Please install Chocolatey manually from https://chocolatey.org/install'
+            $scoop = Get-Command scoop -ErrorAction SilentlyContinue
+            if (-not $scoop) {
+                Print-Error 'Scoop installation failed. Please install Scoop manually from https://scoop.sh/'
                 exit 1
             }
-            Write-Host 'Chocolatey installed successfully.' -ForegroundColor Green
+            Write-Host 'Scoop installed successfully.' -ForegroundColor Green
         } catch {
-            Print-Error 'Failed to install Chocolatey.'
+            Print-Error 'Failed to install Scoop.'
             $_ | Out-String | Print-Error
             exit 1
         }
     }
 
     Write-Host 'Attempting to install required dependencies...'
-    $PACKAGES = @('cmake', 'ninja', 'mingw')
+    $PACKAGES = @('main/cmake', 'main/ninja', 'main/llvm')
 
-    Write-Host "Using Chocolatey to install packages: $($PACKAGES -join ' ')"
+    Write-Host "Using Scoop to install packages: $($PACKAGES -join ' ')"
     try {
-        choco install $PACKAGES -y
+        scoop install $PACKAGES
     } catch {
         Print-Error 'Failed to install dependencies.'
         $_ | Out-String | Print-Error
@@ -103,8 +96,20 @@ if (-not (Test-Path -Path $CPM_PATH)) {
     }
 }
 
-Write-Host 'Configuring project...'
-cmake --preset $BuildType
+$cmakeConfigureArgs = @(
+    "--preset", $BuildType
+)
+
+if ($BuildShared) {
+    Write-Host 'Configuring to build as a SHARED library.' -ForegroundColor Yellow
+    $cmakeConfigureArgs += "-DBUILD_SHARED_LIB:BOOL=ON"
+} else {
+    Write-Host 'Configuring to build as an EXECUTABLE.' -ForegroundColor Yellow
+    $cmakeConfigureArgs += "-DBUILD_SHARED_LIB:BOOL=OFF"
+}
+
+Write-Host "Configuring project (cmake $($cmakeConfigureArgs -join ' '))..."
+cmake @cmakeConfigureArgs
 
 Write-Host 'Building project...'
 cmake --build --preset $BuildType
