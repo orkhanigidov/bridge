@@ -22,6 +22,7 @@ option(BUILD_SHARED_LIB "Build the engine as a shared library" OFF)
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
+set(WRAPPERS_DIR ${PROJECT_SOURCE_DIR}/tools/codegen/include/wrappers)
 set(GENERATED_SRC ${CMAKE_BINARY_DIR}/generated_bindings.cpp)
 
 if (WIN32)
@@ -127,6 +128,7 @@ add_dependencies(${PROJECT_NAME} generate_bindings)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${WRAPPERS_DIR}>
         $<INSTALL_INTERFACE:include>
 )
 
