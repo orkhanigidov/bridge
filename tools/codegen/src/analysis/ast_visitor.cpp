@@ -194,7 +194,6 @@ namespace
                 return CXChildVisit_Break;
             }
 
-            std::cout << "Checking base: " << codegen::analysis::utils::get_spelling(child) << std::endl;
             if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
             {
                 if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic || clang_getCXXAccessSpecifier(child) == CX_CXXPrivate)
