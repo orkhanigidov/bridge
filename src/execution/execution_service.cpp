@@ -59,7 +59,7 @@ namespace engine::execution
         {
             const auto& chunks = request->input_data;
             std::vector sorted_chunks(chunks->begin(), chunks->end());
-            std::ranges::sort(sorted_chunks, [](const auto& a, const auto& b)
+            std::sort(sorted_chunks.begin(), sorted_chunks.end(), [](const auto& a, const auto& b)
             {
                 return a->chunk_index < b->chunk_index;
             });
@@ -67,7 +67,7 @@ namespace engine::execution
             std::ofstream input_file(input_path, std::ios::binary);
             if (!input_file)
             {
-                throw ExecutionServiceException("Cannot create temporary input file at path: {}", input_path.string());
+                throw ExecutionServiceException("Cannot create temporary input file at path: " + input_path.string());
             }
 
             for (const auto& chunk : sorted_chunks)
@@ -87,10 +87,10 @@ namespace engine::execution
                 !result.is_success())
             {
                 return {
-                    .status = result.status,
-                    .error{
-                        .type = result.error.type,
-                        .message = result.error.message
+                    result.status,
+                    {
+                        result.error.type,
+                        result.error.message
                     }
                 };
             }
@@ -98,30 +98,32 @@ namespace engine::execution
             std::ifstream output_file(output_path, std::ios::binary);
             if (!output_file)
             {
-                throw ExecutionServiceException("Cannot open temporary output file at path: {}", output_path.string());
+                throw ExecutionServiceException("Cannot open temporary output file at path: " + output_path.string());
             }
 
             std::ostringstream output_stream;
             output_stream << output_file.rdbuf();
             if (!output_file.good() && !output_file.eof())
             {
-                throw ExecutionServiceException("Failed to read temporary output file at path: {}", output_path.string());
+                throw ExecutionServiceException("Failed to read temporary output file at path: " + output_path.string());
             }
 
             oatpp::String buffer = output_stream.str();
             auto encoded_output = oatpp::encoding::Base64::encode(buffer);
 
             return {
-                .status = CoreExecutionStatus::Success,
-                .output_data = encoded_output
+                CoreExecutionStatus::Success,
+                {},
+                {},
+                encoded_output
             };
         } catch (const std::exception& e)
         {
             return {
-                .status = CoreExecutionStatus::Failure,
-                .error{
-                    .type = CoreExecutionErrorType::ExecutionFailed,
-                    .message = e.what()
+                CoreExecutionStatus::Failure,
+                {
+                    CoreExecutionErrorType::ExecutionFailed,
+                    e.what()
                 }
             };
         }

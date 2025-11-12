@@ -13,7 +13,6 @@
 
 #include <chrono>
 #include <exception>
-#include <format>
 #include <iostream>
 
 namespace engine::bindings::lua
@@ -34,13 +33,13 @@ namespace engine::bindings::lua
             const auto end_time = std::chrono::high_resolution_clock::now();
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-            std::cout << std::format("Lua bindings successfully registered in {} in milliseconds\n", duration.count());
+            std::cout << "Lua bindings successfully registered in " << duration.count() << "in milliseconds" << std::endl;
         } catch (const sol::error& e)
         {
-            std::cerr << std::format("Error registering Lua bindings: {}\n", e.what());
+            std::cerr << "Error registering Lua bindings: " << e.what() << std::endl;
         } catch (const std::exception& e)
         {
-            std::cerr << std::format("Unhandled exception while registering Lua bindings: {}\n", e.what());
+            std::cerr << "Unhandled exception while registering Lua bindings: " << e.what() << std::endl;
         }
     }
 } // namespace engine::bindings::lua

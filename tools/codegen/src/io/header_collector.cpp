@@ -12,7 +12,6 @@
 #include "io/header_collector.hpp"
 
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <string>
 #include <unordered_set>
@@ -41,14 +40,14 @@ namespace codegen::io
         std::ofstream out(output_file);
         if (!out)
         {
-            throw HeaderCollectorException(std::format("Failed to open output file: {}", output_file.string()));
+            throw HeaderCollectorException("Failed to open output file: " + output_file.string());
         }
 
         for (const auto& dir : include_dirs)
         {
             if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir))
             {
-                throw HeaderCollectorException(std::format("Invalid include directory: {}", dir.string()));
+                throw HeaderCollectorException("Invalid include directory: " + dir.string());
             }
 
             for (const auto& entry : std::filesystem::recursive_directory_iterator(dir))
@@ -61,7 +60,7 @@ namespace codegen::io
                 const auto& file_path = entry.path();
                 const std::string extension = file_path.extension().string();
 
-                if (extension_set.contains(extension))
+                if (extension_set.find(extension) != extension_set.end())
                 {
                     const auto relative_path = std::filesystem::relative(file_path, dir);
                     out << "#include \"" << relative_path.generic_string() << "\"\n";

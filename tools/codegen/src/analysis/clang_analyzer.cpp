@@ -12,7 +12,6 @@
 #include "analysis/clang_analyzer.hpp"
 
 #include <filesystem>
-#include <format>
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,7 +37,7 @@ namespace codegen::analysis
 
         const std::vector<std::string> clang_args = {
             "-x", "c++",
-            "-std=c++20",
+            "-std=c++17",
             "-I" + config.wrapper_include_path.string(),
             "-I" + config.target_include_path.string()
         };
@@ -56,7 +55,7 @@ namespace codegen::analysis
 
         if (!tu)
         {
-            throw ClangAnalyzerException(std::format("Failed to parse translation unit for file: {}", file_path.string()));
+            throw ClangAnalyzerException("Failed to parse translation unit for file: " + file_path.string());
         }
 
         AstVisitor visitor(config);

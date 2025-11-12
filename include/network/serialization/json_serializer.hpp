@@ -12,7 +12,6 @@
 #pragma once
 
 #include <exception>
-#include <format>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -76,7 +75,7 @@ namespace engine::network::serialization
                 return object_mapper_->readFromString<DtoType>(json_data);
             } catch (const oatpp::parser::ParsingError& e)
             {
-                throw JsonSerializerException(std::format("JSON deserialization error: {}", e.what()));
+                throw JsonSerializerException("JSON deserialization error: " + std::string(e.what()));
             }
         }
 
@@ -98,7 +97,7 @@ namespace engine::network::serialization
                 return object_mapper_->writeToString(dto);
             } catch (const std::exception& e)
             {
-                throw JsonSerializerException(std::format("JSON serialization error: {}", e.what()));
+                throw JsonSerializerException("JSON serialization error: " + std::string(e.what()));
             }
         }
 

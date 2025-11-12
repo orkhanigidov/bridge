@@ -233,7 +233,6 @@ namespace engine::bindings::lua
          * @return Reference to this registrar.
          */
         template <typename... Fs>
-            requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
         MemberRegistrar& add_function(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)
@@ -255,7 +254,6 @@ namespace engine::bindings::lua
          * @return Reference to this registrar.
          */
         template <typename... Fs>
-            requires (std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
         MemberRegistrar& add_static_function(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)
@@ -313,31 +311,28 @@ namespace engine::bindings::lua
          */
         sol::table table_;
 
-        template <typename... Args>
-            requires (std::is_constructible_v<T, Args...>)
+        template <typename... Args, std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
         static auto create_raw_call_factory(sol::types<Args...>)
         {
-            return [](Args... args)
+            return [](Args&&... args)
             {
                 return new T(std::forward<Args>(args)...);
             };
         }
 
-        template <typename... Args>
-            requires (std::is_constructible_v<T, Args...>)
+        template <typename... Args, std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
         static auto create_unique_call_factory(sol::types<Args...>)
         {
-            return [](Args... args)
+            return [](Args&&... args)
             {
                 return std::make_unique<T>(std::forward<Args>(args)...);
             };
         }
 
-        template <typename... Args>
-            requires (std::is_constructible_v<T, Args...>)
+        template <typename... Args, std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
         static auto create_shared_call_factory(sol::types<Args...>)
         {
-            return [](Args... args)
+            return [](Args&&... args)
             {
                 return std::make_shared<T>(std::forward<Args>(args)...);
             };

@@ -13,7 +13,6 @@
 
 #include <exception>
 #include <filesystem>
-#include <format>
 
 #include "analysis/analysis_data.hpp"
 #include "analysis/clang_analyzer.hpp"
@@ -68,10 +67,10 @@ namespace codegen
                                analyzer.found_free_functions(),
                                analyzer.found_enums());
 
-            log(std::format("Lua bindings generated successfully! -> {}", generated_bindings_path.string()));
+            log("Lua bindings generated successfully! -> " + generated_bindings_path.string());
         } catch (const std::exception& e)
         {
-            throw EngineException(std::format("Code generation failed: {}", e.what()));
+            throw EngineException("Code generation failed: " + std::string(e.what()));
         }
     }
 } // namespace codegen

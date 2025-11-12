@@ -11,7 +11,6 @@
 
 #include "io/yaml_reader.hpp"
 
-#include <format>
 #include <string>
 #include <utility>
 #include <vector>
@@ -62,10 +61,10 @@ namespace codegen::io
             root = YAML::LoadFile(file_path.string());
         } catch (const YAML::BadFile&)
         {
-            throw YamlReaderException(std::format("Could not open YAML file: {}", file_path.string()));
+            throw YamlReaderException("Could not open YAML file: " + file_path.string());
         } catch (const YAML::ParserException&)
         {
-            throw YamlReaderException(std::format("Failed to parse YAML file: {}", file_path.string()));
+            throw YamlReaderException("Failed to parse YAML file: " + file_path.string());
         }
 
         return YamlReader(root);

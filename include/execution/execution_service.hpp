@@ -11,9 +11,7 @@
 
 #pragma once
 
-#include <format>
 #include <stdexcept>
-#include <utility>
 #include <oatpp/core/Types.hpp>
 
 #include "core_execution_result.hpp"
@@ -35,8 +33,7 @@ namespace engine::execution
          * @param args Arguments for the format string.
          */
         template <typename... Args>
-        explicit ExecutionServiceException(std::format_string<Args...> fmt, Args&&... args)
-            : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+        explicit ExecutionServiceException(const std::string& message) : std::runtime_error(message)
         {
         }
     };

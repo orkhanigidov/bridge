@@ -67,10 +67,10 @@ namespace engine::execution::script
         if (!std::filesystem::exists(context.script_content))
         {
             return {
-                .status = CoreExecutionStatus::Failure,
-                .error = {
-                    .type = CoreExecutionErrorType::FileNotFound,
-                    .message = "Script file not found"
+                CoreExecutionStatus::Failure,
+                {
+                    CoreExecutionErrorType::FileNotFound,
+                    "Script file not found"
                 }
             };
         }

@@ -15,7 +15,6 @@
 
 #include <chrono>
 #include <filesystem>
-#include <format>
 #include <functional>
 #include <string>
 #include <sol/sol.hpp>
@@ -31,7 +30,7 @@ namespace
      * @param script_runner The function that runs the Lua script and returns a protected result.
      * @return The result of the script execution.
      */
-    template<typename Func>
+    template <typename Func>
     engine::execution::CoreExecutionResult execute_lua(Func script_runner)
     {
         const auto start = std::chrono::high_resolution_clock::now();
@@ -44,22 +43,20 @@ namespace
                 const sol::error err = result;
                 const sol::call_status status = result.status();
                 return {
-                    .status = engine::execution::CoreExecutionStatus::Failure,
-                    .error
+                    engine::execution::CoreExecutionStatus::Failure,
                     {
-                        .type = engine::execution::CoreExecutionErrorType::ExecutionFailed,
-                        .message = std::format("{}: {}", sol::to_string(status), err.what())
+                        engine::execution::CoreExecutionErrorType::ExecutionFailed,
+                        sol::to_string(status) + ": " + err.what()
                     }
                 };
             }
         } catch (const sol::error& e)
         {
             return {
-                .status = engine::execution::CoreExecutionStatus::Failure,
-                .error
+                engine::execution::CoreExecutionStatus::Failure,
                 {
-                    .type = engine::execution::CoreExecutionErrorType::ExecutionFailed,
-                    .message = e.what()
+                    engine::execution::CoreExecutionErrorType::ExecutionFailed,
+                    e.what()
                 }
             };
         }
@@ -68,9 +65,10 @@ namespace
         const auto duration_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
         return {
-            .status = engine::execution::CoreExecutionStatus::Success,
-            .metadata{
-                .duration_milliseconds = duration_milliseconds
+            engine::execution::CoreExecutionStatus::Success,
+            {},
+            {
+                duration_milliseconds
             }
         };
     }

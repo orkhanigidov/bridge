@@ -12,7 +12,6 @@
 #include "interop/interop_bridge.hpp"
 
 #include <exception>
-#include <format>
 #include <iostream>
 #include <mutex>
 
@@ -40,7 +39,7 @@ namespace engine::interop
             return true;
         } catch (const std::exception& e)
         {
-            std::cerr << std::format("Failed to pre-warm thread-local Lua state: {}", e.what());
+            std::cerr << "Failed to pre-warm thread-local Lua state: " << e.what() << std::endl;
             return false;
         }
     }

@@ -12,7 +12,6 @@
 #include "io/env_reader.hpp"
 
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -44,11 +43,12 @@ namespace
      */
     constexpr std::string_view strip_quotes(std::string_view str) noexcept
     {
-        if (str.length() >= 2 && (str.starts_with('"') && str.ends_with('"') ||
-            str.starts_with('\'') && str.ends_with('\'')))
+        if (str.length() >= 2)
         {
-            str.remove_prefix(1);
-            str.remove_suffix(1);
+            if ((str.front() == '"' && str.back() == '"') || (str.front() == '\'' && str.back() == '\''))
+            {
+                return str.substr(1, str.length() - 2);
+            }
         }
         return str;
     }
@@ -75,7 +75,7 @@ namespace codegen::io
         std::ifstream file(env_path);
         if (!file.is_open())
         {
-            throw EnvReaderException(std::format("Could not open .env file: {}", env_path.string()));
+            throw EnvReaderException("Could not open .env file: " + env_path.string());
         }
 
         std::string line;

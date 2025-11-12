@@ -91,7 +91,13 @@ namespace codegen::analysis::utils
             return "";
         }
         std::string path = to_std_string(clang_getFileName(file));
-        std::ranges::replace(path, '\\', '/');
+        for (char& c : path)
+        {
+            if (c == '\\')
+            {
+                c = '/';
+            }
+        }
         return path;
     }
 

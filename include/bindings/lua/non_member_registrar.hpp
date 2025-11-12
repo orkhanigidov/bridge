@@ -53,7 +53,6 @@ namespace engine::bindings::lua
          * @return Reference to this registrar.
          */
         template <typename... Fs>
-            requires (!std::is_member_function_pointer_v<std::remove_cvref_t<Fs>> && ...)
         NonMemberRegistrar& add_function(const std::string& name, Fs&&... fs)
         {
             if constexpr (sizeof...(Fs) == 1)

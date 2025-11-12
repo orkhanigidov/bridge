@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <format>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -50,7 +49,7 @@ namespace
      */
     std::string format_lua_name(std::string name)
     {
-        std::ranges::for_each(name, [](char& c)
+        std::for_each(name.begin(), name.end(), [](char& c)
         {
             if (!std::isalnum(static_cast<unsigned char>(c)))
             {
@@ -58,15 +57,18 @@ namespace
             }
         });
 
-        auto new_end = std::ranges::unique(name, [](char a, char b) { return a == '_' && b == '_'; }).begin();
+        auto new_end = std::unique(name.begin(), name.end(), [](char a, char b)
+        {
+            return a == '_' && b == '_';
+        });
         name.erase(new_end, name.end());
 
-        if (name.starts_with('_'))
+        if (!name.empty() && name.front() == '_')
         {
             name.erase(0, 1);
         }
 
-        if (name.ends_with('_'))
+        if (!name.empty() && name.back() == '_')
         {
             name.pop_back();
         }
@@ -111,19 +113,11 @@ namespace
             const auto* func = funcs[i];
             if constexpr (IsMember)
             {
-                stream << std::format("sol::resolve<{}{}{}>(&{}::{})",
-                                      func->return_type_name(),
-                                      func->signature(),
-                                      func->is_const() ? " const" : "",
-                                      class_name,
-                                      func->name());
+                stream << "sol::resolve<" << func->return_type_name() << func->signature() << (func->is_const() ? " const" : "") << ">(&" << class_name << "::" << func->name() << ")";
             }
             else
             {
-                stream << std::format("sol::resolve<{}{}>(&{})",
-                                      func->return_type_name(),
-                                      func->signature(),
-                                      func->name());
+                stream << "sol::resolve<" << func->return_type_name() << func->signature() << ">(&" << func->name() << ")";
             }
 
             if (i < funcs.size() - 1)
@@ -148,7 +142,7 @@ namespace
 
         for (size_t i = 0; i < enumerators.size(); ++i)
         {
-            stream << std::format("{{\"{}\", {}::{}}}", enumerators[i].name, full_enum_name, enumerators[i].name);
+            stream << "{\"" << enumerators[i].name << "\", " << full_enum_name << "::" << enumerators[i].name << "}";
             if (i < enumerators.size() - 1)
             {
                 stream << delimiter;
@@ -178,7 +172,7 @@ namespace codegen::generation
         std::ofstream out(output_file_);
         if (!out.is_open())
         {
-            throw Sol2GeneratorException(std::format("Failed to open output file: {}", output_file_.string()));
+            throw Sol2GeneratorException("Failed to open output file: " + output_file_.string());
         }
 
         write_header(out, includes, namespaces, containers, classes);
@@ -208,14 +202,14 @@ namespace codegen::generation
 
         for (const auto& include : includes)
         {
-            write_line(out, 0, std::format("#include <{}>", include));
+            write_line(out, 0, "#include <" + include + ">");
         }
         write_line(out, 0, "");
         write_line(out, 0, "#include <sol/sol.hpp>", 2);
 
         for (const auto& ns : namespaces)
         {
-            write_line(out, 0, std::format("using namespace {};", ns));
+            write_line(out, 0, "using namespace " + ns + ";");
         }
         write_line(out, 0, "using namespace codegen::wrappers;", 2);
 
@@ -223,8 +217,8 @@ namespace codegen::generation
         write_line(out, 0, "{");
         for (const auto& cls : classes)
         {
-            write_line(out, 1, std::format("template <>"));
-            write_line(out, 1, std::format("struct is_automagical<{}> : std::false_type {{}};", cls.name()), 2);
+            write_line(out, 1, "template <>");
+            write_line(out, 1, "struct is_automagical<" + cls.name() + "> : std::false_type {};", 2);
         }
 
         std::unordered_set<std::string> all_containers = containers;
@@ -241,11 +235,11 @@ namespace codegen::generation
 
         for (const auto& container : all_containers)
         {
-            write_line(out, 1, std::format("template <>"));
-            write_line(out, 1, std::format("struct is_container<{}> : std::false_type {{}};", container), 2);
+            write_line(out, 1, "template <>");
+            write_line(out, 1, "struct is_container<" + container + "> : std::false_type {};", 2);
 
-            write_line(out, 1, std::format("template <>"));
-            write_line(out, 1, std::format("struct is_automagical<{}> : std::false_type {{}};", container), 2);
+            write_line(out, 1, "template <>");
+            write_line(out, 1, "struct is_automagical<" + container + "> : std::false_type {};", 2);
         }
         write_line(out, 0, "}", 2);
 
@@ -318,7 +312,7 @@ namespace codegen::generation
                 ownership = "Lua";
             }
 
-            write_line(out, 2, std::format("MemberRegistrar<{}, MemoryOwnership::{}>(lua, \"{}\")", cls.name(), ownership, lua_name));
+            write_line(out, 2, "MemberRegistrar<" + cls.name() + ", MemoryOwnership::" + ownership + ">(lua, \"" + lua_name + "\")");
 
             if (!cls.constructors().empty())
             {
@@ -327,11 +321,11 @@ namespace codegen::generation
                 for (size_t i = 0; i < ctors.size(); ++i)
                 {
                     std::string signature = ctors[i].signature();
-                    if (signature.starts_with('(') && signature.ends_with(')'))
+                    if (!signature.empty() && signature.front() == '(' && signature.back() == ')')
                     {
                         signature = signature.substr(1, signature.length() - 2);
                     }
-                    constructor_stream << std::format("sol::types<{}>", signature);
+                    constructor_stream << "sol::types<" << signature << ">";
                     if (i < ctors.size() - 1)
                     {
                         constructor_stream << ", ";
@@ -340,11 +334,11 @@ namespace codegen::generation
 
                 if (ownership == "Lua")
                 {
-                    write_line(out, 3, std::format(".add_shared_constructors<{}>()", constructor_stream.str()));
+                    write_line(out, 3, ".add_shared_constructors<" + constructor_stream.str() + ">()");
                 }
                 else // if (ownership == "Cpp")
                 {
-                    write_line(out, 3, std::format(".add_raw_constructors<{}>()", constructor_stream.str()));
+                    write_line(out, 3, ".add_raw_constructors<" + constructor_stream.str() + ">()");
                 }
             }
 
@@ -360,31 +354,31 @@ namespace codegen::generation
                         base_stream << ", ";
                     }
                 }
-                write_line(out, 3, std::format(".add_bases<{}>()", base_stream.str()));
+                write_line(out, 3, ".add_bases<" + base_stream.str() + ">()");
             }
 
             for (const auto& enum_ : cls.member_enumerators())
             {
                 std::ostringstream enumerators_stream;
-                std::string full_enum_name = std::format("{}::{}", cls.name(), enum_.name());
+                std::string full_enum_name = cls.name() + "::" + enum_.name();
                 write_enum_pairs(enumerators_stream, enum_, 4, full_enum_name);
-                write_line(out, 3, std::format(".add_enums<{}::{}>(\"{}\", {{ {} }})", cls.name(), enum_.name(), enum_.name(), enumerators_stream.str()));
+                write_line(out, 3, ".add_enums<" + cls.name() + "::" + enum_.name() + ">(\"" + enum_.name() + "\", {" + enumerators_stream.str() + " })");
             }
 
             for (const auto& var : cls.member_variables())
             {
                 if (var.is_static())
                 {
-                    write_line(out, 3, std::format(".add_static_variable(\"{}\", {}::{})", var.name(), cls.name(), var.name()));
+                    write_line(out, 3, ".add_static_variable(\"" + var.name() + "\", " + cls.name() + "::" + var.name() + ")");
                 }
                 else if (var.is_container())
                 {
                     // write_line(out, 3, std::format(".add_readonly_property(\"{}\", [](const {}& self) {{ return self.{}; }})", var.name(), cls.name(), var.name()));
-                    write_line(out, 3, std::format(".add_readonly_property(\"{}\", &{}::{})", var.name(), cls.name(), var.name()));
+                    write_line(out, 3, ".add_readonly_property(\"" + var.name() + "\", &" + cls.name() + "::" + var.name() + ")");
                 }
                 else
                 {
-                    write_line(out, 3, std::format(".add_variable(\"{}\", &{}::{}, {})", var.name(), cls.name(), var.name(), var.is_const()));
+                    write_line(out, 3, ".add_variable(\"" + var.name() + "\", &" + cls.name() + "::" + var.name() + ", " + (var.is_const() ? "true" : "false") + ")");
                 }
             }
 
@@ -402,11 +396,11 @@ namespace codegen::generation
                 {
                     if (is_wrapper_func)
                     {
-                        overloads_stream << std::format("&{}", funcs[0]->name());
+                        overloads_stream << "&" + funcs[0]->name();
                     }
                     else
                     {
-                        overloads_stream << std::format("&{}::{}", cls.name(), funcs[0]->name());
+                        overloads_stream << "&" + cls.name() + "::" + funcs[0]->name();
                     }
                 }
                 else
@@ -422,11 +416,11 @@ namespace codegen::generation
                 }
                 if (is_wrapper_func)
                 {
-                    write_line(out, 3, std::format(".add_wrapper_function(\"{}\", {})", name, overloads_stream.str()));
+                    write_line(out, 3, ".add_wrapper_function(\"" + name + "\", " + overloads_stream.str() + ")");
                 }
                 else
                 {
-                    write_line(out, 3, std::format(".add_function(\"{}\", {})", name, overloads_stream.str()));
+                    write_line(out, 3, ".add_function(\"" + name + "\", " + overloads_stream.str() + ")");
                 }
             }
             write_line(out, 2, ";", 2);
@@ -459,20 +453,20 @@ namespace codegen::generation
             std::ostringstream overloads_stream;
             if (funcs.size() == 1)
             {
-                overloads_stream << std::format("&{}", name);
+                overloads_stream << "&" + name;
             }
             else
             {
                 write_overload_resolutions<false>(overloads_stream, funcs, 4);
             }
-            write_line(out, 2, std::format("registrar.add_function(\"{}\", {});", name, overloads_stream.str()));
+            write_line(out, 2, "registrar.add_function(\"" + name + "\", " + overloads_stream.str() + ");");
         }
 
         for (const auto& enum_ : enums)
         {
             std::ostringstream enumerators_stream;
             write_enum_pairs(enumerators_stream, enum_, 4, enum_.name());
-            write_line(out, 2, std::format("registrar.add_enums<{}>(\"{}\", {{ {} }});", enum_.name(), enum_.name(), enumerators_stream.str()));
+            write_line(out, 2, "registrar.add_enums<" + enum_.name() + ">(\"" + enum_.name() + "\", { " + enumerators_stream.str() + " });");
         }
         write_line(out, 1, "}");
     }

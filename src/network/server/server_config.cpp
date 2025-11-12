@@ -12,7 +12,6 @@
 #include "network/server/server_config.hpp"
 
 #include <exception>
-#include <format>
 #include <stdexcept>
 #include <string_view>
 #include <oatpp/core/base/CommandLineArguments.hpp>
@@ -62,12 +61,12 @@ namespace engine::network::server
             port_val = oatpp::utils::conversion::strToInt32(port_str);
         } catch (const std::exception& e)
         {
-            throw std::invalid_argument(std::format("Invalid port number format: {}", e.what()));
+            throw std::invalid_argument("Invalid port number format" + std::string(e.what()));
         }
 
         if (!is_valid_port(port_val))
         {
-            throw std::out_of_range(std::format("Invalid port number. Valid range is [{} - {}].", MIN_PORT, MAX_PORT));
+            throw std::out_of_range("Invalid port number. Valid range is" + std::to_string(MIN_PORT) + " to " + std::to_string(MAX_PORT) + ".");
         }
 
         config.port = static_cast<v_uint16>(port_val);

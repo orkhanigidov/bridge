@@ -12,8 +12,6 @@
 #include "analysis/ast_visitor.hpp"
 
 #include <algorithm>
-#include <format>
-#include <iostream>
 #include <optional>
 #include <set>
 #include <string>
@@ -235,8 +233,14 @@ namespace codegen::analysis
      */
     CXChildVisitResult AstVisitor::visit(const CXCursor& cursor, const CXCursor&)
     {
-        if (const auto path = utils::get_include_path(cursor);
-            path.empty() || !path.starts_with(config_.target_include_path.string()) && !path.starts_with(config_.wrapper_include_path.string()))
+        const auto path = utils::get_include_path(cursor);
+        const std::string& target_path_str = config_.target_include_path.string();
+        const std::string& wrapper_path_str = config_.wrapper_include_path.string();
+
+        bool target_match = !target_path_str.empty() && path.rfind(target_path_str, 0) == 0;
+        bool wrapper_match = !wrapper_path_str.empty() && path.rfind(wrapper_path_str, 0) == 0;
+
+        if (path.empty() || (!target_match && !wrapper_match))
         {
             return CXChildVisit_Continue;
         }
@@ -330,7 +334,7 @@ namespace codegen::analysis
     std::optional<metadata::EnumDescriptor> AstVisitor::parse_enum_decl(const CXCursor& cursor)
     {
         const auto enum_name = utils::get_spelling(cursor);
-        if (enum_name.empty() || enum_name.starts_with("(unnamed"))
+        if (enum_name.empty() || enum_name.rfind("(unnamed", 0) == 0)
         {
             return std::nullopt;
         }
@@ -343,8 +347,8 @@ namespace codegen::analysis
             {
                 auto* current_enum_desc = static_cast<metadata::EnumDescriptor*>(client_data);
                 current_enum_desc->add_enumerator({
-                    .name = utils::get_spelling(child),
-                    .value = clang_getEnumConstantDeclValue(child)
+                    utils::get_spelling(child),
+                    clang_getEnumConstantDeclValue(child)
                 });
             }
             return CXChildVisit_Continue;
@@ -384,7 +388,7 @@ namespace codegen::analysis
     void AstVisitor::visit_class_decl(const CXCursor& cursor)
     {
         auto class_name = utils::get_spelling(cursor);
-        if (!config_.target_classes.contains(class_name))
+        if (config_.target_classes.find(class_name) == config_.target_classes.end())
         {
             return;
         }
@@ -395,7 +399,7 @@ namespace codegen::analysis
             return;
         }
 
-        if (result_.processed_classes.contains(class_name))
+        if (result_.processed_classes.find(class_name) != result_.processed_classes.end())
         {
             return;
         }
@@ -504,11 +508,11 @@ namespace codegen::analysis
                     class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
                 }
 
-                if (visitor->config_.target_classes.contains(class_lookup_name))
+                if (visitor->config_.target_classes.find(class_lookup_name) != visitor->config_.target_classes.end())
                 {
                     const auto& class_config = visitor->config_.target_classes.at(class_lookup_name);
                     if (const auto& target_methods = class_config.methods;
-                        std::ranges::find(target_methods, method_name) != target_methods.end())
+                        std::find(target_methods.begin(), target_methods.end(), method_name) != target_methods.end())
                     {
                         CXType return_type = clang_getCursorResultType(cursor);
 
@@ -601,7 +605,7 @@ namespace codegen::analysis
     void AstVisitor::visit_class_template(const CXCursor& cursor)
     {
         auto template_name = utils::get_spelling(cursor);
-        if (!config_.target_classes.contains(template_name))
+        if (config_.target_classes.find(template_name) == config_.target_classes.end())
         {
             return;
         }
@@ -609,9 +613,9 @@ namespace codegen::analysis
         const auto& template_config = config_.target_classes.at(template_name);
         for (const auto& type : template_config.types)
         {
-            std::string full_name = std::format("{}<{}>", template_name, type);
+            std::string full_name = template_name + "<" + type + ">";
 
-            if (result_.processed_classes.contains(full_name))
+            if (result_.processed_classes.find(full_name) != result_.processed_classes.end())
             {
                 continue;
             }
@@ -638,7 +642,7 @@ namespace codegen::analysis
     {
         const auto enum_name = utils::get_spelling(cursor);
         if (const auto& target_enums = config_.target_enums;
-            std::ranges::find(target_enums, enum_name) != target_enums.end())
+            std::find(target_enums.begin(), target_enums.end(), enum_name) != target_enums.end())
         {
             if (auto enum_desc_opt = parse_enum_decl(cursor))
             {
@@ -655,7 +659,8 @@ namespace codegen::analysis
     void AstVisitor::visit_function_decl(const CXCursor& cursor)
     {
         const auto path = utils::get_include_path(cursor);
-        const bool is_wrapper = !path.empty() && path.starts_with(config_.wrapper_include_path.string());
+        const std::string& wrapper_path_str = config_.wrapper_include_path.string();
+        const bool is_wrapper = !path.empty() && !wrapper_path_str.empty() && path.rfind(wrapper_path_str, 0) == 0;
 
         const auto func_name = utils::get_spelling(cursor);
 
@@ -663,9 +668,9 @@ namespace codegen::analysis
         {
             for (const auto& [class_name_from_config, class_config] : config_.target_classes)
             {
-                if (std::ranges::find(class_config.methods, func_name) != class_config.methods.end())
+                if (std::find(class_config.methods.begin(), class_config.methods.end(), func_name) != class_config.methods.end())
                 {
-                    auto it = std::ranges::find_if(result_.classes, [&](const auto& cls)
+                    auto it = std::find_if(result_.classes.begin(), result_.classes.end(), [&](const auto& cls)
                     {
                         std::string base_class_name = cls.name();
                         if (size_t template_pos = base_class_name.find('<'); template_pos != std::string::npos)
@@ -697,7 +702,7 @@ namespace codegen::analysis
         }
 
         if (const auto& target_funcs = config_.target_free_functions;
-            is_wrapper || std::ranges::find(target_funcs, func_name) != target_funcs.end())
+            is_wrapper || std::find(target_funcs.begin(), target_funcs.end(), func_name) != target_funcs.end())
         {
             CXType return_type = clang_getCursorResultType(cursor);
 

@@ -12,7 +12,6 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <string>
 
@@ -72,7 +71,7 @@ int main(int argc, const char* argv[])
         engine.generate_lua_bindings();
     } catch (const std::exception& e)
     {
-        std::cerr << std::format("\nFATAL ERROR: {}\n", e.what());
+        std::cerr << "\nFATAL ERROR: {}\n" << e.what();
         return EXIT_FAILURE;
     }
 

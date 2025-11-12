@@ -30,17 +30,15 @@ namespace
      */
     engine::interop::types::ExecutionErrorType convert_error_type(engine::execution::CoreExecutionErrorType type)
     {
-        using enum engine::execution::CoreExecutionErrorType;
-
         switch (type)
         {
-        case InvalidArgument:
+        case engine::execution::CoreExecutionErrorType::InvalidArgument:
             return engine::interop::types::InvalidArgument;
-        case ExecutionFailed:
+        case engine::execution::CoreExecutionErrorType::ExecutionFailed:
             return engine::interop::types::ExecutionFailed;
-        case ValidationFailed:
+        case engine::execution::CoreExecutionErrorType::ValidationFailed:
             return engine::interop::types::ValidationFailed;
-        case FileNotFound:
+        case engine::execution::CoreExecutionErrorType::FileNotFound:
             return engine::interop::types::FileNotFound;
         default:
             return engine::interop::types::ExecutionFailed;
@@ -54,15 +52,13 @@ namespace
      */
     engine::interop::types::ExecutionStatus convert_status(engine::execution::CoreExecutionStatus status)
     {
-        using enum engine::execution::CoreExecutionStatus;
-
         switch (status)
         {
-        case Success:
+        case engine::execution::CoreExecutionStatus::Success:
             return engine::interop::types::Success;
-        case Failure:
+        case engine::execution::CoreExecutionStatus::Failure:
             return engine::interop::types::Failure;
-        case Timeout:
+        case engine::execution::CoreExecutionStatus::Timeout:
             return engine::interop::types::Timeout;
         default:
             return engine::interop::types::Failure;

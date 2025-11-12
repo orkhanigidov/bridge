@@ -12,7 +12,6 @@
 #pragma once
 
 #include <exception>
-#include <format>
 #include <memory>
 #include <oatpp/core/Types.hpp>
 #include <oatpp/core/data/mapping/ObjectMapper.hpp>
@@ -104,7 +103,7 @@ namespace engine::network::api
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 500;
-                error->message = std::format("An unexpected error occurred: {}", e.what());
+                error->message = "An unexpected error occurred: " + std::string(e.what());
                 return createDtoResponse(Status::CODE_500, error);
             }
         }
