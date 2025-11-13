@@ -42,6 +42,11 @@ namespace engine::utils
             free(ptr->error.message);
         }
 
+        if (ptr->string_output)
+        {
+            free(ptr->string_output);
+        }
+
         delete ptr;
     }
 
@@ -68,9 +73,11 @@ namespace engine::utils
     /**
      * @brief Creates a success execution repose.
      * @param metadata The execution metadata.
+     * @param string_output Optional string output from the script.
      * @return Unique pointer to the created ExecutionResponse.
      */
-    ExecutionResponsePtr ResponseFactory::create_success(interop::types::ExecutionMetadata metadata)
+    ExecutionResponsePtr ResponseFactory::create_success(interop::types::ExecutionMetadata metadata,
+                                                         const std::string& string_output)
     {
         ExecutionResponsePtr response(new interop::types::ExecutionResponse(), ExecutionResponseDeleter());
 
@@ -79,6 +86,15 @@ namespace engine::utils
 
         response->error.type = {};
         response->error.message = nullptr;
+
+        if (!string_output.empty())
+        {
+            response->string_output = strdup(string_output.c_str());
+        }
+        else
+        {
+            response->string_output = nullptr;
+        }
 
         return response;
     }

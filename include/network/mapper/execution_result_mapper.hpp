@@ -48,6 +48,11 @@ namespace engine::network::mapper
         {
             const auto dto = dto::execution::ResponseDto::createShared();
 
+            if (!result.string_output.empty())
+            {
+                dto->string_output = result.string_output.c_str();
+            }
+
             if (result.is_success())
             {
                 dto->status = dto::execution::ExecutionStatusDto::Success;

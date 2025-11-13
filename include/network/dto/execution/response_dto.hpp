@@ -44,6 +44,11 @@ namespace engine::network::dto::execution
         DTO_FIELD(oatpp::List<oatpp::Object<FileDto>>, output_data);
 
         /**
+         * @brief Optional string output from the script.
+         */
+        DTO_FIELD(oatpp::String, string_output);
+
+        /**
          * @brief Error information, if any, occurred during execution.
          */
         DTO_FIELD(oatpp::Object<ErrorDto>, error);

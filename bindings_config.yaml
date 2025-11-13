@@ -1,5 +1,8 @@
 classes:
   - name: Graph
+    methods:
+      - numberOfNodes
+      - numberOfEdges
   - name: GraphAttributes
     methods:
         - width

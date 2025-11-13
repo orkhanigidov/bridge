@@ -78,7 +78,7 @@ namespace
         {
             engine::interop::types::ExecutionMetadata metadata;
             metadata.duration_milliseconds = result.metadata.duration_milliseconds;
-            return engine::utils::ResponseFactory::create_success(metadata);
+            return engine::utils::ResponseFactory::create_success(metadata, result.string_output);
         }
 
         const auto interop_error_type = convert_error_type(result.error.type);

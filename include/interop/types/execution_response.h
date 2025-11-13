@@ -38,6 +38,11 @@ namespace engine::interop::types
         ExecutionError error;
 
         /**
+         * @brief Optional string output from the script.
+         */
+        char* string_output;
+
+        /**
          * @brief Metadata about the execution, such as duration.
          */
         ExecutionMetadata metadata;

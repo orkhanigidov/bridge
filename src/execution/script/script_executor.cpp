@@ -34,6 +34,7 @@ namespace
     engine::execution::CoreExecutionResult execute_lua(Func script_runner)
     {
         const auto start = std::chrono::high_resolution_clock::now();
+        std::string string_output;
 
         try
         {
@@ -49,6 +50,24 @@ namespace
                         sol::to_string(status) + ": " + err.what()
                     }
                 };
+            }
+
+            if (result.return_count() > 0)
+            {
+                std::stringstream ss;
+                sol::state_view lua(result[0].lua_state());
+
+                for (const auto& val : result)
+                {
+                    auto val_str = lua["tostring"](val).get<std::string>();
+                    ss << val_str << "\t";
+                }
+                string_output = ss.str();
+
+                if (!string_output.empty())
+                {
+                    string_output.pop_back();
+                }
             }
         } catch (const sol::error& e)
         {
@@ -69,7 +88,9 @@ namespace
             {},
             {
                 duration_milliseconds
-            }
+            },
+            "",
+            string_output
         };
     }
 }

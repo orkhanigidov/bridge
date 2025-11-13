@@ -62,8 +62,10 @@ namespace engine::utils
         /**
          * @brief Creates a success execution responses.
          * @param metadata The execution metadata.
+         * @param string_output Optional string output from the script.
          * @return Unique pointer to the created ExecutionResponse.
          */
-        static ExecutionResponsePtr create_success(interop::types::ExecutionMetadata metadata);
+        static ExecutionResponsePtr create_success(interop::types::ExecutionMetadata metadata,
+                                                   const std::string& string_output = "");
     };
 } // namespace engine::utils

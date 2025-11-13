@@ -83,40 +83,32 @@ namespace engine::execution
             context.output_path = output_path;
 
             script::LuaScriptRunner runner;
-            if (auto result = runner.run_from_string(context);
-                !result.is_success())
+            auto result = runner.run_from_string(context);
+            if (!result.is_success())
             {
-                return {
-                    result.status,
-                    {
-                        result.error.type,
-                        result.error.message
-                    }
-                };
+                return result;
             }
 
-            std::ifstream output_file(output_path, std::ios::binary);
-            if (!output_file)
+            if (std::ifstream output_file(output_path, std::ios::binary); output_file)
             {
-                throw ExecutionServiceException("Cannot open temporary output file at path: " + output_path.string());
+                oatpp::String encoded_output;
+                std::ostringstream output_stream;
+                output_stream << output_file.rdbuf();
+
+                if (!output_file.good() && !output_file.eof())
+                {
+                    throw ExecutionServiceException("Failed to read temporary output file at path: " + output_path.string());
+                }
+
+                if (oatpp::String buffer = output_stream.str();
+                    buffer && !buffer->empty())
+                {
+                    encoded_output = oatpp::encoding::Base64::encode(buffer);
+                }
+
+                result.output_data = encoded_output;
             }
-
-            std::ostringstream output_stream;
-            output_stream << output_file.rdbuf();
-            if (!output_file.good() && !output_file.eof())
-            {
-                throw ExecutionServiceException("Failed to read temporary output file at path: " + output_path.string());
-            }
-
-            oatpp::String buffer = output_stream.str();
-            auto encoded_output = oatpp::encoding::Base64::encode(buffer);
-
-            return {
-                CoreExecutionStatus::Success,
-                {},
-                {},
-                encoded_output
-            };
+            return result;
         } catch (const std::exception& e)
         {
             return {

@@ -120,6 +120,11 @@ namespace engine::execution
         std::string output_data;
 
         /**
+         * @brief Optional string output from the script.
+         */
+        std::string string_output;
+
+        /**
          * @brief Checks if the execution was successful.
          * @return True if status is Success, false otherwise.
          */
