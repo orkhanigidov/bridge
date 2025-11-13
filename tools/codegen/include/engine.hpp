@@ -44,13 +44,16 @@ namespace codegen
          * @brief Constructs the Engine.
          * @param include_dir Directory containing C++ headers to process.
          * @param wrapper_dir Directory for wrapper files.
+         * @param manual_register_dir Directory for manual binding header files.
          * @param config_yaml Path to the YAML configuration file.
          * @param output_dir Directory to write generated files to.
          * @param logger Optional logger for status and error messages.
          */
-        explicit Engine(std::filesystem::path include_dir, std::filesystem::path wrapper_dir, std::filesystem::path config_yaml,
+        explicit Engine(std::filesystem::path include_dir, std::filesystem::path wrapper_dir,
+                        std::filesystem::path manual_register_dir, std::filesystem::path config_yaml,
                         std::filesystem::path output_dir, std::ostream* logger) : include_dir_(std::move(include_dir)),
                                                                                   wrapper_dir_(std::move(wrapper_dir)),
+                                                                                  manual_register_dir_(std::move(manual_register_dir)),
                                                                                   config_yaml_(std::move(config_yaml)),
                                                                                   output_dir_(std::move(output_dir)),
                                                                                   logger_(logger)
@@ -82,6 +85,11 @@ namespace codegen
          * @brief Directory for wrapper files.
          */
         std::filesystem::path wrapper_dir_;
+
+        /**
+         * @brief Directory for manual binding files.
+         */
+        std::filesystem::path manual_register_dir_;
 
         /**
          * @brief Path to YAML configuration.

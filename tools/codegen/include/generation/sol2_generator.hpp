@@ -60,13 +60,15 @@ namespace codegen::generation
          * @param classes List of class descriptors to generate bindings for.
          * @param free_functions List of free function descriptors to bind.
          * @param enums List of enum descriptors to bind.
+         * @param manual_bindings List of (header_path, function_name) for manual bindings.
          */
         void generate(const std::unordered_set<std::string>& includes,
                       const std::unordered_set<std::string>& namespaces,
                       const std::unordered_set<std::string>& containers,
                       const std::vector<metadata::ClassDescriptor>& classes,
                       const std::vector<metadata::FunctionDescriptor>& free_functions,
-                      const std::vector<metadata::EnumDescriptor>& enums) const;
+                      const std::vector<metadata::EnumDescriptor>& enums,
+                      const std::vector<std::pair<std::string, std::string>>& manual_bindings) const;
 
     private:
         std::filesystem::path output_file_;
@@ -78,12 +80,14 @@ namespace codegen::generation
          * @param namespaces Set of namespaces to open.
          * @param containers Set of containers to specialize.
          * @param classes List of class descriptors.
+         * @param manual_bindings List of manual binding headers to include.
          */
         static void write_header(std::ofstream& out,
                                  const std::unordered_set<std::string>& includes,
                                  const std::unordered_set<std::string>& namespaces,
                                  const std::unordered_set<std::string>& containers,
-                                 const std::vector<metadata::ClassDescriptor>& classes);
+                                 const std::vector<metadata::ClassDescriptor>& classes,
+                                 const std::vector<std::pair<std::string, std::string>>& manual_bindings);
 
         /**
          * @brief Writes Sol2 member registrations for all classes.
@@ -101,6 +105,13 @@ namespace codegen::generation
         static void write_non_member_registrations(std::ofstream& out,
                                                    const std::vector<metadata::FunctionDescriptor>& free_functions,
                                                    const std::vector<metadata::EnumDescriptor>& enums);
+
+        /**
+         * @brief Writes calls to manual registration functions.
+         * @param out Output file stream.
+         * @param manual_bindings List of (header_path, function_name) for manual bindings.
+         */
+        static void write_manual_bindings(std::ofstream& out, const std::vector<std::pair<std::string, std::string>>& manual_bindings);
 
         /**
          * @brief Writes the file footer, closing any open namespaces.

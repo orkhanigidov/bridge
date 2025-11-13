@@ -45,4 +45,10 @@ namespace engine::bindings::lua
      * @param lua The Lua state to register non-member bindings to.
      */
     void register_non_members(sol::state& lua);
+
+    /**
+     * @brief Registers manually defined Lua bindings.
+     * @param lua The Lua state to register bindings to.
+     */
+    void register_manual_bindings(sol::state& lua);
 } // namespace engine::bindings::lua

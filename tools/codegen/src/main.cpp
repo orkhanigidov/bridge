@@ -21,6 +21,7 @@
 namespace
 {
     constexpr auto DEFAULT_WRAPPER_DIR = "tools/codegen/include/wrappers";
+    constexpr auto DEFAULT_MANUAL_REGISTER_DIR = "tools/codegen/include/manual_registers";
     constexpr auto DEFAULT_CONFIG_YAML = "bindings_config.yaml";
     constexpr auto DEFAULT_OUTPUT_DIR = "build";
 
@@ -64,10 +65,11 @@ int main(int argc, const char* argv[])
 
         const std::filesystem::path include_dir = reader.get("LIBRARY_INCLUDE_PATH").value();
         const std::filesystem::path wrapper_dir = get_path_or_default(reader, "WRAPPER_DIR", project_root / DEFAULT_WRAPPER_DIR);
+        const std::filesystem::path manual_register_dir = get_path_or_default(reader, "MANUAL_REGISTER_DIR", project_root / DEFAULT_MANUAL_REGISTER_DIR);
         const std::filesystem::path config_yaml = get_path_or_default(reader, "CONFIG_FILE_PATH", project_root / DEFAULT_CONFIG_YAML);
         const std::filesystem::path output_dir = get_path_or_default(reader, "GENERATED_CODE_DIR", project_root / DEFAULT_OUTPUT_DIR);
 
-        const codegen::Engine engine(include_dir, wrapper_dir, config_yaml, output_dir, &std::cout);
+        const codegen::Engine engine(include_dir, wrapper_dir, manual_register_dir, config_yaml, output_dir, &std::cout);
         engine.generate_lua_bindings();
     } catch (const std::exception& e)
     {
