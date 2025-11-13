@@ -41,6 +41,37 @@ namespace
     };
 
     /**
+     * @brief Gets the relative include path based on the analysis configuration.
+     * @param cursor The cursor to get the path for.
+     * @param config The analysis configuration.
+     * @return The relative include a path as a string.
+     */
+    std::string get_relative_include(const CXCursor& cursor, const codegen::analysis::AnalysisConfig& config)
+    {
+        const std::string full_path = codegen::analysis::utils::get_include_path(cursor);
+        const std::string target_path_str = config.target_include_path.generic_string();
+        const std::string wrapper_path_str = config.wrapper_include_path.generic_string();
+
+        const std::filesystem::path fs_full_path(full_path);
+
+        if (!target_path_str.empty() && full_path.rfind(target_path_str, 0) == 0)
+        {
+            const std::filesystem::path fs_target_path(target_path_str);
+            std::filesystem::path relative_path = std::filesystem::relative(fs_full_path, fs_target_path);
+            return relative_path.generic_string();
+        }
+
+        if (!wrapper_path_str.empty() && full_path.rfind(wrapper_path_str, 0) == 0)
+        {
+            const std::filesystem::path fs_wrapper_path(wrapper_path_str);
+            std::filesystem::path relative_path = std::filesystem::relative(fs_full_path, fs_wrapper_path.parent_path());
+            return relative_path.generic_string();
+        }
+
+        return full_path;
+    }
+
+    /**
      * @brief Retrieves the namespace of the given AST cursor, if any.
      * @param cursor The AST cursor whose namespace is to be determined.
      * @return An optional string containing the fully qualified namespace, or std::nullopt if none.
@@ -410,7 +441,7 @@ namespace codegen::analysis
             result_.namespaces.emplace(*ns);
         }
 
-        result_.includes.emplace(utils::get_include_path(cursor));
+        result_.includes.emplace(get_relative_include(cursor, config_));
         result_.classes.emplace_back(std::move(class_name));
 
         process_class_common(cursor, result_.classes.back());
@@ -555,7 +586,7 @@ namespace codegen::analysis
                     if (auto enum_desc_opt = visitor->parse_enum_decl(cursor))
                     {
                         class_desc.add_member_enumerator(std::move(*enum_desc_opt));
-                        visitor->result_.includes.emplace(utils::get_include_path(cursor));
+                        visitor->result_.includes.emplace(get_relative_include(cursor, visitor->config_));
                     }
                 }
                 break;
@@ -626,7 +657,7 @@ namespace codegen::analysis
                 result_.namespaces.emplace(std::move(*ns));
             }
 
-            result_.includes.emplace(utils::get_include_path(cursor));
+            result_.includes.emplace(get_relative_include(cursor, config_));
             result_.classes.emplace_back(std::move(full_name));
             result_.classes.back().add_template_type(type);
 
@@ -647,7 +678,7 @@ namespace codegen::analysis
             if (auto enum_desc_opt = parse_enum_decl(cursor))
             {
                 result_.enums.emplace_back(std::move(*enum_desc_opt));
-                result_.includes.emplace(utils::get_include_path(cursor));
+                result_.includes.emplace(get_relative_include(cursor, config_));
             }
         }
     }
@@ -693,7 +724,7 @@ namespace codegen::analysis
                         method_desc.set_wrapper(true);
 
                         it->add_member_function(std::move(method_desc));
-                        result_.includes.emplace(utils::get_include_path(cursor));
+                        result_.includes.emplace(get_relative_include(cursor, config_));
 
                         return;
                     }
@@ -731,7 +762,7 @@ namespace codegen::analysis
             }
             func_desc.set_signature(utils::build_signature(func_desc.parameters()));
             result_.free_functions.emplace_back(std::move(func_desc));
-            result_.includes.emplace(utils::get_include_path(cursor));
+            result_.includes.emplace(get_relative_include(cursor, config_));
         }
     }
 } // namespace codegen::analysis

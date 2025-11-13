@@ -228,7 +228,6 @@ namespace codegen::generation
         {
             write_line(out, 0, "using namespace " + ns + ";");
         }
-        write_line(out, 0, "using namespace codegen::wrappers;", 2);
 
         write_line(out, 0, "namespace sol");
         write_line(out, 0, "{");

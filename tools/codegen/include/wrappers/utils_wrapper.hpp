@@ -12,105 +12,102 @@
 #include <ogdf/basic/GraphAttributes.h>
 #include <ogdf/basic/Graph_d.h>
 
-namespace codegen::wrappers
+inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double target_size = 20.0)
 {
-    inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double target_size = 20.0)
+    if (G.numberOfNodes() == 0)
     {
-        if (G.numberOfNodes() == 0)
-        {
-            return;
-        }
+        return;
+    }
 
-        double min_x = std::numeric_limits<double>::max();
-        double min_y = std::numeric_limits<double>::max();
-        double min_z = std::numeric_limits<double>::max();
-        double max_x = std::numeric_limits<double>::lowest();
-        double max_y = std::numeric_limits<double>::lowest();
-        double max_z = std::numeric_limits<double>::lowest();
+    double min_x = std::numeric_limits<double>::max();
+    double min_y = std::numeric_limits<double>::max();
+    double min_z = std::numeric_limits<double>::max();
+    double max_x = std::numeric_limits<double>::lowest();
+    double max_y = std::numeric_limits<double>::lowest();
+    double max_z = std::numeric_limits<double>::lowest();
 
-        const bool has_node_graphics = GA.has(ogdf::GraphAttributes::nodeGraphics);
-        const bool has_3d = GA.has(ogdf::GraphAttributes::threeD);
+    const bool has_node_graphics = GA.has(ogdf::GraphAttributes::nodeGraphics);
+    const bool has_3d = GA.has(ogdf::GraphAttributes::threeD);
 
-        if (!has_node_graphics)
-        {
-            std::cerr << "Warning: GraphAttributes::nodeGraphics is not enabled. Cannot normalize coordinates." << std::endl;
-            return;
-        }
+    if (!has_node_graphics)
+    {
+        std::cerr << "Warning: GraphAttributes::nodeGraphics is not enabled. Cannot normalize coordinates." << std::endl;
+        return;
+    }
 
-        for (const ogdf::node& v : G.nodes)
-        {
-            double x = GA.x(v);
-            double y = GA.y(v);
+    for (const ogdf::node& v : G.nodes)
+    {
+        double x = GA.x(v);
+        double y = GA.y(v);
 
-            min_x = std::min(min_x, x);
-            min_y = std::min(min_y, y);
-            max_x = std::max(max_x, x);
-            max_y = std::max(max_y, y);
+        min_x = std::min(min_x, x);
+        min_y = std::min(min_y, y);
+        max_x = std::max(max_x, x);
+        max_y = std::max(max_y, y);
 
-            if (has_3d)
-            {
-                double z = GA.z(v);
-                min_z = std::min(min_z, z);
-                max_z = std::max(max_z, z);
-            }
-        }
-
-        if (!has_3d)
-        {
-            min_z = 0.0;
-            max_z = 0.0;
-        }
-
-        double current_width = max_x - min_x;
-        double current_height = max_y - min_y;
-        double current_depth = max_z - min_z;
-
-        const double center_x = min_x + current_width / 2.0;
-        const double center_y = min_y + current_height / 2.0;
-        const double center_z = min_z + current_depth / 2.0;
-
-        if (current_width == 0.0)
-        {
-            current_width = 1.0;
-        }
-
-        if (current_height == 0.0)
-        {
-            current_height = 1.0;
-        }
-
-        if (current_depth == 0.0)
-        {
-            current_depth = 1.0;
-        }
-
-        double max_dimension = std::max(current_width, current_height);
         if (has_3d)
         {
-            max_dimension = std::max(max_dimension, current_depth);
-        }
-
-        for (const ogdf::node& v : G.nodes)
-        {
-            const double x = GA.x(v);
-            const double y = GA.y(v);
-
-            const double norm_x = (x - center_x) / max_dimension;
-            const double norm_y = (y - center_y) / max_dimension;
-
-            const double new_x = norm_x * target_size;
-            const double new_y = norm_y * target_size;
-
-            GA.x(v) = new_x;
-            GA.y(v) = new_y;
-
-            if (has_3d)
-            {
-                const double z = GA.z(v);
-                const double norm_z = (z - center_z) / max_dimension;
-                const double new_z = norm_z * target_size;
-                GA.z(v) = new_z;
-            }
+            double z = GA.z(v);
+            min_z = std::min(min_z, z);
+            max_z = std::max(max_z, z);
         }
     }
-} // namespace codegen::wrappers
+
+    if (!has_3d)
+    {
+        min_z = 0.0;
+        max_z = 0.0;
+    }
+
+    double current_width = max_x - min_x;
+    double current_height = max_y - min_y;
+    double current_depth = max_z - min_z;
+
+    const double center_x = min_x + current_width / 2.0;
+    const double center_y = min_y + current_height / 2.0;
+    const double center_z = min_z + current_depth / 2.0;
+
+    if (current_width == 0.0)
+    {
+        current_width = 1.0;
+    }
+
+    if (current_height == 0.0)
+    {
+        current_height = 1.0;
+    }
+
+    if (current_depth == 0.0)
+    {
+        current_depth = 1.0;
+    }
+
+    double max_dimension = std::max(current_width, current_height);
+    if (has_3d)
+    {
+        max_dimension = std::max(max_dimension, current_depth);
+    }
+
+    for (const ogdf::node& v : G.nodes)
+    {
+        const double x = GA.x(v);
+        const double y = GA.y(v);
+
+        const double norm_x = (x - center_x) / max_dimension;
+        const double norm_y = (y - center_y) / max_dimension;
+
+        const double new_x = norm_x * target_size;
+        const double new_y = norm_y * target_size;
+
+        GA.x(v) = new_x;
+        GA.y(v) = new_y;
+
+        if (has_3d)
+        {
+            const double z = GA.z(v);
+            const double norm_z = (z - center_z) / max_dimension;
+            const double new_z = norm_z * target_size;
+            GA.z(v) = new_z;
+        }
+    }
+}

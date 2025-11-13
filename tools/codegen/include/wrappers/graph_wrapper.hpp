@@ -6,6 +6,3 @@
 
 #pragma once
 
-namespace codegen::wrappers
-{
-} // namespace codegen::wrappers

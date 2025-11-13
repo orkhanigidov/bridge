@@ -41,7 +41,7 @@ namespace
             return *opt_value;
         }
 
-        return default_value;
+        return default_value.generic_string();
     }
 }
 
