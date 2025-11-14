@@ -3,17 +3,19 @@ set -euo pipefail
 
 BUILD_TYPE="Debug"
 INSTALL_DEPS=false
+BUILD_SHARED=false
 
 print_error() {
   echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
 show_usage() {
-  echo "Usage: $0 [--build-type Debug|Release] [--install-deps] [-h|--help]" >&2
+  echo "Usage: $0 [--build-type Debug|Release] [--install-deps] [--build-shared] [-h|--help]" >&2
   echo ""
   echo "Options:"
   echo "  --build-type <TYPE>          Specify the build type (Debug or Release). Default is Debug."
   echo "  --install-deps               Attempt to install required dependencies. Requires root privileges."
+  echo "  --build-shared               Build the engine as shared library."
   echo "  -h, --help                   Show this help message."
   exit 1
 }
@@ -74,6 +76,10 @@ while [[ $# -gt 0 ]]; do
       INSTALL_DEPS=true
       shift 1
       ;;
+    --build-shared)
+      BUILD_SHARED=true
+      shift 1
+      ;;
     -h|--help)
         show_usage
         ;;
@@ -106,8 +112,19 @@ if [[ ! -f "${CMAKE_DIR}/CPM.cmake" ]]; then
     fi
 fi
 
-echo "Configuring project..."
-cmake --preset "${BUILD_TYPE}"
+cmakeConfigureArgs=()
+cmakeConfigureArgs+=(--preset "${BUILD_TYPE}")
+
+if [[ "${BUILD_SHARED}" = true ]]; then
+  echo "Configuring to build as a SHARED library."
+  cmakeConfigureArgs+=("-DBUILD_SHARED_LIB:BOOL=ON")
+else
+  echo "Configuring to build as an EXECUTABLE."
+  cmakeConfigureArgs+=("-DBUILD_SHARED_LIB:BOOL=OFF")
+fi
+
+echo "Configuring project (cmake ${cmakeConfigureArgs[*]})..."
+cmake "${cmakeConfigureArgs[@]}"
 
 echo "Building project..."
 cmake --build --preset "${BUILD_TYPE}"

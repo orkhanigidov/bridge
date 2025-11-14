@@ -52,7 +52,7 @@ function Install-Dependencies {
     }
 
     Write-Host 'Attempting to install required dependencies...'
-    $PACKAGES = @('main/cmake', 'main/ninja', 'main/llvm')
+    $PACKAGES = @('main/cmake', 'main/ninja', 'main/mingw-winlibs')
 
     Write-Host "Using Scoop to install packages: $($PACKAGES -join ' ')"
     try {
