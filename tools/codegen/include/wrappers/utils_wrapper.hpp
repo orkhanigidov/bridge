@@ -113,3 +113,30 @@ inline void normalize(const Graph& G, GraphAttributes& GA, double target_size = 
         }
     }
 }
+
+inline void scale_node_sizes(const Graph& G, GraphAttributes& GA, const double size)
+{
+    for (const node v : G.nodes)
+    {
+        GA.width(v) /= size;
+        GA.height(v) /= size;
+    }
+}
+
+inline void set_node_sizes(const Graph& G, GraphAttributes& GA, const double size)
+{
+    for (const node v : G.nodes)
+    {
+        GA.width(v) = size;
+        GA.height(v) = size;
+    }
+}
+
+inline void set_node_ranks(const Graph& G, NodeArray<int>& rank, const sol::table& lua_table)
+{
+    for (const node v : G.nodes)
+    {
+        int node_id = v->index() + 1;
+        rank[v] = lua_table.get<int>(node_id);
+    }
+}
