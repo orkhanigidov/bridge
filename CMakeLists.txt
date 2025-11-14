@@ -94,6 +94,7 @@ if (BUILD_SHARED_LIB)
     if (WIN32)
         target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_BUILDING_DLL)
     endif ()
+    set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 else ()
     add_executable(${PROJECT_NAME}
             ${SOURCES}
@@ -116,12 +117,15 @@ if (BUILD_SHARED_LIB AND WIN32)
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${PROJECT_NAME}> $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LUA_BIN} $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
             COMMENT "Copying DLL to Unity Plugins directory"
     )
 endif ()
 
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+elseif (MINGW)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wa,-mbig-obj)
 endif ()
 
 add_dependencies(${PROJECT_NAME} generate_bindings)
