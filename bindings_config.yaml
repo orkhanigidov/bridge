@@ -28,9 +28,6 @@ classes:
       - newInitialPlacement
       - qualityVersusSpeed
       - call
-  - name: NodeArray
-    types:
-      - int
   - name: PlanarizationLayout
     methods:
       - setCrossMin
@@ -49,7 +46,6 @@ classes:
   - name: VariableEmbeddingInserter
     methods:
       - removeReinsert
-  - name: EmbedderMinDepthMaxFaceLayers
   - name: OrthoLayout
     methods:
       - separation

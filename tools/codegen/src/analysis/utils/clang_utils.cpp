@@ -52,8 +52,8 @@ namespace codegen::analysis::utils
      */
     std::string get_type_spelling(const CXType& type)
     {
-        CXType canonical_type = clang_getCanonicalType(type);
-        return to_std_string(clang_getTypeSpelling(canonical_type));
+        // CXType canonical_type = clang_getCanonicalType(type);
+        return to_std_string(clang_getTypeSpelling(type));
     }
 
     /**

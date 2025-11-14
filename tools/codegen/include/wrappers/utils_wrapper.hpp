@@ -12,7 +12,9 @@
 #include <ogdf/basic/GraphAttributes.h>
 #include <ogdf/basic/Graph_d.h>
 
-inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double target_size = 20.0)
+using namespace ogdf;
+
+inline void normalize(const Graph& G, GraphAttributes& GA, double target_size = 20.0)
 {
     if (G.numberOfNodes() == 0)
     {
@@ -26,8 +28,8 @@ inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double ta
     double max_y = std::numeric_limits<double>::lowest();
     double max_z = std::numeric_limits<double>::lowest();
 
-    const bool has_node_graphics = GA.has(ogdf::GraphAttributes::nodeGraphics);
-    const bool has_3d = GA.has(ogdf::GraphAttributes::threeD);
+    const bool has_node_graphics = GA.has(GraphAttributes::nodeGraphics);
+    const bool has_3d = GA.has(GraphAttributes::threeD);
 
     if (!has_node_graphics)
     {
@@ -35,7 +37,7 @@ inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double ta
         return;
     }
 
-    for (const ogdf::node& v : G.nodes)
+    for (const node& v : G.nodes)
     {
         double x = GA.x(v);
         double y = GA.y(v);
@@ -88,7 +90,7 @@ inline void normalize(const ogdf::Graph& G, ogdf::GraphAttributes& GA, double ta
         max_dimension = std::max(max_dimension, current_depth);
     }
 
-    for (const ogdf::node& v : G.nodes)
+    for (const node& v : G.nodes)
     {
         const double x = GA.x(v);
         const double y = GA.y(v);

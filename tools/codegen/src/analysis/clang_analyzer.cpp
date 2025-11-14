@@ -38,6 +38,9 @@ namespace codegen::analysis
         const std::vector<std::string> clang_args = {
             "-x", "c++",
             "-std=c++17",
+#ifdef _WIN32
+            "--target=x86_64-w64-mingw32",
+#endif
             "-I" + config.wrapper_include_path.string(),
             "-I" + config.target_include_path.string()
         };
