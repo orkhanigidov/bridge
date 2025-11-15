@@ -130,7 +130,7 @@ if (BUILD_SHARED_LIB AND WIN32)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${PROJECT_NAME}> $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LUA_BIN} $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${THIRD_PARTY_DIR}/libwinpthread-1.dll $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${THIRD_PARTY_DIR}/utils/libwinpthread-1.dll $ENV{UNITY_PROJECT_PATH}/Assets/Plugins/x86_64/
             COMMENT "Copying DLL to Unity Plugins directory"
     )
 endif ()
