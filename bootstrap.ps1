@@ -52,7 +52,7 @@ function Install-Dependencies {
     }
 
     Write-Host 'Attempting to install required dependencies...'
-    $PACKAGES = @('main/cmake', 'main/ninja', 'main/mingw-winlibs')
+    $PACKAGES = @('main/cmake', 'main/ninja', 'main/mingw')
 
     Write-Host "Using Scoop to install packages: $($PACKAGES -join ' ')"
     try {
@@ -77,28 +77,7 @@ if ($InstallDeps) {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
-$PROJECT_ROOT = $PSScriptRoot
-$CMAKE_DIR = Join-Path -Path $PROJECT_ROOT -ChildPath 'cmake'
-
-New-Item -ItemType Directory -Path $CMAKE_DIR -Force | Out-Null
-
-$CPM_PATH = Join-Path $CMAKE_DIR 'CPM.cmake'
-if (-not (Test-Path -Path $CPM_PATH)) {
-    Write-Host 'Downloading CPM.cmake...'
-    $CPM_URL = 'https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake'
-
-    try {
-        Invoke-WebRequest -Uri $CPM_URL -OutFile $CPM_PATH
-    } catch {
-        Print-Error 'Failed to download CPM.cmake.'
-        $_ | Out-String | Print-Error
-        exit 1
-    }
-}
-
-$cmakeConfigureArgs = @(
-    "--preset", $BuildType
-)
+$cmakeConfigureArgs = @("--preset", $BuildType)
 
 if ($BuildShared) {
     Write-Host 'Configuring to build as a SHARED library.' -ForegroundColor Yellow
@@ -109,9 +88,18 @@ if ($BuildShared) {
 }
 
 Write-Host "Configuring project (cmake $($cmakeConfigureArgs -join ' '))..."
+if ($LASTEXITCODE -ne 0) {
+    Print-Error "CMake configure failed with exit code $LASTEXITCODE."
+    exit $LASTEXITCODE
+}
 cmake @cmakeConfigureArgs
 
 Write-Host 'Building project...'
 cmake --build --preset $BuildType
 
-Write-Host 'Build completed successfully.' -ForegroundColor Green
+if ($LASTEXITCODE -eq 0) {
+    Write-Host 'Build completed successfully.' -ForegroundColor Green
+} else {
+    Print-Error "Build failed with exit code $LASTEXITCODE."
+    exit $LASTEXITCODE
+}

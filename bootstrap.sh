@@ -94,24 +94,6 @@ if [[ "${INSTALL_DEPS}" = true ]]; then
   install_dependencies
 fi
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CMAKE_DIR="${PROJECT_ROOT}/cmake"
-
-mkdir -p "${CMAKE_DIR}"
-
-if [[ ! -f "${CMAKE_DIR}/CPM.cmake" ]]; then
-    echo "Downloading CPM.cmake..."
-    CPM_URL="https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake"
-    if command -v wget &> /dev/null; then
-      wget -q -O "${CMAKE_DIR}/CPM.cmake" "${CPM_URL}"
-    elif command -v curl &> /dev/null; then
-      curl -sSL -o "${CMAKE_DIR}/CPM.cmake" "${CPM_URL}"
-    else
-      print_error "Neither wget nor curl is available to download CPM.cmake."
-      exit 1
-    fi
-fi
-
 cmakeConfigureArgs=()
 cmakeConfigureArgs+=(--preset "${BUILD_TYPE}")
 
@@ -124,9 +106,17 @@ else
 fi
 
 echo "Configuring project (cmake ${cmakeConfigureArgs[*]})..."
-cmake "${cmakeConfigureArgs[@]}"
+if ! cmake "${cmakeConfigureArgs[@]}"; then
+  rc=$?
+  print_error "CMake configure failed with exit code ${rc}."
+  exit ${rc}
+fi
 
 echo "Building project..."
-cmake --build --preset "${BUILD_TYPE}"
-
-echo "Build completed successfully."
+if cmake --build --preset "${BUILD_TYPE}"; then
+  echo "Build completed successfully."
+else
+  rc=$?
+  print_error "Build failed with exit code ${rc}."
+  exit ${rc}
+fi

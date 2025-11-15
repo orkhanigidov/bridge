@@ -93,8 +93,20 @@ if (BUILD_SHARED_LIB)
     )
     if (WIN32)
         target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_BUILDING_DLL)
+        if (MINGW)
+            target_link_options(${PROJECT_NAME} PRIVATE
+                    -Wl,--strip-debug
+                    -Wl,--enable-auto-image-base
+                    -static-libgcc
+                    -static-libstdc++
+            )
+        endif ()
     endif ()
-    set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            OUTPUT_NAME "Engine"
+            PREFIX ""
+            SUFFIX ".dll"
+    )
 else ()
     add_executable(${PROJECT_NAME}
             ${SOURCES}
