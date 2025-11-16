@@ -8,8 +8,11 @@ ARG USERNAME=dev
 RUN apt-get update && \
     apt-get install -y  \
     build-essential \
-    gdb \
+    g++ \
     cmake \
+    lua5.4 \
+    liblua5.4-dev \
+    libclang1-18 \
     ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,7 +30,7 @@ RUN chmod +x bootstrap.sh
 USER ${USERNAME}
 
 # Run bootstrap script
-RUN ./bootstrap.sh
+RUN ./bootstrap.sh --install-deps
 
 # Use bash as default shell
 SHELL ["/bin/bash", "-c"]
