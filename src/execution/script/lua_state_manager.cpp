@@ -1,12 +1,16 @@
 /**
- * Author: Orkhan Igidov
  * Project: Engine
+ * File: lua_state_manager.cpp
+ *
+ * Copyright (C) 2025 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
- */
-
-/**
- * @file lua_state_manager.cpp
- * @brief Implements the LuaStateManager utility for managing a thread-local Lua state.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "execution/script/lua_state_manager.hpp"
