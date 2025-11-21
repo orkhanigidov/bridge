@@ -18,23 +18,53 @@ def run_security_test():
 
     attacks = [
         {
-            "name": "File System Access Attack",
-            "script": 'local file = io.open("hacked.txt", "w"); file:write("Security breach!"); file:close()',
-            "expected_keyword": "io"
+            "name": "OS Command Execution Attack",
+            "script": '''
+            local ok, err = pcall(function()
+                os.execute("whoami")
+            end)
+            if not ok then error("os.execute blocked: ".. tostring(err)) end
+            ''',
+            "expected_keyword": "blocked"
         },
         {
-            "name": "OS Command Execution Attack",
-            # 92 is the ASCII code for backslash '\', used in Windows paths
+            "name": "File System Access Attack",
             "script": '''
-            local is_windows = package.config:sub(1,1):byte() == 92
-            if is_windows then
-                os.execute("shutdown /s /t 0")
-            else
-                os.execute("shutdown -h now")
-            end
+            local ok, err = pcall(function()
+                local f = io.open("testfile.txt", "w")
+                if f then
+                    f:write("test")
+                    f:close()
+                else
+                    error("io.open blocked")
+                end
+            end)
+            if not ok then error("file access blocked: ".. tostring(err)) end
             ''',
-            "expected_keyword": "os"
-        }
+            "expected_keyword": "blocked"
+        },
+        {
+            "name": "Concatenation Bypass Attack",
+            "script": '''
+            local ok, err = pcall(function()
+                local o, s = "o", "s"
+                _G[o..s]["execute"]("whoami")
+            end)
+            if not ok then error("bypass blocked: ".. tostring(err)) end
+            ''',
+            "expected_keyword": "blocked"
+        },
+        {
+            "name": "Dynamic Code Loading Attack",
+            "script": '''
+            local ok, err = pcall(function()
+                local code = [[io.open("/etc/passwd","r")]]
+                load(code)()
+            end)
+            if not ok then error("dynamic load blocked: ".. tostring(err)) end
+            ''',
+            "expected_keyword": "blocked"
+        },
     ]
 
     print("Starting security sandbox test...")
