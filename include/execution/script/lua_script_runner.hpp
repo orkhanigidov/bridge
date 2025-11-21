@@ -25,7 +25,6 @@
 #include <string>
 #include <sol/state.hpp>
 
-#include "lua_state_manager.hpp"
 #include "execution/core_execution_result.hpp"
 
 namespace engine::execution::script

@@ -33,6 +33,7 @@
 
 #include "execution/core_execution_result.hpp"
 #include "execution/script/lua_script_runner.hpp"
+#include "execution/script/lua_state_manager.hpp"
 #include "execution/script/script_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "utils/temp_file_guard.hpp"

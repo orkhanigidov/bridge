@@ -24,7 +24,6 @@
 
 #include <chrono>
 #include <filesystem>
-#include <functional>
 #include <string>
 #include <sol/sol.hpp>
 

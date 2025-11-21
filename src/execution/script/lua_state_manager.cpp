@@ -17,7 +17,6 @@
 
 #include <exception>
 #include <iostream>
-#include <memory>
 #include <sol/state.hpp>
 
 #include "bindings/lua/lua_binder.hpp"

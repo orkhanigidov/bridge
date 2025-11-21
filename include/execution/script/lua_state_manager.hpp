@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include <memory>
 #include <sol/state.hpp>
 
 namespace engine::execution::script

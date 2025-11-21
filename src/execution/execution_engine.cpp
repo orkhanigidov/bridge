@@ -24,6 +24,7 @@
 
 #include "execution/core_execution_result.hpp"
 #include "execution/script/lua_script_runner.hpp"
+#include "execution/script/lua_state_manager.hpp"
 #include "interop/types/execution_error_type.h"
 #include "interop/types/execution_metadata.h"
 #include "interop/types/execution_status.h"
