@@ -28,11 +28,11 @@ namespace engine::execution::script
      * @brief Initializes the thread-local Lua state. Opens standard libraries and registers custom bindings. Logs initialization success or failure.
      * @param state Reference to the uniques pointer holding the Lua state.
      */
-    void LuaStateManager::initialize_thread_state(std::unique_ptr<sol::state>& state)
+    void LuaStateManager::initialize_thread_state(sol::state*& state)
     {
         try
         {
-            state = std::make_unique<sol::state>();
+            state = new sol::state();
             state->open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine,
                                   sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8);
 

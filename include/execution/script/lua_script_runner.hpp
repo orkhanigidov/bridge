@@ -62,7 +62,7 @@ namespace engine::execution::script
         /**
          * @brief Constructs a LuaScriptRunner using the thread-local Lua state.
          */
-        LuaScriptRunner() : lua_(LuaStateManager::get_state())
+        explicit LuaScriptRunner(sol::state& lua) : lua_(lua)
         {
         }
 

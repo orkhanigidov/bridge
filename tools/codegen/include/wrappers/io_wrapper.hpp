@@ -16,25 +16,32 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <ogdf/fileformats/GraphIO.h>
 
+static std::mutex io_mutex;
+
 inline bool read(ogdf::Graph& G, const std::string& filename)
 {
+    std::lock_guard lock(io_mutex);
     return ogdf::GraphIO::read(G, filename);
 }
 
 inline bool read(ogdf::GraphAttributes& GA, ogdf::Graph& G, const std::string& filename)
 {
+    std::lock_guard lock(io_mutex);
     return ogdf::GraphIO::read(GA, G, filename);
 }
 
 inline bool write(const ogdf::Graph& G, const std::string& filename)
 {
+    std::lock_guard lock(io_mutex);
     return ogdf::GraphIO::write(G, filename);
 }
 
 inline bool write(const ogdf::GraphAttributes& GA, const std::string& filename)
 {
+    std::lock_guard lock(io_mutex);
     return ogdf::GraphIO::write(GA, filename);
 }

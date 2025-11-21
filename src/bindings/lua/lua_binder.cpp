@@ -43,7 +43,7 @@ namespace engine::bindings::lua
             const auto end_time = std::chrono::high_resolution_clock::now();
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-            std::cout << "Lua bindings successfully registered in " << duration.count() << "in milliseconds" << std::endl;
+            std::cout << "Lua bindings successfully registered in " << duration.count() << " in milliseconds" << std::endl;
         } catch (const sol::error& e)
         {
             std::cerr << "Error registering Lua bindings: " << e.what() << std::endl;

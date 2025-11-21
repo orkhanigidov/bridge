@@ -116,7 +116,7 @@ namespace engine::execution
         context.script_content = script;
 
         CoreExecutionResult result;
-        const script::LuaScriptRunner runner;
+        const script::LuaScriptRunner runner(script::LuaStateManager::get_state());
 
         switch (type)
         {

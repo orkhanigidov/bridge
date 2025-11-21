@@ -43,7 +43,7 @@ def send_request(thread_id, lua_script, encoded_graph):
         return thread_id, "exception", 0, str(e)
 
 
-def run_concurrency_test(num_threads=20):
+def run_concurrency_test(num_threads):
     if not TEST_FILE_PATH.exists():
         print(f"[ERROR] Graph file not found: {TEST_FILE_PATH}")
         return

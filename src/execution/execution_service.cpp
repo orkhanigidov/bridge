@@ -91,7 +91,7 @@ namespace engine::execution
             context.input_path = input_path;
             context.output_path = output_path;
 
-            script::LuaScriptRunner runner;
+            script::LuaScriptRunner runner(script::LuaStateManager::get_state());
             auto result = runner.run_from_string(context);
             if (!result.is_success())
             {

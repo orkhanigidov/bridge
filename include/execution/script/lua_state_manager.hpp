@@ -38,8 +38,8 @@ namespace engine::execution::script
          */
         static sol::state& get_state()
         {
-            thread_local std::unique_ptr<sol::state> state_;
-            if (!state_)
+            thread_local sol::state* state_ = nullptr;
+            if (state_ == nullptr)
             {
                 initialize_thread_state(state_);
             }
@@ -51,6 +51,6 @@ namespace engine::execution::script
          * @brief Initializes the thread-local Lua state.
          * @param state Reference to the unique pointer holding the Lua state.
          */
-        static void initialize_thread_state(std::unique_ptr<sol::state>& state);
+        static void initialize_thread_state(sol::state*& state);
     };
 } // namespace engine::execution::script
