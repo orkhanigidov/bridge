@@ -1,4 +1,6 @@
-flags = GraphAttributes.nodeGraphics | GraphAttributes.edgeGraphics
+flags = GraphAttributes.nodeGraphics | GraphAttributes.edgeGraphics |
+        GraphAttributes.nodeLabel | GraphAttributes.edgeStyle |
+        GraphAttributes.nodeStyle | GraphAttributes.nodeTemplate
 
 G = Graph()
 GA = GraphAttributes(G, flags)
@@ -16,3 +18,4 @@ sl:setLayout(ohl)
 
 sl:call(GA)
 write(GA, __output__)
+write(GA, "tests/temp/hierarchical.svg")

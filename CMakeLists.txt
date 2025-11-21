@@ -156,6 +156,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         OGDF
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE SOL_ALL_SAFETIES_ON=1)
+
 message(STATUS "Engine project configuration completed successfully!")
 message(STATUS " - Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
 message(STATUS " - C++ Standard: C++${CMAKE_CXX_STANDARD}")

@@ -88,15 +88,14 @@ if ($BuildShared) {
 }
 
 Write-Host "Configuring project (cmake $($cmakeConfigureArgs -join ' '))..."
+cmake @cmakeConfigureArgs
 if ($LASTEXITCODE -ne 0) {
     Print-Error "CMake configure failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE
 }
-cmake @cmakeConfigureArgs
 
 Write-Host 'Building project...'
 cmake --build --preset $BuildType
-
 if ($LASTEXITCODE -eq 0) {
     Write-Host 'Build completed successfully.' -ForegroundColor Green
 } else {
