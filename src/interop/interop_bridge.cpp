@@ -22,10 +22,10 @@
 
 #include <exception>
 #include <iostream>
-#include <mutex>
 
 #include "execution/execution_engine.hpp"
 #include "execution/script/lua_script_runner.hpp"
+#include "execution/script/lua_state_manager.hpp"
 #include "interop/interop_c_api.hpp"
 #include "interop/types/execution_error_type.h"
 #include "interop/types/execution_status.h"
