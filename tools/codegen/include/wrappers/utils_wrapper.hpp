@@ -24,7 +24,7 @@
 
 using namespace ogdf;
 
-inline void normalize(const Graph& G, GraphAttributes& GA, double target_size = 20.0)
+inline void normalize(const Graph& G, GraphAttributes& GA, double target_size)
 {
     if (G.numberOfNodes() == 0)
     {

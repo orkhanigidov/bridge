@@ -4,6 +4,10 @@ if (NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
     set(CMAKE_POLICY_VERSION_MINIMUM "3.5" CACHE STRING "Minimum required CMake policy version")
 endif ()
 
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/mingw-toolchain.cmake" CACHE PATH "Toolchain file for MinGW on Windows")
+endif ()
+
 if (NOT CMAKE_BINARY_DIR)
     set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 endif ()

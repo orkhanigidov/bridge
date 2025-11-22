@@ -11,10 +11,7 @@
       "description": "Common settings for all configurations",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-toolchain.cmake"
-      }
+      "binaryDir": "${sourceDir}/build"
     },
     {
       "name": "Debug",

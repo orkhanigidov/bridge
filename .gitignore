@@ -11,4 +11,4 @@ tools/codegen/cmake-build-*/
 
 # Environment and configuration files
 .env
-config/registry_config.yaml
+bindings_config.yaml

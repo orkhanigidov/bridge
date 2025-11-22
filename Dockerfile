@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:24.04
 LABEL authors="dev"
 
 # Set environment variables
@@ -7,6 +7,7 @@ ARG USERNAME=dev
 # Install system dependencies and clean up
 RUN apt-get update && \
     apt-get install -y  \
+    git \
     build-essential \
     g++ \
     cmake \
@@ -22,6 +23,7 @@ RUN useradd -ms /bin/bash ${USERNAME}
 # Set working directory and copy files
 WORKDIR /home/${USERNAME}/app
 COPY --chown=${USERNAME}:${USERNAME} . /home/${USERNAME}/app
+RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/app
 
 # Ensure bootstrap.sh is executable
 RUN chmod +x bootstrap.sh
@@ -30,7 +32,10 @@ RUN chmod +x bootstrap.sh
 USER ${USERNAME}
 
 # Run bootstrap script
-RUN ./bootstrap.sh --install-deps
+RUN ./bootstrap.sh
+
+# Run the application
+CMD ["./build/Engine", "--host", "0.0.0.0"]
 
 # Use bash as default shell
 SHELL ["/bin/bash", "-c"]
