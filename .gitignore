@@ -3,6 +3,9 @@
 .vs/
 .vscode/
 
+# Python virtual environments
+.venv
+
 # Build artifacts
 build/
 cmake-build-*/
