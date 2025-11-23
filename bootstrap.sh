@@ -34,7 +34,7 @@ install_dependencies(){
 
   if command -v apt-get &> /dev/null; then
     PKG_MANAGER="apt"
-    PACKAGES="build-essential g++ cmake lua5.4 liblua5.4-dev libclang1-18 ninja-build"
+    PACKAGES="g++ cmake lua5.4 liblua5.4-dev libclang1-18 ninja-build python3-full"
     INSTALL_CMD="apt-get update && apt-get install -y ${PACKAGES}"
   elif command -v yum &> /dev/null; then
     PKG_MANAGER="yum"

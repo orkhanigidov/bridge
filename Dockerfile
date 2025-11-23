@@ -8,13 +8,13 @@ ARG USERNAME=dev
 RUN apt-get update && \
     apt-get install -y  \
     git \
-    build-essential \
     g++ \
     cmake \
     lua5.4 \
     liblua5.4-dev \
     libclang1-18 \
     ninja-build \
+    python3-full \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
