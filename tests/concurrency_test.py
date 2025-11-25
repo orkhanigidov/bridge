@@ -2,94 +2,116 @@ import base64
 import concurrent.futures
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from pathlib import Path
 
 import requests
 
-URL = "http://localhost:8000/api/execute_script"
+import test_utils
 
-BASE_DIR = Path(__file__).parent
-TEST_FILE_PATH = BASE_DIR / "graph_data" / "Cube.graphml"
-LUA_SCRIPT_PATH = BASE_DIR / "lua_script" / "hierarchical.lua"
+GRAPH_FILE = "n100e100.graphml"
+SCRIPT_FILE = "hierarchical.lua"
+CSV_FILENAME = "concurrency_scalability.csv"
+
+THREAD_LEVELS = [1, 10, 20, 50, 100]
+REQUESTS_PER_THREAD = 10
 
 
-def send_request(thread_id, lua_script, encoded_graph):
-    payload = {
-        "type": "LuaScript",
-        "script": lua_script,
-        "input_data": [{
-            "id": f"test_graph_{thread_id}",
-            "chunk_index": 0,
-            "total_chunks": 1,
-            "chunk_data": encoded_graph
-        }],
-        "options": {
-            "output_data_format": "graphml"
-        }
-    }
-
+def send_single_request(session, payload):
+    start = time.perf_counter()
     try:
-        start_time = time.time()
-        response = requests.post(URL, json=payload)
-        duration = time.time() - start_time
+        response = session.post(test_utils.EXECUTE_URL, json=payload, timeout=30)
+        duration = time.perf_counter() - start
 
         if response.status_code == 200:
-            output_data = response.json().get("output_data", [])
-            return thread_id, "success" if output_data else "success_no_data", duration, None
+            has_output = bool(response.json().get('output_data'))
+            status = "SUCCESS" if has_output else "SUCCESS_NO_DATA"
+            return duration, status, None
         else:
-            return thread_id, "failure", duration, response.text
+            return duration, "HTTP_ERROR", response.text
 
     except Exception as e:
-        return thread_id, "exception", 0, str(e)
+        return (time.perf_counter() - start), "EXCEPTION", str(e)
 
 
-def run_concurrency_test(num_threads):
-    if not TEST_FILE_PATH.exists():
-        print(f"[ERROR] Graph file not found: {TEST_FILE_PATH}")
+def run_concurrency_test():
+    test_utils.print_banner("CONCURRENCY & SCALABILITY ANALYSIS")
+
+    if not test_utils.check_server_health():
+        test_utils.log_error("Server is not running! Cannot start concurrency test.")
         return
 
-    if not LUA_SCRIPT_PATH.exists():
-        print(f"[ERROR] Lua script not found: {LUA_SCRIPT_PATH}")
+    graph_path, script_path = test_utils.check_files(GRAPH_FILE, SCRIPT_FILE)
+    if not graph_path or not script_path: return
+
+    try:
+        encoded_graph = base64.b64encode(graph_path.read_bytes()).decode('utf-8')
+        script_content = script_path.read_text(encoding='utf-8')
+    except IOError as e:
+        test_utils.log_error(f"File reading error: {e}")
         return
 
-    print(f"Reading graph file '{TEST_FILE_PATH}'...")
-    encoded_graph = base64.b64encode(TEST_FILE_PATH.read_bytes()).decode("utf-8")
-    lua_script = LUA_SCRIPT_PATH.read_text(encoding="utf-8")
+    payload = {
+        "type": "LuaScript",
+        "script": script_content,
+        "input_data": [{"id": "conc_test", "chunk_index": 0, "total_chunks": 1, "chunk_data": encoded_graph}],
+        "options": {"output_data_format": "graphml"}
+    }
 
-    print(f"Starting concurrency test with {num_threads} threads...")
+    results_data = []
+    headers = ["Threads", "Total Req", "Throughput (Req/s)", "Avg Latency (s)", "Errors", "Data Integrity"]
+    widths = [10, 12, 20, 18, 10, 15]
+    test_utils.log_table_header(headers, widths)
 
-    success_count = 0
+    for num_threads in THREAD_LEVELS:
+        total_requests = num_threads * REQUESTS_PER_THREAD
 
-    with ThreadPoolExecutor(max_workers=num_threads) as executor:
-        futures = [executor.submit(send_request, i, lua_script, encoded_graph) for i in range(num_threads)]
+        start_global = time.perf_counter()
 
-        print("\n-------------- THREAD EXECUTION LOG --------------")
-        print(f"{'Thread ID':<12} | {'Status':<10} | {'Total Round-Trip (Client -> Server -> Client)'}")
-        print("-" * 50)
+        latencies = []
+        status_counts = {"SUCCESS": 0, "SUCCESS_NO_DATA": 0, "HTTP_ERROR": 0, "EXCEPTION": 0}
 
-        for future in concurrent.futures.as_completed(futures):
-            tid, status, duration, msg = future.result()
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = []
 
-            tid_str = f"Thread-{tid:02d}"
-            if status == "success":
-                print(f"{tid_str:<12} | {'SUCCESS':<10} | {duration:.4f} seconds")
-                success_count += 1
-            elif status == "success_no_data":
-                print(f"{tid_str:<12} | {'SUCCESS (No Data)':<10} | {duration:.4f} seconds")
-                success_count += 1
-            else:
-                print(f"{tid_str:<12} | {'FAILURE':<10} | {msg}")
+            for _ in range(num_threads):
+                session = requests.Session()
+                for _ in range(REQUESTS_PER_THREAD):
+                    futures.append(executor.submit(send_single_request, session, payload))
 
-        print("-" * 50)
-        print("\n------------ CONCURRENCY TEST RESULTS ------------")
-        print(f"Total Threads:           {num_threads}")
-        print(f"Successful Executions:   {success_count}")
-        print(f"Failed Executions:       {num_threads - success_count}")
+            for future in concurrent.futures.as_completed(futures):
+                duration, status, msg = future.result()
+                latencies.append(duration)
+                status_counts[status] += 1
 
-        rate = (success_count / num_threads * 100) if num_threads > 0 else 0
-        print(f"Success Rate:            {rate:.1f}%")
-        print(f"-" * 50)
+        total_time = time.perf_counter() - start_global
+
+        valid_success = status_counts['SUCCESS'] + status_counts['SUCCESS_NO_DATA']
+        throughput = valid_success / total_time if total_time > 0 else 0
+        avg_latency = sum(latencies) / len(latencies) if latencies else 0
+        total_errors = status_counts['HTTP_ERROR'] + status_counts['EXCEPTION']
+
+        integrity_status = "VERIFIED"
+        if total_errors > 0:
+            integrity_status = f"FAILED ({total_errors})"
+        elif status_counts['SUCCESS_NO_DATA'] > 0:
+            integrity_status = "PARTIALLY (Empty Output)"
+
+        test_utils.log_table_row([
+            num_threads, total_requests, f"{throughput:.2f}", f"{avg_latency:.4f}", total_errors, integrity_status
+        ], widths)
+
+        results_data.append({
+            "threads": num_threads,
+            "total_requests": total_requests,
+            "throughput": round(throughput, 2),
+            "avg_latency": round(avg_latency, 4),
+            "error_rate": round((total_errors / total_requests) * 100, 2),
+            "success_count": status_counts['SUCCESS'],
+            "empty_response_count": status_counts['SUCCESS_NO_DATA'],
+            "integrity_status": integrity_status
+        })
+
+    test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":
-    run_concurrency_test(30)
+    run_concurrency_test()

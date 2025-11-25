@@ -4,9 +4,6 @@ classes:
       - numberOfNodes
       - numberOfEdges
   - name: GraphAttributes
-    methods:
-        - width
-        - height
   - name: OptimalRanking
   - name: MedianHeuristic
   - name: SugiyamaLayout
@@ -51,6 +48,9 @@ classes:
       - separation
       - cOverhang
   - name: FMMMOptions
+  - name: PivotMDS
+    methods:
+      - call
 
 
 free_functions:

@@ -1,43 +1,37 @@
 import base64
 import random
-import sys
-import threading
 import time
-from pathlib import Path
 
-import psutil
+import numpy as np
 import requests
 
-NODES = 10000
-EDGES = 10000
+import test_utils
 
-URL = "http://localhost:8000/api/execute_script"
+CSV_FILENAME = "performance_benchmark.csv"
 
-BASE_DIR = Path(__file__).parent
-TEMP_DIR = BASE_DIR / "temp"
-TEST_FILE_PATH = TEMP_DIR / f"n{NODES}e{EDGES}.graphml"
-LUA_SCRIPT_PATH = BASE_DIR / "lua_script" / "hierarchical.lua"
-SERVER_PROCESS_NAME = "Engine"
+ITERATIONS_PER_SCENARIO = 100
+WARMUP_REQUESTS = 10
 
-
-def get_server_process():
-    for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
-        try:
-            if SERVER_PROCESS_NAME.lower() in proc.info['name'].lower():
-                return proc
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            continue
-    return None
+SCENARIOS = [
+    {"name": "Small", "nodes": 10, "edges": 10, "script": "orthogonal.lua"},
+    {"name": "Medium", "nodes": 100, "edges": 100, "script": "hierarchical.lua"},
+    {"name": "Large", "nodes": 1000, "edges": 1000, "script": "energybased.lua"}
+]
 
 
-def generate_graph(path: Path, nodes, edges):
-    print(f"Generating graph: {nodes} nodes, {edges} edges...")
-    path.parent.mkdir(exist_ok=True)
+def ensure_graph_exists(nodes, edges):
+    filename = f"n{nodes}e{edges}.graphml"
+    path = test_utils.GRAPH_DATA_DIR / filename
+
+    if path.exists(): return path
+
+    test_utils.log_info(f"Generating {filename} ({nodes} nodes, {edges} edges)...")
+    test_utils.GRAPH_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     with path.open("w", encoding="utf-8") as f:
-        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<graphml xmlns="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">\n')
-        f.write('  <graph id="G" edgedefault="directed">\n')
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<graphml xmlns="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">\n'
+                '  <graph id="G" edgedefault="directed">\n')
 
         for i in range(nodes):
             f.write(f'    <node id="n{i}"/>\n')
@@ -47,114 +41,109 @@ def generate_graph(path: Path, nodes, edges):
             if source != target:
                 f.write(f'    <edge source="n{source}" target="n{target}"/>\n')
 
-        f.write('  </graph>\n')
-        f.write('</graphml>\n')
-    print(f"Graph generated at: {path}")
-
-
-def monitor_resources(pid, stop_event, stats):
-    try:
-        process = psutil.Process(pid)
-        process.cpu_percent(interval=None)
-        while not stop_event.is_set():
-            mem = process.memory_info().rss / 1024 / 1024  # MB
-            if mem > stats["peak_memory"]:
-                stats["peak_memory"] = mem
-
-            cpu = process.cpu_percent(interval=0.1)
-            if cpu > stats["peak_cpu"]:
-                stats["peak_cpu"] = cpu
-
-    except Exception as e:
-        print(f"[ERROR] Resource monitoring failed: {e}")
+        f.write('  </graph>\n</graphml>\n')
+    return path
 
 
 def run_performance_test():
-    generate_graph(TEST_FILE_PATH, NODES, EDGES)
+    test_utils.print_banner("FULL SYSTEM PERFORMANCE BENCHMARK")
 
-    file_size_mb = TEST_FILE_PATH.stat().st_size / 1024 / 1024
-    print(f"File size: {file_size_mb:.2f} MB")
-
-    if not LUA_SCRIPT_PATH.exists():
-        print(f"[ERROR] Lua script not found: {LUA_SCRIPT_PATH}")
+    if not test_utils.check_server_health():
+        test_utils.log_error("Server is not running! Cannot start performance test.")
         return
 
-    print(f"Reading graph file '{TEST_FILE_PATH}'...")
-    encoded_graph = base64.b64encode(TEST_FILE_PATH.read_bytes()).decode("utf-8")
-    lua_script = LUA_SCRIPT_PATH.read_text(encoding="utf-8")
+    results_data = []
 
-    process = get_server_process()
-    if not process:
-        print(f"[ERROR] Server process '{SERVER_PROCESS_NAME}' not found. Please ensure the server is running.")
-        sys.exit(1)
+    for scenario in SCENARIOS:
+        test_utils.log_info(f"Starting Scenario: {scenario['name']} ({scenario['nodes']} nodes)")
 
-    print("Starting performance test...")
+        graph_path = ensure_graph_exists(scenario['nodes'], scenario['edges'])
+        _, script_path = test_utils.check_files(graph_path.name, scenario['script'])
+        if not graph_path or not script_path: continue
 
-    stats = {
-        "peak_memory": process.memory_info().rss / 1024 / 1024,
-        "peak_cpu": 0.0
-    }
-    initial_mem = stats["peak_memory"]
-    stop_event = threading.Event()
+        try:
+            encoded_graph = base64.b64encode(graph_path.read_bytes()).decode('utf-8')
+            script_content = script_path.read_text(encoding='utf-8')
+        except IOError as e:
+            test_utils.log_error(f"File reading error: {e}")
+            continue
 
-    res_thread = threading.Thread(target=monitor_resources, args=(process.pid, stop_event, stats))
-    res_thread.start()
+        file_size_mb = graph_path.stat().st_size / (1024 * 1024)  # Convert to MB
 
-    payload = {
-        "type": "LuaScript",
-        "script": lua_script,
-        "input_data": [{
-            "id": "perf_test",
-            "chunk_index": 0,
-            "total_chunks": 1,
-            "chunk_data": encoded_graph
-        }],
-        "options": {
-            "output_data_format": "graphml"
+        payload = {
+            "type": "LuaScript",
+            "script": script_content,
+            "input_data": [{"id": "perf_test", "chunk_index": 0, "total_chunks": 1, "chunk_data": encoded_graph}],
+            "options": {"output_data_format": "graphml"}
         }
-    }
 
-    try:
-        start_time = time.time()
-        response = requests.post(URL, json=payload)
-        duration = time.time() - start_time
-    except Exception as e:
-        print(f"[ERROR] Request failed: {e}")
-        stop_event.set()
-        res_thread.join()
-        return
+        print(f"    -> Warming up ({WARMUP_REQUESTS} requests)...", end='', flush=True)
+        with requests.Session() as session:
+            for _ in range(WARMUP_REQUESTS):
+                try:
+                    session.post(test_utils.EXECUTE_URL, json=payload)
+                except:
+                    pass
+            print(" Done.")
 
-    stop_event.set()
-    res_thread.join()
+        baseline_mem = test_utils.get_server_memory()
+        peak_mem = baseline_mem
 
-    if response.status_code == 200:
-        script_exec_time = response.json().get("metadata", {}).get("duration_milliseconds", 0) / 1000.0
-        system_overhead = duration - script_exec_time
-        output_len = sum(len(c["chunk_data"]) for c in response.json().get("output_data", []))
-        output_size_mb = output_len / 1024 / 1024
+        latencies_total, latencies_script, latencies_overhead = [], [], []
 
-        print("\n--------------------- RESULTS --------------------")
-        print("1. TIMING METRICS")
-        print(f"  Total Round-Trip:     {duration:.4f} seconds (Client -> Server -> Client)")
-        print(f"  Script Execution:     {script_exec_time:.4f} seconds")
-        print(f"  System Overhead:      {system_overhead:.4f} seconds (I/O, Base64, Network)")
-        print(f"-" * 50)
-        print("2. DATA METRICS")
-        print(f"  Input File Size:      {file_size_mb:.2f} MB")
-        print(f"  Output Data Size:     {output_size_mb:.2f} MB")
-        print(f"-" * 50)
-        print("3. RESOURCE USAGE (Server)")
-        print(f"  RAM (Initial):        {initial_mem:.2f} MB")
-        print(f"  RAM (Peak):           {stats['peak_memory']:.2f} MB")
-        print(f"  RAM (Increase):       {stats['peak_memory'] - initial_mem:+.2f} MB")
+        print(f"    -> Running {ITERATIONS_PER_SCENARIO} iterations...", end='', flush=True)
+        with requests.Session() as session:
+            for _ in range(ITERATIONS_PER_SCENARIO):
+                try:
+                    start_time = time.perf_counter()
+                    response = session.post(test_utils.EXECUTE_URL, json=payload)
+                    end_time = time.perf_counter()
 
-        cpu_count = psutil.cpu_count(logical=True)
-        cpu_peak = stats["peak_cpu"]
-        per_core = cpu_peak / cpu_count
-        print(f"  CPU (Peak Usage):     {cpu_peak:.1f}% (total), {per_core:.1f}% per core on {cpu_count} logical CPUs")
-        print(f"-" * 50)
-    else:
-        print(f"[ERROR] Request failed with status code: {response.status_code} - {response.text}")
+                    current_mem = test_utils.get_server_memory()
+                    if current_mem and current_mem > peak_mem: peak_mem = current_mem
+
+                    if response.status_code == 200:
+                        total_ms = (end_time - start_time) * 1000  # Convert to ms
+                        script_ms = float(response.json().get('metadata', {}).get('duration_milliseconds', 0))
+
+                        latencies_total.append(total_ms)
+                        latencies_script.append(script_ms)
+                        latencies_overhead.append(total_ms - script_ms)
+
+                except Exception:
+                    pass
+            print(" Done.")
+
+        if latencies_total:
+            stats = {
+                "scenario": scenario['name'],
+                "nodes": scenario['nodes'],
+                "file_size_mb": round(file_size_mb, 2),
+                "total_time_mean_ms": round(np.mean(latencies_total), 2),
+                "script_time_mean_ms": round(np.mean(latencies_script), 2),
+                "overhead_mean_ms": round(np.mean(latencies_overhead), 2),
+                "total_time_p95_ms": round(np.percentile(latencies_total, 95), 2),
+                "total_time_p99_ms": round(np.percentile(latencies_total, 99), 2),
+                "total_time_std_dev": round(np.std(latencies_total), 2),
+                "baseline_mem_mb": round(baseline_mem, 2),
+                "peak_mem_mb": round(peak_mem, 2),
+                "mem_growth_mb": round(peak_mem - baseline_mem, 2),
+            }
+
+            results_data.append(stats)
+
+            print("-" * 50)
+            print("TIMING & MEMORY METRICS SUMMARY")
+            print(f"  -> File Size:       {stats['file_size_mb']} MB")
+            print(f"  -> Mean Latency:    {stats['total_time_mean_ms']} ms (Script: {stats['script_time_mean_ms']} ms)")
+            print(f"  -> P95 / P99:       {stats['total_time_p95_ms']} ms / {stats['total_time_p99_ms']} ms")
+            print(f"  -> Std Dev:         {stats['total_time_std_dev']} ms")
+            print(f"  -> Overhead:        {stats['overhead_mean_ms']} ms ({(stats['overhead_mean_ms'] / stats['total_time_mean_ms']) * 100:.1f}%)")
+            print(f"  -> Baseline Memory: {stats['baseline_mem_mb']} MB")
+            print(f"  -> Peak Memory:     {stats['peak_mem_mb']} MB (Growth: {stats['mem_growth_mb']} MB)")
+            print("-" * 50)
+
+        test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":
