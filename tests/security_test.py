@@ -42,8 +42,7 @@ def run_security_test():
             "type": "Isolation",
             "script": '''
             local ok, err = pcall(function()
-                local f = io.open("/tmp/hacked.txt", "w")
-                if f then f:close() end
+                io.open("/tmp/hacked.txt", "w")
             end)
             if not ok then error("SANDBOX_BLOCKED: io.open") end
             if io then error("FAIL: io table exists!") end
@@ -56,7 +55,7 @@ def run_security_test():
             "script": '''
             local ok, err = pcall(function()
                 local target = _G["o".."s"]
-                if target then target.execute("whoami") end
+                target.execute("whoami")
             end)
             if not ok then error("SANDBOX_BLOCKED: Dynamic Access") end
             ''',
@@ -67,8 +66,7 @@ def run_security_test():
             "type": "RCE Prevention",
             "script": '''
             local ok, err = pcall(function()
-                local func = load("return os.execute('whoami')")
-                if func then func() end
+                local func = load("return os.execute('whoami')")()
             end)
             if not ok then error("SANDBOX_BLOCKED: Dynamic Load") end
             ''',
