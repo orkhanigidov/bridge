@@ -50,6 +50,32 @@ namespace
         }
     };
 
+    bool has_default_argument(const CXCursor& param_cursor)
+    {
+        CXSourceRange range = clang_getCursorExtent(param_cursor);
+        CXTranslationUnit tu = clang_Cursor_getTranslationUnit(param_cursor);
+        CXToken* token = nullptr;
+        unsigned num_tokens = 0;
+        clang_tokenize(tu, range, &token, &num_tokens);
+
+        bool found_equal = false;
+        for (unsigned i = 0; i < num_tokens; ++i)
+        {
+            CXString spelling = clang_getTokenSpelling(tu, token[i]);
+            if (std::string(clang_getCString(spelling)) == "=")
+            {
+                found_equal = true;
+            }
+            clang_disposeString(spelling);
+            if (found_equal)
+            {
+                break;
+            }
+        }
+        clang_disposeTokens(tu, token, num_tokens);
+        return found_equal;
+    }
+
     /**
      * @brief Gets the relative include path based on the analysis configuration.
      * @param cursor The cursor to get the path for.
@@ -74,7 +100,8 @@ namespace
         if (!wrapper_path_str.empty() && full_path.rfind(wrapper_path_str, 0) == 0)
         {
             const std::filesystem::path fs_wrapper_path(wrapper_path_str);
-            std::filesystem::path relative_path = std::filesystem::relative(fs_full_path, fs_wrapper_path.parent_path());
+            std::filesystem::path relative_path =
+                std::filesystem::relative(fs_full_path, fs_wrapper_path.parent_path());
             return relative_path.generic_string();
         }
 
@@ -158,14 +185,16 @@ namespace
         const CXType cursor_type = clang_getCursorType(cursor);
         const CXType canonical_type = clang_getCanonicalType(cursor_type);
         CXCursor definition_cursor = clang_getTypeDeclaration(canonical_type);
-        if (clang_isInvalid(clang_getCursorKind(definition_cursor)) || clang_equalCursors(definition_cursor, clang_getNullCursor()))
+        if (clang_isInvalid(clang_getCursorKind(definition_cursor)) || clang_equalCursors(
+            definition_cursor, clang_getNullCursor()))
         {
             definition_cursor = cursor;
         }
 
         CXCursor cursor_to_check = definition_cursor;
         if (const CXCursor template_cursor = clang_getSpecializedCursorTemplate(cursor_to_check);
-            !clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(template_cursor, cursor_to_check))
+            !clang_equalCursors(template_cursor, clang_getNullCursor()) && !clang_equalCursors(
+                template_cursor, cursor_to_check))
         {
             cursor_to_check = template_cursor;
         }
@@ -235,7 +264,8 @@ namespace
 
             if (clang_getCursorKind(child) == CXCursor_CXXBaseSpecifier)
             {
-                if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic || clang_getCXXAccessSpecifier(child) == CX_CXXPrivate)
+                if (clang_getCXXAccessSpecifier(child) == CX_CXXPublic || clang_getCXXAccessSpecifier(child) ==
+                    CX_CXXPrivate)
                 {
                     if (const CXCursor base_cursor = clang_getCursorReferenced(child);
                         is_iterable_recursive_check(base_cursor, *v_data->visited))
@@ -478,7 +508,8 @@ namespace codegen::analysis
             {
                 std::string parent_name = utils::get_spelling(parent);
                 std::string class_lookup_name = parent_class_name;
-                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos != std::string::npos)
+                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos !=
+                    std::string::npos)
                 {
                     class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
                 }
@@ -495,13 +526,29 @@ namespace codegen::analysis
                     break;
                 }
 
-                metadata::ConstructorDescriptor ctor_desc(parent_class_name);
-                for (const auto& param : utils::get_parameters(cursor))
+                std::vector<metadata::ParameterDescriptor> params = utils::get_parameters(cursor);
+                size_t num_args = params.size();
+
+                size_t first_default_idx = num_args;
+                for (size_t i = 0; i < num_args; ++i)
                 {
-                    ctor_desc.add_parameter(param);
+                    if (has_default_argument(clang_Cursor_getArgument(cursor, static_cast<unsigned>(i))))
+                    {
+                        first_default_idx = i;
+                        break;
+                    }
                 }
-                ctor_desc.set_signature(utils::build_signature(ctor_desc.parameters()));
-                class_desc.add_constructor(std::move(ctor_desc));
+
+                for (size_t count = first_default_idx; count <= num_args; ++count)
+                {
+                    metadata::ConstructorDescriptor ctor_desc(parent_class_name);
+                    for (size_t i = 0; i < count; ++i)
+                    {
+                        ctor_desc.add_parameter(params[i]);
+                    }
+                    ctor_desc.set_signature(utils::build_signature(ctor_desc.parameters()));
+                    class_desc.add_constructor(std::move(ctor_desc));
+                }
                 break;
             }
 
@@ -515,7 +562,8 @@ namespace codegen::analysis
                 const std::string& derived_class_name = class_desc.name();
                 std::string derived_template_args;
 
-                if (size_t template_bracket_pos = derived_class_name.find('<'); template_bracket_pos != std::string::npos)
+                if (size_t template_bracket_pos = derived_class_name.find('<'); template_bracket_pos !=
+                    std::string::npos)
                 {
                     derived_template_args = derived_class_name.substr(template_bracket_pos);
                 }
@@ -544,7 +592,8 @@ namespace codegen::analysis
             {
                 auto method_name = utils::get_spelling(cursor);
                 std::string class_lookup_name = parent_class_name;
-                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos != std::string::npos)
+                if (size_t template_bracket_pos = class_lookup_name.find('<'); template_bracket_pos !=
+                    std::string::npos)
                 {
                     class_lookup_name = class_lookup_name.substr(0, template_bracket_pos);
                 }
@@ -575,15 +624,33 @@ namespace codegen::analysis
                             visitor->result_.containers.emplace(std::move(container_type_name));
                         }
 
-                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name, utils::get_cursor_result_type_spelling(cursor));
-                        method_desc.set_static(clang_CXXMethod_isStatic(cursor));
-                        method_desc.set_const(clang_CXXMethod_isConst(cursor));
-                        for (const auto& param : utils::get_parameters(cursor))
+                        std::vector<metadata::ParameterDescriptor> params = utils::get_parameters(cursor);
+                        size_t num_args = params.size();
+
+                        size_t first_default_idx = num_args;
+                        for (size_t i = 0; i < num_args; ++i)
                         {
-                            method_desc.add_parameter(param);
+                            if (has_default_argument(clang_Cursor_getArgument(cursor, static_cast<unsigned>(i))))
+                            {
+                                first_default_idx = i;
+                                break;
+                            }
                         }
-                        method_desc.set_signature(utils::build_signature(method_desc.parameters()));
-                        class_desc.add_member_function(std::move(method_desc));
+
+                        for (size_t count = first_default_idx; count <= num_args; ++count)
+                        {
+                            metadata::FunctionDescriptor method_desc(metadata::Scope::Member, method_name,
+                                                                     utils::get_cursor_result_type_spelling(cursor));
+                            method_desc.set_static(clang_CXXMethod_isStatic(cursor));
+                            method_desc.set_const(clang_CXXMethod_isConst(cursor));
+
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                method_desc.add_parameter(params[i]);
+                            }
+                            method_desc.set_signature(utils::build_signature(method_desc.parameters()));
+                            class_desc.add_member_function(std::move(method_desc));
+                        }
                     }
                 }
                 break;
@@ -607,7 +674,8 @@ namespace codegen::analysis
             {
                 if (clang_getCXXAccessSpecifier(cursor) == CX_CXXPublic)
                 {
-                    metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor), utils::get_cursor_type_spelling(cursor));
+                    metadata::VariableDescriptor var_desc(metadata::Scope::Member, utils::get_spelling(cursor),
+                                                          utils::get_cursor_type_spelling(cursor));
                     var_desc.set_const(clang_isConstQualifiedType(clang_getCursorType(cursor)));
                     var_desc.set_static(clang_Cursor_getStorageClass(cursor) == CX_SC_Static);
 
@@ -709,7 +777,8 @@ namespace codegen::analysis
         {
             for (const auto& [class_name_from_config, class_config] : config_.target_classes)
             {
-                if (std::find(class_config.methods.begin(), class_config.methods.end(), func_name) != class_config.methods.end())
+                if (std::find(class_config.methods.begin(), class_config.methods.end(), func_name) != class_config.
+                    methods.end())
                 {
                     auto it = std::find_if(result_.classes.begin(), result_.classes.end(), [&](const auto& cls)
                     {
@@ -723,7 +792,8 @@ namespace codegen::analysis
 
                     if (it != result_.classes.end())
                     {
-                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, func_name, utils::get_cursor_result_type_spelling(cursor));
+                        metadata::FunctionDescriptor method_desc(metadata::Scope::Member, func_name,
+                                                                 utils::get_cursor_result_type_spelling(cursor));
 
                         for (const auto& param : utils::get_parameters(cursor))
                         {
@@ -765,7 +835,8 @@ namespace codegen::analysis
                 result_.containers.emplace(std::move(container_type_name));
             }
 
-            metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name, utils::get_cursor_result_type_spelling(cursor));
+            metadata::FunctionDescriptor func_desc(metadata::Scope::Global, func_name,
+                                                   utils::get_cursor_result_type_spelling(cursor));
             for (const auto& param : utils::get_parameters(cursor))
             {
                 func_desc.add_parameter(param);
