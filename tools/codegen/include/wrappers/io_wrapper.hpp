@@ -45,3 +45,9 @@ inline bool write(const ogdf::GraphAttributes& GA, const std::string& filename)
     std::lock_guard lock(io_mutex);
     return ogdf::GraphIO::write(GA, filename);
 }
+
+inline bool drawSVG(const ogdf::GraphAttributes& GA, const std::string& filename)
+{
+    std::lock_guard lock(io_mutex);
+    return ogdf::GraphIO::drawSVG(GA, filename);
+}

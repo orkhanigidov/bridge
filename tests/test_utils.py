@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 
-import psutil
+import docker
 import requests
 
 SERVER_HOST = "localhost"
@@ -11,6 +11,7 @@ EXECUTE_URL = f"{BASE_URL}/api/execute_script"
 HEALTH_URL = f"{BASE_URL}/api/health"
 
 SERVER_PROCESS_NAME = "Engine"
+CONTAINER_NAME = "engine-server"
 
 BASE_DIR = Path(__file__).parent
 OUTPUT_DIR = BASE_DIR / "results"
@@ -55,14 +56,34 @@ def log_table_row(values, widths):
     print(row_str)
 
 
+try:
+    docker_client = docker.from_env()
+except Exception:
+    docker_client = None
+    log_error("Docker client could not be initialized.")
+
+
 def get_server_memory():
-    for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
-        try:
-            if SERVER_PROCESS_NAME.lower() in proc.info['name'].lower():
-                return proc.info['memory_info'].rss / 1024 / 1024  # Convert to MB
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            continue
-    return None
+    if not docker_client:
+        return 0.0
+
+    try:
+        container = docker_client.containers.get(CONTAINER_NAME)
+        stats = container.stats(stream=False)
+        return stats["memory_stats"]["usage"] / (1024 * 1024)  # Convert to MB
+    except Exception as e:
+        log_error(f"Error retrieving memory usage: {e}")
+        return 0.0
+
+
+# def get_server_memory():
+#     for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
+#         try:
+#             if SERVER_PROCESS_NAME.lower() in proc.info['name'].lower():
+#                 return proc.info['memory_info'].rss / 1024 / 1024  # Convert to MB
+#         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+#             continue
+#     return None
 
 
 def check_server_health():

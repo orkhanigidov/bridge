@@ -30,4 +30,4 @@ sl:setLayout(ohl)
 
 sl:call(GA, rank)
 write(GA, __output__)
-write(GA, "tests/temp/hierarchical-ranking.svg")
+drawSVG(GA, "tests/temp/hierarchical-ranking.svg")

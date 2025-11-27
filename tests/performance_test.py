@@ -13,9 +13,9 @@ ITERATIONS_PER_SCENARIO = 100
 WARMUP_REQUESTS = 10
 
 SCENARIOS = [
-    {"name": "Small", "nodes": 10, "edges": 10, "script": "orthogonal.lua"},
-    {"name": "Medium", "nodes": 100, "edges": 100, "script": "hierarchical.lua"},
-    {"name": "Large", "nodes": 1000, "edges": 1000, "script": "energybased.lua"}
+    {"name": "CPU Stress", "graph": "Mesh.graphml", "script": "orthogonal.lua"},
+    {"name": "Algorithmic Complexity", "graph": "n100e100.graphml", "script": "hierarchical.lua"},
+    {"name": "Data Volume Stress", "graph": "n1000e1000.graphml", "script": "energybased.lua"}
 ]
 
 
@@ -55,10 +55,10 @@ def run_performance_test():
     results_data = []
 
     for scenario in SCENARIOS:
-        test_utils.log_info(f"Starting Scenario: {scenario['name']} ({scenario['nodes']} nodes)")
+        test_utils.log_info(f"Starting Scenario: {scenario['name']} ({scenario['graph']} + {scenario['script']})")
 
-        graph_path = ensure_graph_exists(scenario['nodes'], scenario['edges'])
-        _, script_path = test_utils.check_files(graph_path.name, scenario['script'])
+        # graph_path = ensure_graph_exists(scenario['nodes'], scenario['edges'])
+        graph_path, script_path = test_utils.check_files(scenario['graph'], scenario['script'])
         if not graph_path or not script_path: continue
 
         try:
@@ -117,7 +117,7 @@ def run_performance_test():
         if latencies_total:
             stats = {
                 "scenario": scenario['name'],
-                "nodes": scenario['nodes'],
+                "graph": scenario['graph'],
                 "file_size_mb": round(file_size_mb, 2),
                 "total_time_mean_ms": round(np.mean(latencies_total), 2),
                 "script_time_mean_ms": round(np.mean(latencies_script), 2),
@@ -143,7 +143,7 @@ def run_performance_test():
             print(f"  -> Peak Memory:     {stats['peak_mem_mb']} MB (Growth: {stats['mem_growth_mb']} MB)")
             print("-" * 50)
 
-        test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
+    test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":
