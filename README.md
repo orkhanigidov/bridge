@@ -245,6 +245,18 @@ sl:call(GA) -- Executes C++ OGDF code
 write(GA, __output__) -- __output__ is handled by the Engine
 ```
 
+## 📊 Evaluation & Benchmarks
+
+The BRIDGE architecture was tested in a containerized environment to validate its performance, scalability, memory stability, and security. Based on the master thesis experimental results, the system demonstrates efficiency for immersive VR analytics:
+
+* **Performance & Minimal Overhead:** The hybrid architecture introduces negligible latency for heavy graph processing workloads. In data volume stress tests (1,000 nodes, ~1.21 MB payload), the system overhead (serialization, transport, and Lua VM initialization) accounted for only **1.3%** of the total execution time.
+* **Concurrency & Scalability:** The `thread_local` state management successfully isolates the Lua Virtual Machine, preventing race conditions without global locks. Under I/O bound stress tests with up to 100 concurrent threads, the system maintained a **0.0% error rate** with stable throughput (peaking at 64 Req/s).
+* **Memory Stability:** Stress tests with over 2,000 sequential requests confirmed the robustness of the memory handshake protocol. The system showed no linear memory leaks; memory growth safely plateaued (+2.23 MB for fragmentation stress) due to Lua's incremental garbage collection and efficient buffer caching.
+* **Security Sandboxing:** The "Whitelist by Default" policy successfully neutralized simulated malicious scripts during audit. The execution environment safely blocked OS command injection, unauthorized file system access, dynamic code loading, and evasion attempts, while infinite loops were safely terminated by execution timeouts.
+* **Visual Fidelity in VR:** Algorithmic calculation precision was flawless when compared to native C++ 2D vector outputs. While the backend successfully transmits all spatial data and layout coordinates, minor visual discrepancies (such as missing orthogonal bends or orientation artifacts) were identified as isolated limitations within the frontend GAV-VR GraphML parser.
+
+> **⚠️ Note:** These tests were conducted in a synthetic local containerized environment (Docker) and driven by a single client machine. They do not account for real-world network variables (such as WAN latency, packet loss, or bandwidth fluctuations) or distributed multi-client loads. Therefore, while they confirm baseline stability within defined parameters, these benchmark results should not be considered fully reliable or representative of real-world production environments.
+
 ## 📄 License
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](https://github.com/orkhanigidov/BRIDGE/blob/with_sol2/LICENSE) file for details.
