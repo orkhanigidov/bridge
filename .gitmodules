@@ -1,0 +1,3 @@
+[submodule "clients/ogdf-unity-bridge"]
+	path = clients/ogdf-unity-bridge
+	url = https://github.com/orkhanigidov/ogdf-unity-bridge
