@@ -1,12 +1,13 @@
-FROM ubuntu:24.04
-LABEL authors="dev"
+# ==========================================
+# Stage 1: Build Environment
+# ==========================================
+FROM ubuntu:24.04 AS builder
 
-# Set environment variables
-ARG USERNAME=dev
+SHELL ["/bin/bash", "-c"]
 
-# Install system dependencies and clean up
+# Install build toolchain and dependencies
 RUN apt-get update && \
-    apt-get install -y  \
+    apt-get install -y --no-install-recommends \
     git \
     g++ \
     cmake \
@@ -14,28 +15,41 @@ RUN apt-get update && \
     liblua5.4-dev \
     libclang1-18 \
     ninja-build \
-    python3-full \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
+WORKDIR /src
+
+# Copy repository source files
+COPY . .
+
+# Compile in Release mode (bootstrap.sh defaults to Debug)
+RUN chmod +x bootstrap.sh && ./bootstrap.sh --build-type Release
+
+# ==========================================
+# Stage 2: Minimal Runtime Environment
+# ==========================================
+FROM ubuntu:24.04 AS runner
+
+ARG USERNAME=engineuser
+
+# Runtime libraries only (libclang is only needed at build time for codegen)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    liblua5.4-0 \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root system user
 RUN useradd -ms /bin/bash ${USERNAME}
 
-# Set working directory and copy files
 WORKDIR /home/${USERNAME}/app
-COPY --chown=${USERNAME}:${USERNAME} . /home/${USERNAME}/app
-RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/app
 
-# Ensure bootstrap.sh is executable
-RUN chmod +x bootstrap.sh
+# Copy compiled executable from Stage 1
+COPY --from=builder --chown=${USERNAME}:${USERNAME} /src/build/Engine ./Engine
 
-# Switch to non-root user
 USER ${USERNAME}
 
-# Run bootstrap script
-RUN ./bootstrap.sh
+EXPOSE 8000
 
-# Run the application
-CMD ["./build/Engine", "--host", "0.0.0.0"]
-
-# Use bash as default shell
-SHELL ["/bin/bash", "-c"]
+CMD ["./Engine", "--host", "0.0.0.0", "--port", "8000"]
