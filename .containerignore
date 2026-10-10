@@ -20,6 +20,6 @@ tools/codegen/cmake-build-*/
 # Testing and coverage
 tests/
 
-# Docker files
-Dockerfile
-.dockerignore
+# Container files
+Containerfile
+.containerignore
