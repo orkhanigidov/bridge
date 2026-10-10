@@ -36,6 +36,3 @@ RUN ./bootstrap.sh
 
 # Run the application
 CMD ["./build/Engine", "--host", "0.0.0.0"]
-
-# Use bash as default shell
-SHELL ["/bin/bash", "-c"]
