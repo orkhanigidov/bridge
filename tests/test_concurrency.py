@@ -5,7 +5,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
 
-import test_utils
+import utils
 
 GRAPH_FILE = "n100e100.graphml"
 SCRIPT_FILE = "hierarchical.lua"
@@ -18,7 +18,7 @@ REQUESTS_PER_THREAD = 10
 def send_single_request(session, payload):
     start = time.perf_counter()
     try:
-        response = session.post(test_utils.EXECUTE_URL, json=payload, timeout=30)
+        response = session.post(utils.EXECUTE_URL, json=payload, timeout=30)
         duration = time.perf_counter() - start
 
         if response.status_code == 200:
@@ -33,20 +33,20 @@ def send_single_request(session, payload):
 
 
 def run_concurrency_test():
-    test_utils.print_banner("CONCURRENCY & SCALABILITY ANALYSIS")
+    utils.print_banner("CONCURRENCY & SCALABILITY ANALYSIS")
 
-    if not test_utils.check_server_health():
-        test_utils.log_error("Server is not running! Cannot start concurrency test.")
+    if not utils.check_server_health():
+        utils.log_error("Server is not running! Cannot start concurrency test.")
         return
 
-    graph_path, script_path = test_utils.check_files(GRAPH_FILE, SCRIPT_FILE)
+    graph_path, script_path = utils.check_files(GRAPH_FILE, SCRIPT_FILE)
     if not graph_path or not script_path: return
 
     try:
         encoded_graph = base64.b64encode(graph_path.read_bytes()).decode('utf-8')
         script_content = script_path.read_text(encoding='utf-8')
     except IOError as e:
-        test_utils.log_error(f"File reading error: {e}")
+        utils.log_error(f"File reading error: {e}")
         return
 
     payload = {
@@ -59,7 +59,7 @@ def run_concurrency_test():
     results_data = []
     headers = ["Threads", "Total Req", "Throughput (Req/s)", "Avg Latency (s)", "Errors", "Data Integrity"]
     widths = [10, 12, 20, 18, 10, 15]
-    test_utils.log_table_header(headers, widths)
+    utils.log_table_header(headers, widths)
 
     for num_threads in THREAD_LEVELS:
         total_requests = num_threads * REQUESTS_PER_THREAD
@@ -95,7 +95,7 @@ def run_concurrency_test():
         elif status_counts['SUCCESS_NO_DATA'] > 0:
             integrity_status = "PARTIALLY (Empty Output)"
 
-        test_utils.log_table_row([
+        utils.log_table_row([
             num_threads, total_requests, f"{throughput:.2f}", f"{avg_latency:.4f}", total_errors, integrity_status
         ], widths)
 
@@ -110,7 +110,7 @@ def run_concurrency_test():
             "integrity_status": integrity_status
         })
 
-    test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
+    utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":

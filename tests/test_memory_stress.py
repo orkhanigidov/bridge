@@ -3,7 +3,7 @@ import time
 
 import requests
 
-import test_utils
+import utils
 
 GRAPH_FILE = "Cube.graphml"
 SCRIPT_FILE = "energybased.lua"
@@ -16,20 +16,20 @@ CHECK_INTERVAL = 20
 
 
 def run_memory_test():
-    test_utils.print_banner("MEMORY OWNERSHIP & STABILITY TEST")
+    utils.print_banner("MEMORY OWNERSHIP & STABILITY TEST")
 
-    if not test_utils.check_server_health():
-        test_utils.log_error("Server is not running! Cannot start memory test.")
+    if not utils.check_server_health():
+        utils.log_error("Server is not running! Cannot start memory test.")
         return
 
-    graph_path, script_path = test_utils.check_files(GRAPH_FILE, SCRIPT_FILE)
+    graph_path, script_path = utils.check_files(GRAPH_FILE, SCRIPT_FILE)
     if not graph_path or not script_path: return
 
     try:
         encoded_graph = base64.b64encode(graph_path.read_bytes()).decode('utf-8')
         script_content = script_path.read_text(encoding='utf-8')
     except IOError as e:
-        test_utils.log_error(f"File reading error: {e}")
+        utils.log_error(f"File reading error: {e}")
         return
 
     payload = {
@@ -43,18 +43,18 @@ def run_memory_test():
     with requests.Session() as session:
         for _ in range(WARMUP_REQUESTS):
             try:
-                session.post(test_utils.EXECUTE_URL, json=payload)
+                session.post(utils.EXECUTE_URL, json=payload)
             except:
                 pass
     print(" Done.")
 
     time.sleep(1)
-    baseline_mem = test_utils.get_server_memory()
+    baseline_mem = utils.get_server_memory()
     if baseline_mem is None:
-        test_utils.log_error("Could not read server memory.")
+        utils.log_error("Could not read server memory.")
         return
 
-    test_utils.log_info(f"Baseline Memory: {baseline_mem:.2f} MB")
+    utils.log_info(f"Baseline Memory: {baseline_mem:.2f} MB")
 
     print(f"    -> Executing Stress Test ({TOTAL_REQUESTS} requests)...")
 
@@ -64,36 +64,36 @@ def run_memory_test():
 
     headers = ["Request #", "Current Mem (MB)", "Delta (MB)"]
     widths = [15, 20, 15]
-    test_utils.log_table_header(headers, widths)
+    utils.log_table_header(headers, widths)
 
     with requests.Session() as session:
         for i in range(1, TOTAL_REQUESTS + 1):
             try:
-                session.post(test_utils.EXECUTE_URL, json=payload)
+                session.post(utils.EXECUTE_URL, json=payload)
 
                 if i % CHECK_INTERVAL == 0 or i == TOTAL_REQUESTS:
-                    current_mem = test_utils.get_server_memory()
+                    current_mem = utils.get_server_memory()
                     if current_mem is None:
-                        test_utils.log_error("Server process crashed or stopped.")
+                        utils.log_error("Server process crashed or stopped.")
                         break
 
                     if current_mem > peak_mem: peak_mem = current_mem
                     delta = current_mem - baseline_mem
 
-                    test_utils.log_table_row([i, f"{current_mem:.2f}", f"{delta:+.2f}"], widths)
+                    utils.log_table_row([i, f"{current_mem:.2f}", f"{delta:+.2f}"], widths)
 
                     memory_records.append(
                         {"request_count": i, "memory_mb": round(current_mem, 2), "delta_mb": round(delta, 2)})
 
             except Exception as e:
-                test_utils.log_error(f"Request {i} failed: {e}")
+                utils.log_error(f"Request {i} failed: {e}")
                 break
 
     duration = time.perf_counter() - start_time
-    final_mem = test_utils.get_server_memory()
+    final_mem = utils.get_server_memory()
     net_change = final_mem - baseline_mem if final_mem else 0
 
-    test_utils.save_to_csv(CSV_TIMELINE, list(memory_records[0].keys()), memory_records)
+    utils.save_to_csv(CSV_TIMELINE, list(memory_records[0].keys()), memory_records)
 
     print("-" * 50)
     print("MEMORY METRICS SUMMARY")
@@ -105,11 +105,11 @@ def run_memory_test():
     print("-" * 50)
 
     if net_change > 20.0:
-        test_utils.log_error("Significant Memory Leak Detected (>20 MB)")
+        utils.log_error("Significant Memory Leak Detected (>20 MB)")
     elif net_change > 5.0:
-        test_utils.log_warning("Minor Memory Accumulation (Fragmentation?) Detected (>5 MB)")
+        utils.log_warning("Minor Memory Accumulation (Fragmentation?) Detected (>5 MB)")
     else:
-        test_utils.log_success("Memory Usage is Stable (Proper RAII/GC behavior)")
+        utils.log_success("Memory Usage is Stable (Proper RAII/GC behavior)")
 
     summary_data = [{
         "total_requests": TOTAL_REQUESTS,
@@ -121,7 +121,7 @@ def run_memory_test():
         "status": "PASS" if net_change < 5.0 else "WARNING" if net_change < 20.0 else "FAIL"
     }]
 
-    test_utils.save_to_csv(CSV_SUMMARY, list(summary_data[0].keys()), summary_data)
+    utils.save_to_csv(CSV_SUMMARY, list(summary_data[0].keys()), summary_data)
 
 
 if __name__ == "__main__":

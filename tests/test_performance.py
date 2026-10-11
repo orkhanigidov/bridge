@@ -5,7 +5,7 @@ import time
 import numpy as np
 import requests
 
-import test_utils
+import utils
 
 CSV_FILENAME = "performance_benchmark.csv"
 
@@ -21,12 +21,12 @@ SCENARIOS = [
 
 def ensure_graph_exists(nodes, edges):
     filename = f"n{nodes}e{edges}.graphml"
-    path = test_utils.GRAPH_DATA_DIR / filename
+    path = utils.GRAPH_DATA_DIR / filename
 
     if path.exists(): return path
 
-    test_utils.log_info(f"Generating {filename} ({nodes} nodes, {edges} edges)...")
-    test_utils.GRAPH_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    utils.log_info(f"Generating {filename} ({nodes} nodes, {edges} edges)...")
+    utils.GRAPH_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     with path.open("w", encoding="utf-8") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -46,26 +46,26 @@ def ensure_graph_exists(nodes, edges):
 
 
 def run_performance_test():
-    test_utils.print_banner("FULL SYSTEM PERFORMANCE BENCHMARK")
+    utils.print_banner("FULL SYSTEM PERFORMANCE BENCHMARK")
 
-    if not test_utils.check_server_health():
-        test_utils.log_error("Server is not running! Cannot start performance test.")
+    if not utils.check_server_health():
+        utils.log_error("Server is not running! Cannot start performance test.")
         return
 
     results_data = []
 
     for scenario in SCENARIOS:
-        test_utils.log_info(f"Starting Scenario: {scenario['name']} ({scenario['graph']} + {scenario['script']})")
+        utils.log_info(f"Starting Scenario: {scenario['name']} ({scenario['graph']} + {scenario['script']})")
 
         # graph_path = ensure_graph_exists(scenario['nodes'], scenario['edges'])
-        graph_path, script_path = test_utils.check_files(scenario['graph'], scenario['script'])
+        graph_path, script_path = utils.check_files(scenario['graph'], scenario['script'])
         if not graph_path or not script_path: continue
 
         try:
             encoded_graph = base64.b64encode(graph_path.read_bytes()).decode('utf-8')
             script_content = script_path.read_text(encoding='utf-8')
         except IOError as e:
-            test_utils.log_error(f"File reading error: {e}")
+            utils.log_error(f"File reading error: {e}")
             continue
 
         file_size_mb = graph_path.stat().st_size / (1024 * 1024)  # Convert to MB
@@ -81,12 +81,12 @@ def run_performance_test():
         with requests.Session() as session:
             for _ in range(WARMUP_REQUESTS):
                 try:
-                    session.post(test_utils.EXECUTE_URL, json=payload)
+                    session.post(utils.EXECUTE_URL, json=payload)
                 except:
                     pass
             print(" Done.")
 
-        baseline_mem = test_utils.get_server_memory()
+        baseline_mem = utils.get_server_memory()
         peak_mem = baseline_mem
 
         latencies_total, latencies_script, latencies_overhead = [], [], []
@@ -96,10 +96,10 @@ def run_performance_test():
             for _ in range(ITERATIONS_PER_SCENARIO):
                 try:
                     start_time = time.perf_counter()
-                    response = session.post(test_utils.EXECUTE_URL, json=payload)
+                    response = session.post(utils.EXECUTE_URL, json=payload)
                     end_time = time.perf_counter()
 
-                    current_mem = test_utils.get_server_memory()
+                    current_mem = utils.get_server_memory()
                     if current_mem and current_mem > peak_mem: peak_mem = current_mem
 
                     if response.status_code == 200:
@@ -143,7 +143,7 @@ def run_performance_test():
             print(f"  -> Peak Memory:     {stats['peak_mem_mb']} MB (Growth: {stats['mem_growth_mb']} MB)")
             print("-" * 50)
 
-    test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
+    utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":

@@ -2,26 +2,26 @@ import base64
 
 import requests
 
-import test_utils
+import utils
 
 GRAPH_FILE = "Cube.graphml"
 CSV_FILENAME = "security_audit.csv"
 
 
 def run_security_test():
-    test_utils.print_banner("SECURITY SANDBOX AUDIT")
+    utils.print_banner("SECURITY SANDBOX AUDIT")
 
-    if not test_utils.check_server_health():
-        test_utils.log_error("Server is not running! Cannot start security test.")
+    if not utils.check_server_health():
+        utils.log_error("Server is not running! Cannot start security test.")
         return
 
-    graph_path, _ = test_utils.check_files(GRAPH_FILE)
+    graph_path, _ = utils.check_files(GRAPH_FILE)
     if not graph_path: return
 
     try:
         encoded_graph = base64.b64encode(graph_path.read_bytes()).decode("utf-8")
     except IOError as e:
-        test_utils.log_error(f"File reading error: {e}")
+        utils.log_error(f"File reading error: {e}")
         return
 
     attacks = [
@@ -83,7 +83,7 @@ def run_security_test():
     results_data = []
     headers = ["Attack Name", "Type", "Outcome", "Server Status", "Details"]
     widths = [25, 15, 10, 15, 40]
-    test_utils.log_table_header(headers, widths)
+    utils.log_table_header(headers, widths)
 
     for attack in attacks:
         payload = {
@@ -94,7 +94,7 @@ def run_security_test():
         }
 
         try:
-            response = requests.post(test_utils.EXECUTE_URL, json=payload, timeout=5)
+            response = requests.post(utils.EXECUTE_URL, json=payload, timeout=5)
 
             if response.status_code != 200:
                 err_body = response.json().get('error', {})
@@ -120,13 +120,13 @@ def run_security_test():
             outcome = "ERROR"
             server_msg = str(e)
 
-        is_alive = test_utils.check_server_health()
+        is_alive = utils.check_server_health()
         server_status = "ONLINE" if is_alive else "CRASHED"
 
         if not is_alive: outcome = "CRITICAL"
 
         clean_msg = server_msg.replace('\n', ' ')[:37] + '...' if len(server_msg) > 37 else server_msg.replace('\n', ' ')
-        test_utils.log_table_row([attack['name'], attack['type'], outcome, server_status, clean_msg], widths)
+        utils.log_table_row([attack['name'], attack['type'], outcome, server_status, clean_msg], widths)
 
         results_data.append({
             "attack_name": attack['name'],
@@ -136,7 +136,7 @@ def run_security_test():
             "details": server_msg
         })
 
-    test_utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
+    utils.save_to_csv(CSV_FILENAME, list(results_data[0].keys()), results_data)
 
 
 if __name__ == "__main__":

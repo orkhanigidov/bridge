@@ -15,8 +15,8 @@ CONTAINER_NAME = "engine-server"
 
 BASE_DIR = Path(__file__).parent
 OUTPUT_DIR = BASE_DIR / "results"
-GRAPH_DATA_DIR = BASE_DIR / "graph_data"
-LUA_SCRIPT_DIR = BASE_DIR / "lua_script"
+GRAPH_DATA_DIR = BASE_DIR.parent / "examples" / "graphml"
+LUA_SCRIPT_DIR = BASE_DIR.parent / "examples" / "lua"
 
 OUTPUT_DIR.mkdir(exist_ok=True)
 

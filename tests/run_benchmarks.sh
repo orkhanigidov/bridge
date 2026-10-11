@@ -21,28 +21,28 @@ stop_server() {
 start_server
 echo
 echo ">>> Running PERFORMANCE Test..."
-python performance_test.py
+python test_performance.py
 stop_server
 
 echo "--------------------------------------"
 
 start_server
 echo ">>> Running CONCURRENCY Test..."
-python concurrency_test.py
+python test_concurrency.py
 stop_server
 
 echo "--------------------------------------"
 
 start_server
 echo ">>> Running MEMORY STABILITY Test..."
-python memory_stress_test.py
+python test_memory_stress.py
 stop_server
 
 echo "--------------------------------------"
 
 start_server
 echo ">>> Running SECURITY Test..."
-python security_test.py
+python test_security.py
 stop_server
 
 echo "--------------------------------------"

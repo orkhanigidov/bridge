@@ -14,4 +14,4 @@ fmmm:qualityVersusSpeed(GorgeousAndEfficient)
 
 fmmm:call(GA)
 write(GA, __output__)
-drawSVG(GA, "tests/temp/energybased.svg")
+drawSVG(GA, "temp/energybased.svg")

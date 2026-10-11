@@ -17,28 +17,28 @@ function Stop-Server {
 
 Start-Server
 Write-Host ">>> Running PERFORMANCE Test..."
-python performance_test.py
+python test_performance.py
 Stop-Server
 
 Write-Host "--------------------------------------"
 
 Start-Server
 Write-Host ">>> Running CONCURRENCY Test..."
-python concurrency_test.py
+python test_concurrency.py
 Stop-Server
 
 Write-Host "--------------------------------------"
 
 Start-Server
 Write-Host ">>> Running MEMORY STABILITY Test..."
-python memory_stress_test.py
+python test_memory_stress.py
 Stop-Server
 
 Write-Host "--------------------------------------"
 
 Start-Server
 Write-Host ">>> Running SECURITY Test..."
-python security_test.py
+python test_security.py
 Stop-Server
 
 Write-Host "--------------------------------------"
