@@ -2,7 +2,7 @@
  * Project: Engine
  * File: execution_service.cpp
  *
- * Copyright (C) 2025 Orkhan Igidov
+ * Copyright (C) 2025-2026 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 
 #include "execution/core_execution_result.hpp"
 #include "execution/script/lua_script_runner.hpp"
+#include "execution/script/cpp_script_runner.hpp"
 #include "execution/script/lua_state_manager.hpp"
 #include "execution/script/script_executor.hpp"
 #include "network/dto/execution/request_dto.hpp"
@@ -92,8 +93,22 @@ namespace engine::execution
             context.input_path = input_path;
             context.output_path = output_path;
 
-            script::LuaScriptRunner runner(script::LuaStateManager::get_state());
-            auto result = runner.run_from_string(context);
+            CoreExecutionResult result;
+            if (request->type == network::dto::execution::ExecutionTypeDto::LuaScript)
+            {
+                script::LuaScriptRunner runner(script::LuaStateManager::get_state());
+                result = runner.run_from_string(context);
+            }
+            else if (request->type == network::dto::execution::ExecutionTypeDto::CppScript)
+            {
+                script::CppScriptRunner runner;
+                result = runner.run_from_string(context);
+            }
+            else
+            {
+                throw ExecutionServiceException("Unsupported execution type");
+            }
+
             if (!result.is_success())
             {
                 return result;

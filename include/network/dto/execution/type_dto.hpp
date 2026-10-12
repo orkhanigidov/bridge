@@ -2,7 +2,7 @@
  * Project: Engine
  * File: type_dto.hpp
  *
- * Copyright (C) 2025 Orkhan Igidov
+ * Copyright (C) 2025-2026 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,10 +33,12 @@ namespace engine::network::dto::execution
      * @brief Enumerates execution types for network requests.
      *
      * - LuaScript: Represents a Lua script execution.
+     * - CppScript: Represents a C++ script execution.
      * - Pipeline: Represents a pipeline execution.
      */
     ENUM(ExecutionTypeDto, v_int8,
          VALUE(LuaScript, 0, "LuaScript"),
-         VALUE(Pipeline, 1, "Pipeline")
+         VALUE(CppScript, 1, "CppScript"),
+         VALUE(Pipeline, 2, "Pipeline")
     )
 } // namespace engine::network::dto::execution

@@ -25,6 +25,8 @@
 #include <mutex>
 #include <random>
 #include <string>
+#include <filesystem>
+#include <fstream>
 #include <oatpp/core/Types.hpp>
 #include <oatpp/core/data/mapping/ObjectMapper.hpp>
 #include <oatpp/core/macro/codegen.hpp>
@@ -35,6 +37,8 @@
 #include "network/dto/message_dto.hpp"
 #include "network/dto/execution/request_dto.hpp"
 #include "network/dto/execution/response_dto.hpp"
+#include "network/dto/execution/discovery_dto.hpp"
+#include "network/dto/execution/source_code_dto.hpp"
 #include "network/mapper/execution_result_mapper.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
@@ -83,6 +87,74 @@ namespace engine::network::api
         }
 
         /**
+         * @brief Endpoint info for discovery of available methods and files.
+         */
+        ENDPOINT_INFO(discovery)
+        {
+            info->summary = "List available layout methods and graphml files";
+            info->addResponse<Object<dto::execution::DiscoveryDto>>(Status::CODE_200, "application/json");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_401, "application/json", "Unauthorized - missing or invalid API secret");
+        }
+
+        /**
+         * @brief Endpoint for discovering available methods and files.
+         * @param http_request The incoming HTTP request used for API secret verification.
+         * @return 200 OK with the discovery data, or 401 for unauthorized requests.
+         */
+        ENDPOINT("GET", "/api/discovery", discovery, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
+        {
+            if (!verify_api_secret(http_request))
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 401;
+                error->message = "Unauthorized - missing or invalid API secret";
+                return createDtoResponse(Status::CODE_401, error);
+            }
+
+            auto discovery_dto = dto::execution::DiscoveryDto::createShared();
+            discovery_dto->methods = oatpp::Vector<oatpp::String>::createShared();
+            discovery_dto->files = oatpp::Vector<oatpp::String>::createShared();
+
+            try
+            {
+                namespace fs = std::filesystem;
+                
+                // Scan C++ examples for method names
+                if (fs::exists("examples/cpp"))
+                {
+                    for (const auto& entry : fs::directory_iterator("examples/cpp"))
+                    {
+                        if (entry.path().extension() == ".cpp")
+                        {
+                            discovery_dto->methods->push_back(entry.path().stem().string().c_str());
+                        }
+                    }
+                }
+
+                // Scan GraphML examples for file names
+                if (fs::exists("examples/graphml"))
+                {
+                    for (const auto& entry : fs::directory_iterator("examples/graphml"))
+                    {
+                        if (entry.path().extension() == ".graphml")
+                        {
+                            discovery_dto->files->push_back(entry.path().filename().string().c_str());
+                        }
+                    }
+                }
+            }
+            catch (const std::exception& e)
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 500;
+                error->message = "Internal server error during discovery: " + std::string(e.what());
+                return createDtoResponse(Status::CODE_500, error);
+            }
+
+            return createDtoResponse(Status::CODE_200, discovery_dto);
+        }
+
+        /**
          * @brief Endpoint info for API secret generation.
          */
         ENDPOINT_INFO(generate_api_secret)
@@ -105,6 +177,62 @@ namespace engine::network::api
             response->message = secret.c_str();
             return createDtoResponse(Status::CODE_200, response);
         }
+
+        /**
+         * @brief Endpoint info for retrieving source code of a method.
+         */
+        ENDPOINT_INFO(get_source)
+        {
+            info->summary = "Get C++ and Lua source code for a specific method";
+            info->addResponse<Object<dto::execution::SourceCodeDto>>(Status::CODE_200, "application/json");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_404, "application/json", "Method not found");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_401, "application/json", "Unauthorized - missing or invalid API secret");
+        }
+
+
+        /**
+         * @brief Endpoint for retrieving source code of a method.
+         * @param http_request The incoming HTTP request used for API secret verification.
+         * @param method The name of the layout method.
+         * @return 200 OK with the source codes, 404 if method not found, or 401 for unauthorized requests.
+         */
+        ENDPOINT("GET", "/api/source/{method}", get_source, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), PATH(String, method))
+        {
+            if (!verify_api_secret(http_request))
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 401;
+                error->message = "Unauthorized - missing or invalid API secret";
+                return createDtoResponse(Status::CODE_401, error);
+            }
+
+            namespace fs = std::filesystem;
+            std::string method_name = method->c_str();
+            fs::path cpp_path = fs::path("examples/cpp") / (method_name + ".cpp");
+            fs::path lua_path = fs::path("examples/lua") / (method_name + ".lua");
+
+            if (!fs::exists(cpp_path) || !fs::exists(lua_path))
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 404;
+                error->message = "Source code for method '" + method_name + "' not found";
+                return createDtoResponse(Status::CODE_404, error);
+            }
+
+            auto source_dto = dto::execution::SourceCodeDto::createShared();
+            
+            auto read_file = [](const fs::path& path) {
+                std::ifstream file(path);
+                if (!file) return std::string();
+                return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            };
+
+            source_dto->cpp_code = read_file(cpp_path).c_str();
+            source_dto->lua_code = read_file(lua_path).c_str();
+
+            return createDtoResponse(Status::CODE_200, source_dto);
+        }
+
 
         /**
          * @brief Endpoint info for script or pipeline execution.
