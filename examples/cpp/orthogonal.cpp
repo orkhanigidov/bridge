@@ -17,12 +17,12 @@ using namespace ogdf;
 int main()
 {
 	Graph G;
-	GraphAttributes GA(G,
-	  GraphAttributes::nodeGraphics | GraphAttributes::nodeType |
-	  GraphAttributes::edgeGraphics | GraphAttributes::edgeType);
+	GraphAttributes GA(G, GraphAttributes::nodeGraphics | GraphAttributes::nodeType |
+							  GraphAttributes::edgeGraphics | GraphAttributes::edgeType);
 
-	if (!GraphIO::read(GA, G, "ERDiagram.gml", GraphIO::readGML)) {
-		std::cerr << "Could not read ERDiagram.gml" << std::endl;
+	if (!GraphIO::read(GA, G, __input__, GraphIO::readGML))
+	{
+		std::cerr << "Could not read " << __input__ << std::endl;
 		return 1;
 	}
 
@@ -54,8 +54,8 @@ int main()
 
 	pl.call(GA);
 
-	GraphIO::write(GA, "output-ERDiagram.gml", GraphIO::writeGML);
-	GraphIO::write(GA, "output-ERDiagram.svg", GraphIO::drawSVG);
+	GraphIO::write(GA, __output__, GraphIO::writeGML);
+	GraphIO::write(GA, __output__, GraphIO::drawSVG);
 
 	return 0;
 }

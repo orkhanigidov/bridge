@@ -13,8 +13,9 @@ int main()
 {
 	Graph G;
 	GraphAttributes GA(G);
-	if (!GraphIO::read(G, "sierpinski_04.gml")) {
-		std::cerr << "Could not load sierpinski_04.gml" << std::endl;
+	if (!GraphIO::read(G, __input__))
+	{
+		std::cerr << "Could not load " << __input__ << std::endl;
 		return 1;
 	}
 
@@ -29,8 +30,8 @@ int main()
 	fmmm.qualityVersusSpeed(FMMMOptions::QualityVsSpeed::GorgeousAndEfficient);
 
 	fmmm.call(GA);
-	GraphIO::write(GA, "output-energybased-sierpinski-layout.gml", GraphIO::writeGML);
-	GraphIO::write(GA, "output-energybased-sierpinski-layout.svg", GraphIO::drawSVG);
+	GraphIO::write(GA, __output__, GraphIO::writeGML);
+	GraphIO::write(GA, __output__, GraphIO::drawSVG);
 
 	return 0;
 }

@@ -27,4 +27,4 @@ pl:setPlanarLayouter(ol)
 
 pl:call(GA)
 write(GA, __output__)
-drawSVG(GA, "temp/orthogonal.svg")
+drawSVG(GA, __output__)

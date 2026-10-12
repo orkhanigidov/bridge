@@ -18,4 +18,4 @@ sl:setLayout(ohl)
 
 sl:call(GA)
 write(GA, __output__)
-drawSVG(GA, "temp/hierarchical.svg")
+drawSVG(GA, __output__)

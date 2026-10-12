@@ -13,15 +13,15 @@ using namespace ogdf;
 int main()
 {
 	Graph G;
-	GraphAttributes GA(G,
-	  GraphAttributes::nodeGraphics |
-	  GraphAttributes::edgeGraphics |
-	  GraphAttributes::nodeLabel |
-	  GraphAttributes::edgeStyle |
-	  GraphAttributes::nodeStyle |
-	  GraphAttributes::nodeTemplate);
-	if (!GraphIO::read(GA, G, "unix-history.gml")) {
-		std::cerr << "Could not load unix-history.gml" << std::endl;
+	GraphAttributes GA(G, GraphAttributes::nodeGraphics |
+							  GraphAttributes::edgeGraphics |
+							  GraphAttributes::nodeLabel |
+							  GraphAttributes::edgeStyle |
+							  GraphAttributes::nodeStyle |
+							  GraphAttributes::nodeTemplate);
+	if (!GraphIO::read(GA, G, __input__))
+	{
+		std::cerr << "Could not load " << __input__ << std::endl;
 		return 1;
 	}
 
@@ -36,8 +36,8 @@ int main()
 	SL.setLayout(ohl);
 
 	SL.call(GA);
-	GraphIO::write(GA, "output-unix-history-hierarchical.gml");
-	GraphIO::write(GA, "output-unix-history-hierarchical.svg");
+	GraphIO::write(GA, __output__, GraphIO::writeGML);
+	GraphIO::write(GA, __output__, GraphIO::drawSVG);
 
 	return 0;
 }
