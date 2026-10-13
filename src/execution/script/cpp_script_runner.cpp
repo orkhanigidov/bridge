@@ -56,9 +56,17 @@ namespace engine::execution::script
             }
             source_file << preprocessed_source;
             source_file.close();
-            
+
+            // TODO: Change static paths to dynamic ones based on CMake configuration or environment variables.
             std::ostringstream compile_cmd;
-            compile_cmd << "g++ -O3 " << source_path.string() << " -o " << binary_path.string() << " -logdf";
+            compile_cmd << "g++ -O3 -std=c++17"
+                        << " -I/home/dev/app/build/_deps/ogdf-src/include"
+                        << " -I/home/dev/app/build/_deps/ogdf-build/include"
+                        << " " << source_path.string()
+                        << " -o " << binary_path.string()
+                        << " -L/home/dev/app/build/_deps/ogdf-build"
+                        << " -lOGDF"
+                        << " -lCOIN";
 
             int compile_res = std::system(compile_cmd.str().c_str());
             if (compile_res != 0)

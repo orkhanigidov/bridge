@@ -27,6 +27,8 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <sstream>
 #include <oatpp/core/Types.hpp>
 #include <oatpp/core/data/mapping/ObjectMapper.hpp>
 #include <oatpp/core/macro/codegen.hpp>
@@ -40,6 +42,10 @@
 #include "network/dto/execution/discovery_dto.hpp"
 #include "network/dto/execution/source_code_dto.hpp"
 #include "network/mapper/execution_result_mapper.hpp"
+#include "execution/script/cpp_script_runner.hpp"
+#include "execution/script/lua_script_runner.hpp"
+#include "execution/script/lua_state_manager.hpp"
+#include "network/dto/execution/sequential_dto.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -86,6 +92,163 @@ namespace engine::network::api
             return createDtoResponse(Status::CODE_200, response);
         }
 
+        ENDPOINT_INFO(execute_sequential)
+        {
+            info->summary = "Execute C++ and Lua scripts sequentially and return their SVG outputs";
+            info->addConsumes<Object<dto::execution::SequentialRequestDto>>("application/json");
+            info->addResponse<Object<dto::execution::SequentialResponseDto>>(Status::CODE_200, "application/json", "Both scripts executed successfully");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_400, "application/json", "Invalid request");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_401, "application/json", "Unauthorized");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_500, "application/json", "Execution failed");
+        }
+
+        ENDPOINT("POST", "/api/execute_sequential", execute_sequential, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::SequentialRequestDto>, request))
+        {
+            if (!verify_api_secret(http_request))
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 401;
+                error->message = "Unauthorized - missing or invalid API secret";
+                return createDtoResponse(Status::CODE_401, error);
+            }
+
+            if (!request || !request->cpp_code || !request->lua_code || !request->graphml_file)
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 400;
+                error->message = "cpp_code, lua_code, and graphml_file are required";
+                return createDtoResponse(Status::CODE_400, error);
+            }
+
+            try
+            {
+                namespace fs = std::filesystem;
+
+                const fs::path selected_file(request->graphml_file->c_str());
+                if (selected_file.filename() != selected_file || selected_file.extension() != ".graphml")
+                {
+                    const auto error = dto::MessageDto::createShared();
+                    error->status_code = 400;
+                    error->message = "graphml_file must be a .graphml filename";
+                    return createDtoResponse(Status::CODE_400, error);
+                }
+
+                const fs::path graphml_dir = fs::absolute("examples/graphml");
+                const fs::path input_path = fs::canonical(graphml_dir / selected_file);
+
+                if (!fs::is_regular_file(input_path))
+                {
+                    const auto error = dto::MessageDto::createShared();
+                    error->status_code = 400;
+                    error->message = "GraphML file was not found";
+                    return createDtoResponse(Status::CODE_400, error);
+                }
+
+                const fs::path temp_root = fs::absolute("temp");
+                fs::create_directories(temp_root);
+
+                fs::path run_dir;
+                do
+                {
+                    run_dir = temp_root / std::to_string(std::random_device{}());
+                } while (!fs::create_directory(run_dir));
+
+                const fs::path cpp_output = fs::absolute(run_dir / "cpp.svg");
+                const fs::path lua_output = fs::absolute(run_dir / "lua.svg");
+
+                const auto quoted_path = [](const fs::path &path)
+                {
+                    std::string value = path.generic_string();
+                    std::string escaped;
+                    escaped.reserve(value.size());
+
+                    for (const char ch : value)
+                    {
+                        if (ch == '\\' || ch == '"')
+                        {
+                            escaped.push_back('\\');
+                        }
+                        escaped.push_back(ch);
+                    }
+
+                    return "\"" + escaped + "\"";
+                };
+
+                const auto replace_all = [](std::string& text, const std::string& placeholder, const std::string& replacement)
+                {
+                    std::size_t position = 0;
+                    while ((position = text.find(placeholder, position)) != std::string::npos)
+                    {
+                        text.replace(position, placeholder.size(), replacement);
+                        position += replacement.size();
+                    }
+                };
+
+                std::string cpp_code = request->cpp_code->c_str();
+                std::string lua_code = request->lua_code->c_str();
+
+                replace_all(cpp_code, "__input__", quoted_path(input_path));
+                replace_all(cpp_code, "__output__", quoted_path(cpp_output));
+
+                replace_all(lua_code, "__input__", quoted_path(input_path));
+                replace_all(lua_code, "__output__", quoted_path(lua_output));
+
+                execution::script::ScriptContext cpp_context;
+                cpp_context.script_content = cpp_code;
+                cpp_context.input_path = input_path;
+                cpp_context.output_path = cpp_output;
+
+                execution::script::CppScriptRunner cpp_runner;
+                const auto cpp_result = cpp_runner.run_from_string(cpp_context);
+
+                if (!cpp_result.is_success())
+                {
+                    throw std::runtime_error("C++ execution failed: " + cpp_result.error.message);
+                }
+
+                execution::script::ScriptContext lua_context;
+                lua_context.script_content = lua_code;
+                lua_context.input_path = input_path;
+                lua_context.output_path = lua_output;
+
+                execution::script::LuaScriptRunner lua_runner(execution::script::LuaStateManager::get_state());
+
+                const auto lua_result = lua_runner.run_from_string(lua_context);
+
+                if (!lua_result.is_success())
+                {
+                    throw std::runtime_error("Lua execution failed: " + lua_result.error.message);
+                }
+
+                const auto read_svg = [](const fs::path &path)
+                {
+                    std::ifstream file(path, std::ios::binary);
+                    if (!file)
+                    {
+                        throw std::runtime_error("SVG output was not created: " + path.string());
+                    }
+
+                    return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+                };
+
+                const std::string cpp_svg = read_svg(cpp_output);
+                const std::string lua_svg = read_svg(lua_output);
+
+                auto response = dto::execution::SequentialResponseDto::createShared();
+                response->cpp_svg = cpp_svg.c_str();
+                response->lua_svg = lua_svg.c_str();
+
+                return createDtoResponse(Status::CODE_200, response);
+            }
+            catch (const std::exception& e)
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 500;
+                error->message = "Sequential execution failed: " + std::string(e.what());
+                return createDtoResponse(Status::CODE_500, error);
+            }
+        }
+
         /**
          * @brief Endpoint info for discovery of available methods and files.
          */
@@ -118,7 +281,7 @@ namespace engine::network::api
             try
             {
                 namespace fs = std::filesystem;
-                
+
                 // Scan C++ examples for method names
                 if (fs::exists("examples/cpp"))
                 {
@@ -189,7 +352,6 @@ namespace engine::network::api
             info->addResponse<Object<dto::MessageDto>>(Status::CODE_401, "application/json", "Unauthorized - missing or invalid API secret");
         }
 
-
         /**
          * @brief Endpoint for retrieving source code of a method.
          * @param http_request The incoming HTTP request used for API secret verification.
@@ -220,7 +382,7 @@ namespace engine::network::api
             }
 
             auto source_dto = dto::execution::SourceCodeDto::createShared();
-            
+
             auto read_file = [](const fs::path& path) {
                 std::ifstream file(path);
                 if (!file) return std::string();
@@ -232,7 +394,6 @@ namespace engine::network::api
 
             return createDtoResponse(Status::CODE_200, source_dto);
         }
-
 
         /**
          * @brief Endpoint info for script or pipeline execution.
