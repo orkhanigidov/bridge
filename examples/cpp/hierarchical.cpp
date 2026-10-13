@@ -36,7 +36,7 @@ int main()
 	SL.setLayout(ohl);
 
 	SL.call(GA);
-	GraphIO::write(GA, __output__, GraphIO::writeGML);
+	GraphIO::write(GA, __output__, GraphIO::writeGraphML);
 	GraphIO::write(GA, __output__, GraphIO::drawSVG);
 
 	return 0;
