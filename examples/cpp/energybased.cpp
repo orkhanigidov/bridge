@@ -13,7 +13,7 @@ int main()
 {
 	Graph G;
 	GraphAttributes GA(G);
-	if (!GraphIO::read(G, __input__))
+	if (!GraphIO::read(G, __input__, GraphIO::readGraphML))
 	{
 		std::cerr << "Could not load " << __input__ << std::endl;
 		return 1;

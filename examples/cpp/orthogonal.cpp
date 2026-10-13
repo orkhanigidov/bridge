@@ -20,7 +20,7 @@ int main()
 	GraphAttributes GA(G, GraphAttributes::nodeGraphics | GraphAttributes::nodeType |
 							  GraphAttributes::edgeGraphics | GraphAttributes::edgeType);
 
-	if (!GraphIO::read(GA, G, __input__, GraphIO::readGML))
+	if (!GraphIO::read(GA, G, __input__, GraphIO::readGraphML))
 	{
 		std::cerr << "Could not read " << __input__ << std::endl;
 		return 1;

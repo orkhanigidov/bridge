@@ -19,7 +19,7 @@ int main()
 							  GraphAttributes::edgeStyle |
 							  GraphAttributes::nodeStyle |
 							  GraphAttributes::nodeTemplate);
-	if (!GraphIO::read(GA, G, __input__))
+	if (!GraphIO::read(GA, G, __input__, GraphIO::readGraphML))
 	{
 		std::cerr << "Could not load " << __input__ << std::endl;
 		return 1;
