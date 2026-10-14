@@ -4,6 +4,7 @@ set -euo pipefail
 BUILD_TYPE="Debug"
 INSTALL_DEPS=false
 BUILD_SHARED=false
+INSTALL_SERVICE=false
 
 print_error() {
   echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
@@ -16,6 +17,7 @@ show_usage() {
   echo "  --build-type <TYPE>          Specify the build type (Debug or Release). Default is Debug."
   echo "  --install-deps               Attempt to install required dependencies. Requires root privileges."
   echo "  --build-shared               Build the engine as shared library."
+  echo "  --install-service Install and enable a systemd auto-restart service. Requires root."
   echo "  -h, --help                   Show this help message."
   exit 1
 }
@@ -58,6 +60,53 @@ install_dependencies(){
   echo "Dependencies installed successfully."
 }
 
+install_service() {
+  if [[ $EUID -ne 0 ]]; then
+    print_error "Service installation requires root privileges."
+    print_error "Please run again with 'sudo $0 --install-service'"
+    exit 1
+  fi
+  if [[ "${BUILD_SHARED}" = true ]]; then
+    print_error "Service is only for the server (executable) build, not --build-shared."
+    exit 1
+  fi
+
+  local SCRIPT_DIR
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local SERVICE_USER="${SUDO_USER:-root}"
+  local ENGINE_BIN="${SCRIPT_DIR}/build/Engine"
+  local SERVICE_FILE="/etc/systemd/system/bridge-engine.service"
+
+  if [[ ! -f "${ENGINE_BIN}" ]]; then
+    print_error "Engine binary not found at ${ENGINE_BIN}. Build the project first."
+    exit 1
+  fi
+
+  echo "Installing systemd service (${SERVICE_FILE})..."
+  cat > "${SERVICE_FILE}" <<EOF
+[Unit]
+Description=BRIDGE Engine REST API Server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=${SERVICE_USER}
+WorkingDirectory=${SCRIPT_DIR}
+ExecStart=${ENGINE_BIN} --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable bridge-engine.service
+    systemctl restart bridge-engine.service
+    echo "Service installed and started. Check with: systemctl status bridge-engine"
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
     --build-type)
@@ -80,6 +129,10 @@ while [[ $# -gt 0 ]]; do
       BUILD_SHARED=true
       shift 1
       ;;
+    --install-service)
+      INSTALL_SERVICE=true
+      shift 1
+      ;;
     -h|--help)
         show_usage
         ;;
@@ -89,6 +142,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     esac
 done
+
+if [[ "${INSTALL_SERVICE}" = true && "${INSTALL_DEPS}" = false ]]; then
+  install_service
+  exit 0
+fi
 
 if [[ "${INSTALL_DEPS}" = true ]]; then
   install_dependencies
@@ -106,11 +164,11 @@ else
 fi
 
 echo "Configuring project (cmake ${cmakeConfigureArgs[*]})..."
-if ! cmake "${cmakeConfigureArgs[@]}"; then
+cmake "${cmakeConfigureArgs[@]}" || {
   rc=$?
   print_error "CMake configure failed with exit code ${rc}."
-  exit ${rc}
-fi
+  exit "${rc}"
+}
 
 echo "Building project..."
 if cmake --build --preset "${BUILD_TYPE}"; then
@@ -119,4 +177,8 @@ else
   rc=$?
   print_error "Build failed with exit code ${rc}."
   exit ${rc}
+fi
+
+if [[ "${INSTALL_SERVICE}" = true ]]; then
+  install_service
 fi
