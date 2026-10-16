@@ -144,9 +144,9 @@ inline void set_node_sizes(const Graph& G, GraphAttributes& GA, const double siz
 
 inline void set_node_ranks(const Graph& G, NodeArray<int>& rank, const sol::table& lua_table)
 {
+    int i = 1; // Lua table indexing starts at 1
     for (const node v : G.nodes)
     {
-        int node_id = v->index() + 1;
-        rank[v] = lua_table.get<int>(node_id);
+        rank[v] = lua_table.get<int>(i++);
     }
 }
