@@ -9,4 +9,5 @@ read(GA, G, __input__)
 pmds = PivotMDS()
 
 pmds:call(GA)
-write(GA, __output__)
+write(GA, __output__ .. "/lua.graphml")
+drawSVG(GA, __output__ .. "/lua.svg")

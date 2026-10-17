@@ -36,8 +36,8 @@ int main()
 	SL.setLayout(ohl);
 
 	SL.call(GA);
-	GraphIO::write(GA, __output__, GraphIO::writeGraphML);
-	GraphIO::write(GA, __output__, GraphIO::drawSVG);
+	GraphIO::write(GA, std::string(__output__) + "/cpp.graphml", GraphIO::writeGraphML);
+	GraphIO::write(GA, std::string(__output__) + "/cpp.svg", GraphIO::drawSVG);
 
 	return 0;
 }

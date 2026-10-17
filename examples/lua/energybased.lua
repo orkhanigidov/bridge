@@ -13,5 +13,5 @@ fmmm:newInitialPlacement(true)
 fmmm:qualityVersusSpeed(GorgeousAndEfficient)
 
 fmmm:call(GA)
-write(GA, __output__)
-drawSVG(GA, __output__)
+write(GA, __output__ .. "/lua.graphml")
+drawSVG(GA, __output__ .. "/lua.svg")

@@ -26,5 +26,5 @@ ol:cOverhang(0.4)
 pl:setPlanarLayouter(ol)
 
 pl:call(GA)
-write(GA, __output__)
-drawSVG(GA, __output__)
+write(GA, __output__ .. "/lua.graphml")
+drawSVG(GA, __output__ .. "/lua.svg")

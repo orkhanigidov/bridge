@@ -17,5 +17,5 @@ ohl:weightBalancing(0.8)
 sl:setLayout(ohl)
 
 sl:call(GA)
-write(GA, __output__)
-drawSVG(GA, __output__)
+write(GA, __output__ .. "/lua.graphml")
+drawSVG(GA, __output__ .. "/lua.svg")

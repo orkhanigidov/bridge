@@ -47,7 +47,7 @@ namespace engine::network::dto::execution
      * @class SequentialResponseDto
      * @brief Data transfer object for sequential execution responses.
      *
-     * Contains the SVG outputs from the executed C++ and Lua scripts.
+     * Contains the SVG and GraphML outputs from the executed C++ and Lua scripts.
      */
     class SequentialResponseDto final : public oatpp::DTO
     {
@@ -55,6 +55,8 @@ namespace engine::network::dto::execution
 
         DTO_FIELD(oatpp::String, cpp_svg);
         DTO_FIELD(oatpp::String, lua_svg);
+        DTO_FIELD(oatpp::String, cpp_graphml);
+        DTO_FIELD(oatpp::String, lua_graphml);
     };
 } // namespace engine::network::dto::execution
 

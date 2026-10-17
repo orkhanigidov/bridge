@@ -45,6 +45,7 @@
 #include "execution/script/cpp_script_runner.hpp"
 #include "execution/script/lua_script_runner.hpp"
 #include "execution/script/lua_state_manager.hpp"
+#include "bindings/lua/lua_binder.hpp"
 #include "network/dto/execution/sequential_dto.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
@@ -155,6 +156,8 @@ namespace engine::network::api
 
                 const fs::path cpp_output = fs::absolute(run_dir / "cpp.svg");
                 const fs::path lua_output = fs::absolute(run_dir / "lua.svg");
+                const fs::path cpp_graphml_output = fs::absolute(run_dir / "cpp.graphml");
+                const fs::path lua_graphml_output = fs::absolute(run_dir / "lua.graphml");
 
                 const auto quoted_path = [](const fs::path &path)
                 {
@@ -188,10 +191,10 @@ namespace engine::network::api
                 std::string lua_code = request->lua_code->c_str();
 
                 replace_all(cpp_code, "__input__", quoted_path(input_path));
-                replace_all(cpp_code, "__output__", quoted_path(cpp_output));
+                replace_all(cpp_code, "__output__", quoted_path(run_dir));
 
                 replace_all(lua_code, "__input__", quoted_path(input_path));
-                replace_all(lua_code, "__output__", quoted_path(lua_output));
+                replace_all(lua_code, "__output__", quoted_path(run_dir));
 
                 execution::script::ScriptContext cpp_context;
                 cpp_context.script_content = cpp_code;
@@ -220,23 +223,31 @@ namespace engine::network::api
                     throw std::runtime_error("Lua execution failed: " + lua_result.error.message);
                 }
 
-                const auto read_svg = [](const fs::path &path)
+                const auto read_file = [](const fs::path &path)
                 {
                     std::ifstream file(path, std::ios::binary);
                     if (!file)
                     {
-                        throw std::runtime_error("SVG output was not created: " + path.string());
+                        throw std::runtime_error("Output file was not created: " + path.string());
                     }
 
                     return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
                 };
 
-                const std::string cpp_svg = read_svg(cpp_output);
-                const std::string lua_svg = read_svg(lua_output);
+                const std::string cpp_svg = read_file(cpp_output);
+                const std::string lua_svg = read_file(lua_output);
+
+                const fs::path cpp_graphml_path = cpp_graphml_output;
+                const fs::path lua_graphml_path = lua_graphml_output;
+
+                const std::string cpp_graphml_content = read_file(cpp_graphml_path);
+                const std::string lua_graphml_content = read_file(lua_graphml_path);
 
                 auto response = dto::execution::SequentialResponseDto::createShared();
                 response->cpp_svg = cpp_svg.c_str();
                 response->lua_svg = lua_svg.c_str();
+                response->cpp_graphml = cpp_graphml_content.c_str();
+                response->lua_graphml = lua_graphml_content.c_str();
 
                 return createDtoResponse(Status::CODE_200, response);
             }
