@@ -25,6 +25,8 @@
 #include <mutex>
 #include <random>
 #include <string>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -61,15 +63,25 @@ namespace engine::network::api
     public:
         /**
          * @brief Constructor.
-         *
-         * Generates and activates the initial API secret on server startup.
+         * Loads the API secret from the environment or ".env".
          * @param object_mapper The object mapper for DTO serialization.
          */
         explicit ExecutionController(const std::shared_ptr<oatpp::data::mapping::ObjectMapper>& object_mapper)
             : ApiController(object_mapper)
         {
-            const std::string secret = regenerate_api_secret();
-            OATPP_LOGI("ExecutionController", "API secret initialized: %s", secret.c_str())
+            const std::string secret = load_api_secret();
+
+            if (secret.length() >= MIN_API_SECRET_LENGTH)
+            {
+                std::lock_guard<std::mutex> lock(api_secret_mutex_);
+                api_secret_ = secret;
+                secret_configured_ = true;
+                OATPP_LOGI("ExecutionController", "API secret loaded (%zu characters)", secret.length())
+            }
+            else
+            {
+                OATPP_LOGE("ExecutionController", "No valid BRIDGE_API_SECRET found (environment or .env) - protected endpoints will return 401")
+            }
         }
 
         /**
@@ -105,7 +117,7 @@ namespace engine::network::api
 
         ENDPOINT("POST", "/api/execute_sequential", execute_sequential, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::SequentialRequestDto>, request))
         {
-            if (!verify_api_secret(http_request))
+            if (!verify_api_secret(http_request, "execute_sequential"))
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 401;
@@ -277,7 +289,7 @@ namespace engine::network::api
          */
         ENDPOINT("GET", "/api/discovery", discovery, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
         {
-            if (!verify_api_secret(http_request))
+            if (!verify_api_secret(http_request, "discovery"))
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 401;
@@ -329,30 +341,6 @@ namespace engine::network::api
         }
 
         /**
-         * @brief Endpoint info for API secret generation.
-         */
-        ENDPOINT_INFO(generate_api_secret)
-        {
-            info->summary = "Generate a new random 32-digit API secret";
-            info->addResponse<Object<dto::MessageDto>>(Status::CODE_200, "application/json", "New API secret was generated");
-        }
-
-        /**
-         * @brief Endpoint for generating a new random 32-digit API secret.
-         * @return 200 OK with the newly activated API secret.
-         */
-        ENDPOINT("POST", "/api/secret/generate", generate_api_secret)
-        {
-            const auto secret = regenerate_api_secret();
-            OATPP_LOGI("ExecutionController", "New API secret generated: %s", secret.c_str())
-
-            const auto response = dto::MessageDto::createShared();
-            response->status_code = 200;
-            response->message = secret.c_str();
-            return createDtoResponse(Status::CODE_200, response);
-        }
-
-        /**
          * @brief Endpoint info for retrieving source code of a method.
          */
         ENDPOINT_INFO(get_source)
@@ -371,7 +359,7 @@ namespace engine::network::api
          */
         ENDPOINT("GET", "/api/source/{method}", get_source, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), PATH(String, method))
         {
-            if (!verify_api_secret(http_request))
+            if (!verify_api_secret(http_request, "get_source"))
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 401;
@@ -394,9 +382,13 @@ namespace engine::network::api
 
             auto source_dto = dto::execution::SourceCodeDto::createShared();
 
-            auto read_file = [](const fs::path& path) {
+            auto read_file = [](const fs::path& path)
+            {
                 std::ifstream file(path);
-                if (!file) return std::string();
+
+                if (!file)
+                    return std::string();
+
                 return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             };
 
@@ -427,7 +419,7 @@ namespace engine::network::api
          */
         ENDPOINT("POST", "/api/execute_script", execution, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::RequestDto>, request))
         {
-            if (!verify_api_secret(http_request))
+            if (!verify_api_secret(http_request, "execute_script"))
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 401;
@@ -459,70 +451,101 @@ namespace engine::network::api
         }
 
         /**
-         * @brief Verifies that an incoming request is authorized to use the protected API endpoints.
-         *
-         * A request is authorized only if its "X-Api-Secret" header matches the currently
-         * active API secret. The comparison is performed in constant time to prevent timing attacks.
-         * @param request The incoming HTTP request.
-         * @return True if the request is authorized.
+         * @brief Verifies the API secret for a request.
+         * @param request The incoming request.
+         * @param endpoint The endpoint name.
+         * @return True if authorized.
          */
-        bool verify_api_secret(const std::shared_ptr<oatpp::web::protocol::http::incoming::Request> &request) const
+        bool verify_api_secret(const std::shared_ptr<oatpp::web::protocol::http::incoming::Request> &request, const char *endpoint) const
         {
-            const oatpp::String provided_secret = request->getHeader("X-Api-Secret");
+            bool authorized = false;
 
-            if (!provided_secret)
+            if (secret_configured_)
             {
-                return false;
+                const oatpp::String provided_secret = request->getHeader("X-Api-Secret");
+
+                if (provided_secret)
+                {
+                    std::lock_guard<std::mutex> lock(api_secret_mutex_);
+                    const std::string provided = provided_secret->c_str();
+
+                    if (provided.length() == api_secret_.length())
+                    {
+                        unsigned char difference = 0;
+
+                        for (std::size_t i = 0; i < api_secret_.length(); ++i)
+                        {
+                            difference |= static_cast<unsigned char>(provided[i]) ^ static_cast<unsigned char>(api_secret_[i]);
+                        }
+
+                        authorized = difference == 0;
+                    }
+                }
             }
 
-            std::lock_guard<std::mutex> lock(api_secret_mutex_);
+            OATPP_LOGI("ExecutionController", "Auth %s - endpoint: %s", authorized ? "granted" : "denied", endpoint)
 
-            const std::string provided = provided_secret->c_str();
-
-            if (provided.length() != api_secret_.length())
-            {
-                return false;
-            }
-
-            unsigned char difference = 0;
-
-            for (std::size_t i = 0; i < api_secret_.length(); ++i)
-            {
-                difference |= static_cast<unsigned char>(provided[i]) ^ static_cast<unsigned char>(api_secret_[i]);
-            }
-
-            return difference == 0;
+            return authorized;
         }
 
     private:
         /**
-         * @brief The length of the generated API secret.
+         * @brief The minimum required length of the API secret.
          */
-        static constexpr std::size_t API_SECRET_LENGTH = 32;
+        static constexpr std::size_t MIN_API_SECRET_LENGTH = 32;
 
         /**
-         * @brief Generates a new random 32-digit API secret and activates it.
-         * @return The newly activated API secret.
+         * @brief Loads the API secret from the environment or ".env".
+         * @return The secret, or an empty string if unavailable.
          */
-        std::string regenerate_api_secret()
+        static std::string load_api_secret()
         {
-            thread_local std::mt19937_64 generator(std::random_device{}());
-            std::uniform_int_distribution<int> digit_distribution(0, 9);
-
-            std::string secret;
-            secret.reserve(API_SECRET_LENGTH);
-
-            for (std::size_t i = 0; i < API_SECRET_LENGTH; ++i)
+            if (const char *env_secret = std::getenv("BRIDGE_API_SECRET"))
             {
-                secret += static_cast<char>('0' + digit_distribution(generator));
+                return env_secret;
             }
 
+            std::ifstream env_file(".env");
+
+            if (!env_file)
             {
-                std::lock_guard<std::mutex> lock(api_secret_mutex_);
-                api_secret_ = secret;
+                return {};
             }
 
-            return secret;
+            constexpr const char *KEY = "BRIDGE_API_SECRET=";
+            const auto is_space = [](char ch)
+            { return ch == ' ' || ch == '\t' || ch == '\r'; };
+
+            std::string line;
+
+            while (std::getline(env_file, line))
+            {
+                if (line.rfind(KEY, 0) != 0)
+                {
+                    continue; // comments, blank lines and other keys are skipped
+                }
+
+                std::string value = line.substr(std::strlen(KEY));
+
+                while (!value.empty() && is_space(value.front()))
+                {
+                    value.erase(value.begin());
+                }
+
+                while (!value.empty() && is_space(value.back()))
+                {
+                    value.pop_back();
+                }
+
+                if (value.size() >= 2 && (value.front() == '"' || value.front() == '\'') && value.back() == value.front())
+                {
+                    value = value.substr(1, value.size() - 2); // optional quotes
+                }
+
+                return value;
+            }
+
+            return {};
         }
 
         /**
@@ -531,9 +554,14 @@ namespace engine::network::api
         mutable std::mutex api_secret_mutex_;
 
         /**
-         * @brief The currently active API secret.
+         * @brief The active API secret loaded at startup.
          */
         std::string api_secret_;
+
+        /**
+         * @brief Indicates whether a valid API secret was configured at startup.
+         */
+        bool secret_configured_ = false;
     };
 } // namespace engine::network::api
 
