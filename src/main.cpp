@@ -76,8 +76,8 @@ int main(int argc, const char* argv[])
         exit_code = EXIT_FAILURE;
     }
 
-    oatpp::base::Environment::destroy();
     OATPP_LOGI("Main", "Application stopped. Exiting with code %d", exit_code)
+    oatpp::base::Environment::destroy();
 
     return exit_code;
 }
