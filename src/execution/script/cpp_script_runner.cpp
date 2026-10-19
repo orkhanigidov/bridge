@@ -24,7 +24,6 @@
 #include <fstream>
 #include <iostream>
 #include <random>
-#include <regex>
 #include <sstream>
 #include <vector>
 
@@ -47,14 +46,12 @@ namespace engine::execution::script
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "Input or output path is missing"}};
             }
 
-            std::string preprocessed_source = preprocess_source(context.script_content, *context.input_path, *context.output_path);
-
             std::ofstream source_file(source_path);
             if (!source_file)
             {
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "Cannot write temporary source file"}};
             }
-            source_file << preprocessed_source;
+            source_file << context.script_content;
             source_file.close();
 
             // TODO: Change static paths to dynamic ones based on CMake configuration or environment variables.
@@ -74,8 +71,13 @@ namespace engine::execution::script
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "C++ Compilation failed"}};
             }
 
-            // Execution command
-            int run_res = std::system(binary_path.string().c_str());
+            // Run from the script's directory so literal file names resolve against
+            // its own files. The output path may be a file; use its parent then.
+            const fs::path run_directory = fs::is_directory(*context.output_path)
+                ? *context.output_path
+                : context.output_path->parent_path();
+
+            const int run_res = std::system((std::string("cd \"") + run_directory.string() + "\" && \"" + binary_path.string() + "\"").c_str());
             if (run_res != 0)
             {
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "C++ Execution failed"}};
@@ -87,25 +89,5 @@ namespace engine::execution::script
         {
             return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, e.what()}};
         }
-    }
-
-    std::string CppScriptRunner::preprocess_source(const std::string& source, 
-                                                 const std::filesystem::path& input_path, 
-                                                 const std::filesystem::path& output_path) const
-    {
-        std::string modified = source;
-
-        // Replace GraphIO::read(G, "filename") with GraphIO::read(G, "actual_path")
-        std::regex read_regex(R"(GraphIO::read\s*\(\s*G\s*,\s*"[^"]*"\s*\))");
-        std::string read_replacement = "GraphIO::read(G, \"" + input_path.string() + "\")";
-        modified = std::regex_replace(modified, read_regex, read_replacement);
-
-        // Replace GraphIO::write(..., "filename", ...) with GraphIO::write(..., "actual_path", ...)
-        // We target the SVG output as per requirements.
-        std::regex write_svg_regex(R"(GraphIO::write\s*\(\s*GA\s*,\s*"[^"]*"\s*,\s*GraphIO::drawSVG\s*\))");
-        std::string write_replacement = "GraphIO::write(GA, \"" + output_path.string() + "\", GraphIO::drawSVG)";
-        modified = std::regex_replace(modified, write_svg_regex, write_replacement);
-
-        return modified;
     }
 } // namespace engine::execution::script

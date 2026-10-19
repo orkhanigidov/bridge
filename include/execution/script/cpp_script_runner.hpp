@@ -39,17 +39,5 @@ namespace engine::execution::script
          * @return The result of the execution.
          */
         CoreExecutionResult run_from_string(const ScriptContext& context) const;
-
-    private:
-        /**
-         * @brief Replaces hardcoded filenames in the source code with actual paths.
-         * @param source The original source code.
-         * @param input_path The path to the input graph file.
-         * @param output_path The path to the output SVG file.
-         * @return The modified source code.
-         */
-        std::string preprocess_source(const std::string& source, 
-                                     const std::filesystem::path& input_path, 
-                                     const std::filesystem::path& output_path) const;
     };
 } // namespace engine::execution::script

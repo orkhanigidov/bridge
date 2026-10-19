@@ -47,6 +47,7 @@
 #include "execution/script/lua_state_manager.hpp"
 #include "bindings/lua/lua_binder.hpp"
 #include "network/dto/execution/sequential_dto.hpp"
+#include "utils/temp_file_guard.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -123,11 +124,11 @@ namespace engine::network::api
                 return createDtoResponse(Status::CODE_401, error);
             }
 
-            if (!request || !request->cpp_code || !request->lua_code || !request->graphml_file)
+            if (!request || !request->cpp_code || !request->lua_code || !request->graphml_name || !request->graphml_file)
             {
                 const auto error = dto::MessageDto::createShared();
                 error->status_code = 400;
-                error->message = "cpp_code, lua_code, and graphml_file are required";
+                error->message = "cpp_code, lua_code, graphml_name, and graphml_file are required";
                 return createDtoResponse(Status::CODE_400, error);
             }
 
@@ -135,39 +136,55 @@ namespace engine::network::api
             {
                 namespace fs = std::filesystem;
 
-                const fs::path selected_file(request->graphml_file->c_str());
-                if (selected_file.filename() != selected_file || selected_file.extension() != ".graphml")
+                const fs::path graphml_name(request->graphml_name->c_str());
+                if (graphml_name.filename() != graphml_name || graphml_name.extension() != ".graphml")
                 {
                     const auto error = dto::MessageDto::createShared();
                     error->status_code = 400;
-                    error->message = "graphml_file must be a .graphml filename";
+                    error->message = "graphml_name must be a .graphml filename";
                     return createDtoResponse(Status::CODE_400, error);
                 }
 
-                const fs::path graphml_dir = fs::absolute("examples/graphml");
-                const fs::path input_path = fs::canonical(graphml_dir / selected_file);
+                const std::string graphml_content = request->graphml_file->c_str();
 
-                if (!fs::is_regular_file(input_path))
+                if (graphml_content.find("<graphml") == std::string::npos)
                 {
                     const auto error = dto::MessageDto::createShared();
                     error->status_code = 400;
-                    error->message = "GraphML file was not found";
+                    error->message = "graphml_file must contain GraphML document content";
                     return createDtoResponse(Status::CODE_400, error);
                 }
 
                 const fs::path temp_root = fs::absolute("temp");
                 fs::create_directories(temp_root);
 
-                fs::path run_dir;
+                fs::path run_root;
                 do
                 {
-                    run_dir = temp_root / std::to_string(std::random_device{}());
-                } while (!fs::create_directory(run_dir));
+                    run_root = temp_root / std::to_string(std::random_device{}());
+                } while (!fs::create_directory(run_root));
 
-                const fs::path cpp_output = fs::absolute(run_dir / "cpp.svg");
-                const fs::path lua_output = fs::absolute(run_dir / "lua.svg");
-                const fs::path cpp_graphml_output = fs::absolute(run_dir / "cpp.graphml");
-                const fs::path lua_graphml_output = fs::absolute(run_dir / "lua.graphml");
+                const utils::TempDirectoryGuard run_dir_guard(run_root);
+
+                // Run each script in its own directory with the input under its original name.
+                const fs::path cpp_dir = run_root / "cpp";
+                const fs::path lua_dir = run_root / "lua";
+                fs::create_directories(cpp_dir);
+                fs::create_directories(lua_dir);
+
+                const auto write_input = [&graphml_content, &graphml_name](const fs::path& dir)
+                {
+                    const fs::path input_path = dir / graphml_name;
+                    std::ofstream input_file(input_path, std::ios::binary);
+
+                    if (!input_file || !input_file.write(graphml_content.data(), static_cast<std::streamsize>(graphml_content.size())))
+                    {
+                        throw std::runtime_error("Could not write input GraphML file: " + input_path.string());
+                    }
+                };
+
+                write_input(cpp_dir);
+                write_input(lua_dir);
 
                 const auto quoted_path = [](const fs::path &path)
                 {
@@ -200,16 +217,16 @@ namespace engine::network::api
                 std::string cpp_code = request->cpp_code->c_str();
                 std::string lua_code = request->lua_code->c_str();
 
-                replace_all(cpp_code, "__input__", quoted_path(input_path));
-                replace_all(cpp_code, "__output__", quoted_path(run_dir));
+                replace_all(cpp_code, "__input__", quoted_path(cpp_dir / graphml_name));
+                replace_all(cpp_code, "__output__", quoted_path(cpp_dir));
 
-                replace_all(lua_code, "__input__", quoted_path(input_path));
-                replace_all(lua_code, "__output__", quoted_path(run_dir));
+                replace_all(lua_code, "__input__", quoted_path(lua_dir / graphml_name));
+                replace_all(lua_code, "__output__", quoted_path(lua_dir));
 
                 execution::script::ScriptContext cpp_context;
                 cpp_context.script_content = cpp_code;
-                cpp_context.input_path = input_path;
-                cpp_context.output_path = cpp_output;
+                cpp_context.input_path = cpp_dir / graphml_name;
+                cpp_context.output_path = cpp_dir;
 
                 execution::script::CppScriptRunner cpp_runner;
                 const auto cpp_result = cpp_runner.run_from_string(cpp_context);
@@ -221,16 +238,36 @@ namespace engine::network::api
 
                 execution::script::ScriptContext lua_context;
                 lua_context.script_content = lua_code;
-                lua_context.input_path = input_path;
-                lua_context.output_path = lua_output;
+                lua_context.input_path = lua_dir / graphml_name;
+                lua_context.output_path = lua_dir;
 
                 execution::script::LuaScriptRunner lua_runner(execution::script::LuaStateManager::get_state());
 
-                const auto lua_result = lua_runner.run_from_string(lua_context);
+                // Lua runs in-process: run it from its sandbox so relative file names
+                // resolve there. The mutex serializes the cwd switch between requests.
+                static std::mutex lua_cwd_mutex;
+                std::lock_guard<std::mutex> cwd_lock(lua_cwd_mutex);
 
-                if (!lua_result.is_success())
+                const fs::path previous_cwd = fs::current_path();
+
+                try
                 {
-                    throw std::runtime_error("Lua execution failed: " + lua_result.error.message);
+                    fs::current_path(lua_dir);
+
+                    const auto lua_result = lua_runner.run_from_string(lua_context);
+
+                    fs::current_path(previous_cwd);
+
+                    if (!lua_result.is_success())
+                    {
+                        throw std::runtime_error("Lua execution failed: " + lua_result.error.message);
+                    }
+                }
+                catch (...)
+                {
+                    std::error_code restore_error;
+                    fs::current_path(previous_cwd, restore_error);
+                    throw;
                 }
 
                 const auto read_file = [](const fs::path &path)
@@ -244,14 +281,39 @@ namespace engine::network::api
                     return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
                 };
 
-                const std::string cpp_svg = read_file(cpp_output);
-                const std::string lua_svg = read_file(lua_output);
+                // Pick up whatever output the script produced (extension-wise).
+                // The input file is excluded so it is never returned as an output.
+                const auto find_output = [](const fs::path& dir, const std::string& extension, const std::string& exclude_name = {})
+                {
+                    fs::path best;
 
-                const fs::path cpp_graphml_path = cpp_graphml_output;
-                const fs::path lua_graphml_path = lua_graphml_output;
+                    for (const auto& entry : fs::directory_iterator(dir))
+                    {
+                        const fs::path& path = entry.path();
 
-                const std::string cpp_graphml_content = read_file(cpp_graphml_path);
-                const std::string lua_graphml_content = read_file(lua_graphml_path);
+                        if (!entry.is_regular_file() || path.extension().string() != extension || path.filename().string() == exclude_name)
+                        {
+                            continue;
+                        }
+
+                        if (best.empty() || path.string() < best.string())
+                        {
+                            best = path;
+                        }
+                    }
+
+                    if (best.empty())
+                    {
+                        throw std::runtime_error("No " + extension + " output was produced in " + dir.string());
+                    }
+
+                    return best;
+                };
+
+                const std::string cpp_svg = read_file(find_output(cpp_dir, ".svg"));
+                const std::string lua_svg = read_file(find_output(lua_dir, ".svg"));
+                const std::string cpp_graphml_content = read_file(find_output(cpp_dir, ".graphml", graphml_name.string()));
+                const std::string lua_graphml_content = read_file(find_output(lua_dir, ".graphml", graphml_name.string()));
 
                 auto response = dto::execution::SequentialResponseDto::createShared();
                 response->cpp_svg = cpp_svg.c_str();

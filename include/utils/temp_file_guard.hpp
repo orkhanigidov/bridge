@@ -2,7 +2,7 @@
  * Project: Engine
  * File: temp_file_guard.hpp
  *
- * Copyright (C) 2025 Orkhan Igidov
+ * Copyright (C) 2025-2026 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
 /**
  * @file temp_file_guard.hpp
- * @brief Declares the TempFileGuard utility for managing temporary file lifetimes.
+ * @brief Declares the TempFileGuard and TempDirectoryGuard utilities for managing temporary file and directory lifetimes.
  */
 
 #pragma once
@@ -59,6 +59,43 @@ namespace engine::utils
     private:
         /**
          * @brief Path to the temporary file.
+         */
+        std::filesystem::path path_;
+    };
+
+    /**
+     * @class TempDirectoryGuard
+     * @brief RAII guard that recursively deletes a temporary directory when it goes out of scope.
+     *
+     * Ensures the specified directory and all its contents are removed in the destructor.
+     * Errors during removal are ignored.
+     */
+    class TempDirectoryGuard final
+    {
+    public:
+        /**
+         * @brief Constructs the guard for the given directory path.
+         * @param path The path to the temporary directory.
+         */
+        explicit TempDirectoryGuard(std::filesystem::path path) : path_(std::move(path))
+        {
+        }
+
+        /**
+         * @brief Destructor. Recursively removes the directory if it exists. Errors are ignored.
+         */
+        ~TempDirectoryGuard()
+        {
+            std::error_code ec;
+            if (std::filesystem::exists(path_, ec))
+            {
+                std::filesystem::remove_all(path_, ec);
+            }
+        }
+
+    private:
+        /**
+         * @brief Path to the temporary directory.
          */
         std::filesystem::path path_;
     };

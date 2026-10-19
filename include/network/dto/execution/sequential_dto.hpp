@@ -1,6 +1,6 @@
 /**
  * Project: Engine
- * File: response_dto.hpp
+ * File: sequential_dto.hpp
  *
  * Copyright (C) 2026 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
@@ -31,7 +31,8 @@ namespace engine::network::dto::execution
      * @class SequentialRequestDto
      * @brief Data transfer object for sequential execution requests.
      *
-     * Contains the C++ and Lua code to be executed, as well as the path to the input GraphML file.
+     * Contains the C++ and Lua code to be executed, and the name and raw content of the
+     * input GraphML graph.
      */
     class SequentialRequestDto final : public oatpp::DTO
     {
@@ -40,6 +41,14 @@ namespace engine::network::dto::execution
         DTO_FIELD(oatpp::String, cpp_code);
         DTO_FIELD(oatpp::String, lua_code);
 
+        /**
+         * @brief File name for the input graph, e.g. "Cube.graphml".
+         */
+        DTO_FIELD(oatpp::String, graphml_name);
+
+        /**
+         * @brief Raw GraphML document content written to the run directory under `graphml_name`.
+         */
         DTO_FIELD(oatpp::String, graphml_file);
     };
 
