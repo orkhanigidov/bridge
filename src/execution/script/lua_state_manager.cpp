@@ -2,7 +2,7 @@
  * Project: Engine
  * File: lua_state_manager.cpp
  *
- * Copyright (C) 2025 Orkhan Igidov
+ * Copyright (C) 2025-2026 Orkhan Igidov
  * Developed as part of the master's thesis at the University of Konstanz.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,8 +15,7 @@
 
 #include "execution/script/lua_state_manager.hpp"
 
-#include <exception>
-#include <iostream>
+#include <memory>
 #include <sol/state.hpp>
 
 #include "bindings/lua/lua_binder.hpp"
@@ -24,24 +23,20 @@
 namespace engine::execution::script
 {
     /**
-     * @brief Initializes the thread-local Lua state. Opens standard libraries and registers custom bindings. Logs initialization success or failure.
-     * @param state Reference to the uniques pointer holding the Lua state.
+     * @brief Initializes the thread-local Lua state with restricted libraries and custom bindings.
+     * @return The initialized Lua state.
      */
-    void LuaStateManager::initialize_thread_state(sol::state*& state)
+    std::unique_ptr<sol::state> LuaStateManager::initialize_thread_state()
     {
-        try
-        {
-            state = new sol::state();
-            state->open_libraries(sol::lib::base, sol::lib::coroutine,
+        auto lua_state = std::make_unique<sol::state>();
+        lua_state->open_libraries(sol::lib::base, sol::lib::coroutine,
                                   sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8);
 
-            bindings::lua::LuaBinder::register_bindings(*state);
+        lua_state->globals()["load"] = sol::nil;
+        lua_state->globals()["loadfile"] = sol::nil;
+        lua_state->globals()["dofile"] = sol::nil;
 
-            std::cout << "Thread-local Lua state initialized." << std::endl;
-        } catch (const std::exception& e)
-        {
-            std::cerr << "Failed to initialize thread-local Lua state: " << e.what() << std::endl;
-            state = nullptr;
-        }
+        bindings::lua::LuaBinder::register_bindings(*lua_state);
+        return lua_state;
     }
 } // namespace engine::execution::script
