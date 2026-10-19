@@ -3,14 +3,14 @@ flags = GraphAttributes.nodeGraphics | GraphAttributes.edgeGraphics
 G = Graph()
 GA = GraphAttributes(G, flags)
 read(G, __input__)
-set_node_sizes(G, GA, 5.0)
+set_node_sizes(G, GA, _nodeSize)
 
 fmmm = FMMMLayout()
 
-fmmm:useHighLevelOptions(true)
-fmmm:unitEdgeLength(15.0)
-fmmm:newInitialPlacement(true)
-fmmm:qualityVersusSpeed(GorgeousAndEfficient)
+fmmm:useHighLevelOptions(_useHighLevelOptions)
+fmmm:unitEdgeLength(_unitEdgeLength)
+fmmm:newInitialPlacement(_newInitialPlacement)
+fmmm:qualityVersusSpeed(_qualityVersusSpeed)
 
 fmmm:call(GA)
 write(GA, __output__ .. "/lua.graphml")

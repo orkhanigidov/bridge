@@ -4,15 +4,15 @@ flags = GraphAttributes.nodeGraphics | GraphAttributes.nodeType |
 G = Graph()
 GA = GraphAttributes(G, flags)
 read(GA, G, __input__)
-scale_node_sizes(G, GA, 2)
+scale_node_sizes(G, GA, _nodeSize)
 
 pl = PlanarizationLayout()
 
 crossMin = SubgraphPlanarizer()
 ps = PlanarSubgraphFastInt()
-ps:runs(100)
+ps:runs(_nRuns)
 vei = VariableEmbeddingInserter()
-vei:removeReinsert(All)
+vei:removeReinsert(_rrOption)
 
 crossMin:setSubgraph(ps)
 crossMin:setInserter(vei)
@@ -21,8 +21,8 @@ pl:setCrossMin(crossMin)
 pl:setEmbedder(EmbedderMinDepthMaxFaceLayers())
 
 ol = OrthoLayout()
-ol:separation(20.0)
-ol:cOverhang(0.4)
+ol:separation(_separation)
+ol:cOverhang(_cOverhang)
 pl:setPlanarLayouter(ol)
 
 pl:call(GA)

@@ -11,9 +11,9 @@ sl:setRanking(OptimalRanking())
 sl:setCrossMin(MedianHeuristic())
 
 ohl = OptimalHierarchyLayout()
-ohl:layerDistance(30.0)
-ohl:nodeDistance(25.0)
-ohl:weightBalancing(0.8)
+ohl:layerDistance(_layerDistance)
+ohl:nodeDistance(_nodeDistance)
+ohl:weightBalancing(_weightBalancing)
 sl:setLayout(ohl)
 
 sl:call(GA)

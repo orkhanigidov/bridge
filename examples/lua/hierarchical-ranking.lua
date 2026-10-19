@@ -20,12 +20,12 @@ set_node_ranks(G, rank, r)
 
 sl = SugiyamaLayout()
 sl:setCrossMin(MedianHeuristic())
-sl:arrangeCCs(false)
+sl:arrangeCCs(_arrangeCCs)
 
 ohl = OptimalHierarchyLayout()
-ohl:layerDistance(30.0)
-ohl:nodeDistance(25.0)
-ohl:weightBalancing(0.7)
+ohl:layerDistance(_layerDistance)
+ohl:nodeDistance(_nodeDistance)
+ohl:weightBalancing(_weightBalancing)
 sl:setLayout(ohl)
 
 sl:call(GA, rank)
