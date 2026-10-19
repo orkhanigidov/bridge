@@ -32,7 +32,7 @@ namespace engine::execution::script
         try
         {
             state = new sol::state();
-            state->open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine,
+            state->open_libraries(sol::lib::base, sol::lib::coroutine,
                                   sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8);
 
             bindings::lua::LuaBinder::register_bindings(*state);
