@@ -90,14 +90,24 @@ namespace engine::network::api
         {
             info->summary = "Check service health status";
             info->addResponse<Object<dto::MessageDto>>(Status::CODE_200, "application/json");
+            info->addResponse<Object<dto::MessageDto>>(Status::CODE_401, "application/json", "Unauthorized");
         }
 
         /**
-         * @brief Health check endpoint.
-         * @return 200 OK with a status message.
+         * @brief Health check endpoint. Requires the API secret so the frontend
+         * can verify both connectivity and authorization in one call.
+         * @return 200 OK with a status message, or 401 if the secret is missing or invalid.
          */
-        ENDPOINT("GET", "/api/health", health)
+        ENDPOINT("GET", "/api/health", health, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
         {
+            if (!verify_api_secret(http_request, "health"))
+            {
+                const auto error = dto::MessageDto::createShared();
+                error->status_code = 401;
+                error->message = "Unauthorized - missing or invalid API secret";
+                return createDtoResponse(Status::CODE_401, error);
+            }
+
             const auto response = dto::MessageDto::createShared();
             response->status_code = 200;
             response->message = "OK";
