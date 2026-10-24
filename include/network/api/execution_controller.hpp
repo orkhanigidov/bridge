@@ -100,13 +100,14 @@ namespace engine::network::api
          */
         ENDPOINT("GET", "/api/health", health, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
         {
-            if (!verify_api_secret(http_request, "health"))
-            {
-                const auto error = dto::MessageDto::createShared();
-                error->status_code = 401;
-                error->message = "Unauthorized - missing or invalid API secret";
-                return createDtoResponse(Status::CODE_401, error);
-            }
+            // TODO: Enable API secret verification when needed
+            // if (!verify_api_secret(http_request, "health"))
+            // {
+            //     const auto error = dto::MessageDto::createShared();
+            //     error->status_code = 401;
+            //     error->message = "Unauthorized - missing or invalid API secret";
+            //     return createDtoResponse(Status::CODE_401, error);
+            // }
 
             const auto response = dto::MessageDto::createShared();
             response->status_code = 200;
@@ -126,13 +127,14 @@ namespace engine::network::api
 
         ENDPOINT("POST", "/api/execute_sequential", execute_sequential, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::SequentialRequestDto>, request))
         {
-            if (!verify_api_secret(http_request, "execute_sequential"))
-            {
-                const auto error = dto::MessageDto::createShared();
-                error->status_code = 401;
-                error->message = "Unauthorized - missing or invalid API secret";
-                return createDtoResponse(Status::CODE_401, error);
-            }
+            // TODO: Enable API secret verification when needed
+            // if (!verify_api_secret(http_request, "execute_sequential"))
+            // {
+            //     const auto error = dto::MessageDto::createShared();
+            //     error->status_code = 401;
+            //     error->message = "Unauthorized - missing or invalid API secret";
+            //     return createDtoResponse(Status::CODE_401, error);
+            // }
 
             if (!request || !request->cpp_code || !request->lua_code || !request->graphml_name || !request->graphml_file)
             {
@@ -363,13 +365,14 @@ namespace engine::network::api
          */
         ENDPOINT("POST", "/api/execute_script", execution, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::RequestDto>, request))
         {
-            if (!verify_api_secret(http_request, "execute_script"))
-            {
-                const auto error = dto::MessageDto::createShared();
-                error->status_code = 401;
-                error->message = "Unauthorized - missing or invalid API secret";
-                return createDtoResponse(Status::CODE_401, error);
-            }
+            // TODO: Enable API secret verification when needed
+            // if (!verify_api_secret(http_request, "execute_script"))
+            // {
+            //     const auto error = dto::MessageDto::createShared();
+            //     error->status_code = 401;
+            //     error->message = "Unauthorized - missing or invalid API secret";
+            //     return createDtoResponse(Status::CODE_401, error);
+            // }
 
             if (!request)
             {
