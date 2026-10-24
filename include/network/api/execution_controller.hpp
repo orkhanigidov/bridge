@@ -98,7 +98,7 @@ namespace engine::network::api
          * can verify both connectivity and authorization in one call.
          * @return 200 OK with a status message, or 401 if the secret is missing or invalid.
          */
-        ENDPOINT("GET", "/api/health", health, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
+        ENDPOINT("GET", "/api/v1/health", health, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request))
         {
             // TODO: Enable API secret verification when needed
             // if (!verify_api_secret(http_request, "health"))
@@ -125,7 +125,7 @@ namespace engine::network::api
             info->addResponse<Object<dto::MessageDto>>(Status::CODE_500, "application/json", "Execution failed");
         }
 
-        ENDPOINT("POST", "/api/execute_sequential", execute_sequential, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::SequentialRequestDto>, request))
+        ENDPOINT("POST", "/api/v1/execute_sequential", execute_sequential, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::SequentialRequestDto>, request))
         {
             // TODO: Enable API secret verification when needed
             // if (!verify_api_secret(http_request, "execute_sequential"))
@@ -363,7 +363,7 @@ namespace engine::network::api
          * @param request The execution request DTO.
          * @return 200 OK with an execution result, 400 for invalid request, 401 for unauthorized requests, or 500 for errors.
          */
-        ENDPOINT("POST", "/api/execute_script", execution, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::RequestDto>, request))
+        ENDPOINT("POST", "/api/v1/execute_script", execution, REQUEST(std::shared_ptr<oatpp::web::protocol::http::incoming::Request>, http_request), BODY_DTO(Object<dto::execution::RequestDto>, request))
         {
             // TODO: Enable API secret verification when needed
             // if (!verify_api_secret(http_request, "execute_script"))
