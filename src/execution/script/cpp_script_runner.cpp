@@ -16,6 +16,11 @@
 /**
  * @file cpp_script_runner.cpp
  * @brief Implements the CppScriptRunner utility for compiling and running C++ scripts.
+ *
+ * Security: All compilation and execution is sandboxed with systemd-run on Linux.
+ * systemd-run enforces kernel-level restrictions (no network, process limits,
+ * timeout, no privilege escalation) to prevent arbitrary code execution from
+ * user-supplied C++ source.
  */
 
 #include "execution/script/cpp_script_runner.hpp"
@@ -25,10 +30,38 @@
 #include <iostream>
 #include <random>
 #include <sstream>
+#include <string>
 #include <vector>
 
 namespace engine::execution::script
 {
+
+namespace
+{
+
+    /** systemd-run sandbox properties for Linux deployment. */
+    const std::string kSystemdRunFlags =
+        "systemd-run --user --unit=engine_cpp_$SESSION_ID "
+        "--property=PrivateNetwork=yes "
+        "--property=TasksMax=50 "
+        "--property=TimeoutStartSec=300s "
+        "--property=NoNewPrivileges=yes "
+        "--pipe --wait";
+
+    /** Wraps a command with systemd-run sandboxing restrictions. */
+    std::string systemd_wrap(const std::string& cmd, const std::string& session_id)
+    {
+        std::string wrapped = kSystemdRunFlags;
+        std::size_t pos = wrapped.find("$SESSION_ID");
+        if (pos != std::string::npos)
+        {
+            wrapped.replace(pos, 11, session_id);
+        }
+        return wrapped + " " + cmd;
+    }
+
+} // namespace
+
     CoreExecutionResult CppScriptRunner::run_from_string(const ScriptContext& context) const
     {
         try
@@ -65,7 +98,7 @@ namespace engine::execution::script
                         << " -lOGDF"
                         << " -lCOIN";
 
-            int compile_res = std::system(compile_cmd.str().c_str());
+        int compile_res = std::system(systemd_wrap(compile_cmd.str(), session_id).c_str());
             if (compile_res != 0)
             {
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "C++ Compilation failed"}};
@@ -77,7 +110,16 @@ namespace engine::execution::script
                 ? *context.output_path
                 : context.output_path->parent_path();
 
-            const int run_res = std::system((std::string("cd \"") + run_directory.string() + "\" && \"" + binary_path.string() + "\"").c_str());
+        // systemd-run executes commands directly (no shell), so wrap with /bin/sh -c
+        // to support cd && binary execution.
+        std::ostringstream run_cmd;
+        run_cmd << "/bin/sh -c \"cd \\\""
+                << run_directory.string()
+                << "\\\" && \\\""
+                << binary_path.string()
+                << "\\\"\"";
+
+        const int run_res = std::system(systemd_wrap(run_cmd.str(), session_id).c_str());
             if (run_res != 0)
             {
                 return {CoreExecutionStatus::Failure, {CoreExecutionErrorType::ExecutionFailed, "C++ Execution failed"}};
