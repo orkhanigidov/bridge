@@ -167,6 +167,30 @@ namespace engine::network::api
                     return createDtoResponse(Status::CODE_400, error);
                 }
 
+                if (graphml_content.find("<node") == std::string::npos)
+                {
+                    const auto error = dto::MessageDto::createShared();
+                    error->status_code = 400;
+                    error->message = "graphml_file must contain at least one <node> element";
+                    return createDtoResponse(Status::CODE_400, error);
+                }
+
+                std::size_t node_count = 0;
+                std::size_t pos = 0;
+                while ((pos = graphml_content.find("<node", pos)) != std::string::npos)
+                {
+                    ++node_count;
+                    pos += 5;
+                }
+
+                if (node_count > 1000)
+                {
+                    const auto error = dto::MessageDto::createShared();
+                    error->status_code = 400;
+                    error->message = "graphml_file must contain fewer than 1000 <node> elements";
+                    return createDtoResponse(Status::CODE_400, error);
+                }
+
                 const fs::path temp_root = fs::absolute("temp");
                 fs::create_directories(temp_root);
 
